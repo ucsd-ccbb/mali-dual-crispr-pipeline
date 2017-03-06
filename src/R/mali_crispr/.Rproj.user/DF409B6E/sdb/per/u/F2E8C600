@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "setwd(\"/Users/Birmingham/Desktop/Intro-Data-Viz-Winter-2017-master/week-3\")\nhousing <- read.csv(\"landdata-states.csv\")\nhead(housing[1:5])\nlibrary(ggplot2)\nhp2001Q1 <- subset(housing, Date == 2001.25) \nggplot(hp2001Q1,\n       aes(y = Structure.Cost, x = Land.Value)) +\n  geom_point()\n\n\ndat <- read.csv(\"EconomistData.csv\")\nhead(dat)\nggplot(dat, aes(y=HDI, x=CPI)) + geom_point()\nggplot(dat, aes(y=HDI, x=CPI)) + geom_point(color=\"blue\")\nggplot(dat, aes(y=HDI, x=CPI)) + geom_point(aes(color=Region))\nggplot(dat, aes(y=CPI, x=Region)) + geom_boxplot()\np1 = ggplot(dat, aes(y=CPI, x=Region)) + geom_boxplot() + geom_point()\nprint(p1)\n",
+    "created" : 1485467052981.000,
+    "dirty" : true,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "3872372388",
+    "id" : "F2E8C600",
+    "lastKnownWriteTime" : 7598244781000491014,
+    "last_content_update" : 1485470448570,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

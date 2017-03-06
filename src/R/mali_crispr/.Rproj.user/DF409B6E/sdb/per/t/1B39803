@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "install.packages(\"testthat\")\nlibrary('testthat')\n\nsource('sample.R')\n\ntest_dir('tests', reporter = 'Summary')\n",
+    "created" : 1472597267933.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2555625312",
+    "id" : "1B39803",
+    "lastKnownWriteTime" : 1472599443,
+    "last_content_update" : 1472599443211,
+    "path" : "~/Work/Repositories/ccbb_tickets/20161100_mali_crispr_software/src/R/mali_crispr/run_sample_tests.R",
+    "project_path" : "run_sample_tests.R",
+    "properties" : {
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
