@@ -85,7 +85,7 @@ output = scoreDualCrisprScreen(input_filename, niter, time, project, ab0)
 setwd(gMainWd)
 
 # test the code output against expectations
-gOutputBad1 = output$bad1
-gOutputBad2 = output$bad2
+gOutputBad1 = output$rep1LtTwoTimeptsAboveAbundanceThresholdMask
+gOutputBad2 = output$rep2LtTwoTimeptsAboveAbundanceThresholdMask
 gIrlsLogStrings = output$irlsLogStrings
 test_dir(getTestsDir(), reporter = 'Summary')
