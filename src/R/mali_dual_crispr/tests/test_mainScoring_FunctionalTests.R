@@ -6,15 +6,16 @@ test_that("scoring produces expected files with expected values on A549_CV4_3-14
   # not testing pdf file, as hard to compare ...
   
   # Test the output files
-  test_dfs_from_files_match(gMainWd, f_fp)
-  test_dfs_from_files_match(gMainWd, fc_fp)  
-  test_dfs_from_files_match(gMainWd, p_fp)
-  test_dfs_from_files_match(gMainWd, pi_fp)
+  test_dfs_from_files_match(f_fp)
+  test_dfs_from_files_match(fc_fp)  
+  test_dfs_from_files_match(p_fp)
+  test_dfs_from_files_match(pi_fp)
 })
 
 test_that("scoring produces expected output text with expected values on A549_CV4_3-14-21-28 test data", {
   # Test the intermediate output values: known-good values are from notebook run
-  expect_that(c(1013, 837), equals(gOutputBad1Bad2))  
+  expect_that(1013, equals(sum(gOutputBad1)))
+  expect_that(837, equals(sum(gOutputBad2)))
   
   # expected output from (seeded) least-squared fitting
   expected_rls_output = "1 0.3567908 0.02872182 
@@ -70,5 +71,5 @@ test_that("scoring produces expected output text with expected values on A549_CV
   outputIrlsLogStrings = paste(gIrlsLogStrings, collapse = '\n')
   expect_that(expected_rls_output, equals(outputIrlsLogStrings))  
   
-  expect_that(267, equals(gSumBad1Bad2))  
+  expect_that(267, equals(sum(gOutputBad1 & gOutputBad2)))  
 })
