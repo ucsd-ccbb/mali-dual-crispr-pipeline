@@ -17,7 +17,22 @@ writeConstructFitnessesFile<-function(pA_pB, fc, sdfc){
   write.table(resp,file=paste(project,"_fc.txt",sep=""),sep="\t",row.names=FALSE,quote=FALSE)  
 }
 
-writePosteriorProbabilityFile<-function(pi_mean, pi_sd, pi_iter_null, g1names, g2names, ggnames, uutri, f, fdr_left,fdr_right){
+writePosteriorProbabilityFile<-function(n, genes, pi_mean, pi_sd, pi_iter_null, uutri, f, fdr_left,fdr_right){
+  # So ... we're building 3 matrices of n genes by n genes.
+  # Again, here 1 & 2 hardcoding acceptable as means 1st and 2nd of DUAL crispr construct
+  g1names<-matrix("",ncol=n,nrow=n) # n = number of genes
+  g2names<-matrix("",ncol=n,nrow=n)
+  ggnames<-matrix("",ncol=n,nrow=n)
+  for (i in 1:(n-1)) {
+    for (j in (i+1):n) {
+      g1names[i,j]<-genes[i]
+      g2names[i,j]<-genes[j]
+      # TODO: Separator should be set in params rather than hardcoded
+      ggnames[i,j]<-paste(genes[i],"_",genes[j],sep="")
+      ggnames[j,i]<-ggnames[i,j]
+    }
+  }  
+  
   z<-pi_mean/sd(pi_mean)
   
   #pi_iter_null<-pi_iter-pi_mean

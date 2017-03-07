@@ -348,3 +348,89 @@ calcFdrsLeftAndRight<-function(pi_mean, pi_null){
 # so ... this value is assigned here but then never used in anything that comes after it; commenting it out to see if anything breaks :)
 # good<-!bad1 & !bad2
 
+prepData=function(input_filename, nt){
+  X<-read.table(input_filename,sep="\t",header=TRUE)
+  #preliminary preparations of the input data frame
+  # TODO: ok, the 5 & 6 are definitely hardcoding for #s of expected info columns--perhaps not a problem.
+  # TODO: the 2 seems like it is probably hardcoding for # of replicates, and thus a problem
+  data<-data.matrix(X[,6:(5+2*nt)])
+  # TODO: geneA and geneB are hardcodings for info column names; undesirable.
+  # TODO: however, assuming that there will be two genes (and two probes) per construct is acceptable
+  # since this is a DUAL crispr pipeline.
+  good<-(X$geneA != X$geneB) #reject any constructs with two 0's
+  goodX<-X[good,] #the 0-0 constructs are gone
+  nn<-sum(good) #this many constructs
+  
+  cpA<-as.character(goodX$probeA)
+  # TODO: "Nontargeting" (throughout) is hardcoding for ntc prefix; should be refactored
+  ix<-grep("NonTargeting",cpA)
+  cpA[ix]<-paste("0",cpA[ix],sep="") #this puts NonTargeting probes at the beginning of alphabetically sorted order
+  
+  cpB<-as.character(goodX$probeB)
+  ix<-grep("NonTargeting",cpB)
+  cpB[ix]<-paste("0",cpB[ix],sep="")
+  
+  pswitch<-cpA>cpB #need to switch?
+  phold<-cpA[pswitch]
+  cpA[pswitch]<-cpB[pswitch]
+  cpB[pswitch]<-phold #cpA and cpB are always in alphabetical order, cpA < cpB
+  probes<-sort(unique(c(cpA,cpB))) #entire probe set in alphabetical order
+  nprobes<-length(probes)
+  
+  
+  cgA<-as.character(goodX$geneA)
+  cgB<-as.character(goodX$geneB)
+  genes<-sort(unique(cgA)) #should be 74 "genes"
+  n<-length(genes) # n = 74 if doing it by genes or 222 if doing it by probe # number of genes
+  mm<-n*(n-1)/2
+  
+  gswitch<-cgA>cgB #need to switch?
+  ghold<-cgA[gswitch]
+  cgA[gswitch]<-cgB[gswitch]
+  cgB[gswitch]<-ghold
+  
+  # TODO: probably separator should be specified in set-up rather than hardcoded
+  gA_gB<-paste(cgA,cgB,sep="_")
+  pA_pB<-paste(cpA,cpB,sep="_")
+  goodX<-data.frame(goodX,cgA,cgB,gA_gB) #now gA_gB is ordered so that gA < gB
+  
+  # TODO: def refactor here, as above
+  gooddata<-data.matrix(goodX[,6:(5+2*nt)])
+  # TODO: are we ok with hardcoding what the pseudocount will be?  Maybe should set in params.
+  gooddata[gooddata==0]<-1 #pseudocounts
+  abundance<-apply(gooddata,2,sum)
+  y<-t(log2(t(gooddata)/abundance)) #log2 frequencies
+  #end data prep 
+  
+  return(list(nn=nn, probes=probes, nprobes=nprobes, genes=genes, n=n, pA_pB=pA_pB, y=y))  
+}
+
+getXsAbsAndBads=function(y, nt, ab0) {
+  # for replicate 1
+  # "2"s here and line below look like replicate hardcoding; refactor
+  
+  # Ok, so this is getting the log2 frequencies for the 1st replicate of all timepts
+  x1<-y[,seq(1,2*nt,by=2)]
+  # This is getting the abundance thresholds for all of these 1st replicates
+  ab1<-ab0[seq(1,2*nt,by=2)]
+  # TODO: 1st "2" here is ok (designates row vs col) ... but what is source of second?
+  bad1<-apply(t(x1)>ab1,2,sum)<2
+  
+  # for replicate 2
+  # "2"s here and line below look like replicate hardcoding; refactor
+  # Ok, so this is getting the log2 frequencies for the 2nd replicate of all timepts
+  x2<-y[,seq(2,2*nt,by=2)]
+  # This is getting the abundance thresholds for all of these 2nd replicates
+  ab2<-ab0[seq(2,2*nt,by=2)]
+  # TODO: 1st "2" here is ok (designates row vs col); 2nd doesn't mean replicates but 
+  # represents arbitrary(?) decision that a construct is bad if it isn't over the relevant
+  # abundance threshold in at least two timepoints.  Could one reasonably choose a 
+  # different value?  If so, should refactor to set in params.
+  
+  # 2 in apply call params means "sum over columns".  Because of t call, x2 has been 
+  # transposed so t(x2) has timept as rows and constructs as columns.
+  # We're calling "bad" any construct that doesn't have log2 frequency values above the timepoint-specific
+  # abundance threshold for at least two timepoints
+  bad2<-apply(t(x2)>ab2,2,sum)<2
+  return(list(x1=x1, ab1=ab1, bad1=bad1, x2=x2, ab2=ab2, bad2=bad2))
+}

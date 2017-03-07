@@ -178,3 +178,16 @@ plotSingleGeneFitnesses<-function(f, genes){
   # TODO: Do I need to worry about these 2s?
   text(f[-1],f[-1],cex=0.6,labels=genes[-1],pos=((rank(f[-1]) %% 2)+1)*2,offset=0.2)
 }
+
+plotRandomVsRealPosteriorProbs<-function(nn, fc, pp_fc){
+  # nn = number of *good* constructs
+  # r = nn random numbers pulled from a uniform distribution with (default) min of 0 and max of 1 
+  set.seed(1) # TODO: remove after testing.  
+  r<-runif(nn) #TODO: need to seed this to make it deterministic for testing
+  fr<-fc[r<pp_fc] # errr ... fc for all the constructs where the random ... posterior probability? ... is less than the actual calculated posterior probability for this construct?
+  # thus, fr is the distribution of fcs for constructs whose true pp of happening is greater than their random pp of happening--roughly, fcs of constructs whose fc values are more likely than chance
+  rge<-range(fc) # range of fcs across all constructs
+  
+  # TODO: what determines the 0.001 for the break sequence?  Need to set in params?
+  plotOverlappingHist(fc[!allbad],fr,breaks=seq(rge[1]-.001,rge[2]+0.001,by=0.001),xlab=expression(f["c"]),ylab="Frequency")
+}
