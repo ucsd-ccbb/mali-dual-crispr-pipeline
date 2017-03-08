@@ -1,7 +1,7 @@
 scoreDualCrisprScreen <-
   function(preppedCountsFp, numRobustFittingIterations, timepointsList, outputFilesPrefix, abundanceThresholdsPerSample) {
-    numTimepoints <-
-      length(timepointsList) #numTimepoints >= 2 # number of timepoints
+    # TODO: add validation: length of timepointsList must be >= 2
+    numTimepoints = length(timepointsList) 
     
     # TODO: Determine if still need to do data prep in R or if all needed is covered by what I put in scoring prep output file :)
     tempPrepDataOutput = prepData(preppedCountsFp, numTimepoints)
