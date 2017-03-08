@@ -74,14 +74,14 @@ source('mainScoring.R')
 # set up input parameters
 input_filename = getKnownInputsFp("A549_CV4_counts_w_everything.txt")
 niter = 2 # this value would be 1000 in a real run, but is as small as possible here to enable fast testing
-time = c(3, 14, 20, 28)
+timepointsList = c(3, 14, 20, 28)
 project = "A549_CV4_3-14-21-28_NA_combined_simple-null-w-lfdr"
 ab0 <-
   c(-19. , -18.5, -18.5, -19. , -19. , -19. , -19. , -19.) # abundance threshold choices
 
 # run scoring, putting all outputs into the test outputs directory
 setwd(getTestOutputsFp(""))
-output = scoreDualCrisprScreen(input_filename, niter, time, project, ab0)
+output = scoreDualCrisprScreen(input_filename, niter, timepointsList, project, ab0)
 setwd(gMainWd)
 
 # test the code output against expectations

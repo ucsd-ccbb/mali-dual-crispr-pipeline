@@ -8,7 +8,63 @@ Cov <- function(x, y)
 sqrtsum <- function(y)
   sqrt(sum(y ^ 2))
 
-temp1 <- function(x1, ab1, x2, ab2, nt, nx){
+temp4 <- function(i, timepointsList, good1, x1, good2, x2){
+  ac1 <- x1[i, 1]
+  ac2 <- x2[i, 1] #just a guess
+  fc <- 0 # nx = number of constructs  
+  
+  # apparently "f" stands for fitness--which is covariance (see below)--and # stands for replicate
+  # v stands for variance and # " "
+  f1 <- 0
+  f2 <- 0
+  v1 <- 0
+  v2 <- 0
+  
+  # g1 = true/false values of whether construct i passes various abundance filters for all timepoints for the first replicate
+  g1 <- good1[i,]     
+  if (sum(g1) > 1) {
+    #it's a good experiment # if there are at least two good timepoints for this construct in replicate 1
+    
+    # get the mean of the log2 frequencies for all the good timepoints for this construct in replicate 1
+    # timepointsList is GLOBAL vector of timepoints (numbers, usually in days, in ascending order)
+    mx1 <- mean(x1[i, g1]) 
+    # get mean of timepoints (e.g. mean number of days) for all the good timepoints for this construct in replicate 1
+    mt1 <- mean(timepointsList[g1])       
+    v1 <- Var(timepointsList[g1]) # get variance of timepoints " "
+    # f1 = covariance of log2 frequencies for all the good timepoints for this construct in replicate 1 with the timepoints for those good timepoints
+    f1 <- Cov(x1[i, g1], timepointsList[g1])
+  }
+  
+  # do the exact same thing as above, but for replicate 2
+  g2 <- good2[i,]
+  if (sum(g2) > 1) {
+    #it's a good experiment
+    mx2 <- mean(x2[i, g2])
+    mt2 <- mean(timepointsList[g2])
+    v2 <- Var(timepointsList[g2])
+    f2 <- Cov(x2[i, g2], timepointsList[g2])
+  }
+  
+  # fc[i] is the combined fitness (across replicates) for construct i .
+  #the combined fitness from replicate 1+2
+  #fc remains defined up to an additive constant
+  fc <- (f1 + f2) / (v1 + v2) 
+  
+  if (sum(g1) > 1) {
+    # if there are at least two good timepoints for this construct in replicate 1
+    # ac1 = mean of log2 freqs for this construct for good timepoints for rep 1 - (mean of timepts for good timepoints for this construct for rep 1)*combined fitness across replicates for this construct
+    ac1 <- mx1 - fc * mt1
+  }
+  
+  # same as above but for replicate 2
+  if (sum(g2) > 1) {
+    ac2 <- mx2 - fc * mt2
+  }  
+  
+  return(list(fc = fc, ac1 = ac1, ac2 = ac2))
+}
+
+temp1 <- function(x1, ab1, x2, ab2, nt, nx, timepointsList){
   # Prediction: useless1 and useless2 here should have the same values as bad1 and bad2 in the
   # Number of Constructs Below Abundance Threshold section ... boxed code seems to calc same result
   # as code in that section, but by slightly diff (but equivalent) means
@@ -54,53 +110,10 @@ temp1 <- function(x1, ab1, x2, ab2, nt, nx){
     if (allbad[i])
       next #from now on there is at least one good experiment
     
-    # apparently "f" stands for fitness--which is covariance (see below)--and # stands for replicate
-    # v stands for variance and # " "
-    f1 <- 0
-    f2 <- 0
-    v1 <- 0
-    v2 <- 0
- 
-    # g1 = true/false values of whether construct i passes various abundance filters for all timepoints for the first replicate
-    g1 <- good1[i,]     
-    if (sum(g1) > 1) {
-      #it's a good experiment # if there are at least two good timepoints for this construct in replicate 1
-      
-      # get the mean of the log2 frequencies for all the good timepoints for this construct in replicate 1
-      # time is GLOBAL vector of timepoints (numbers, usually in days, in ascending order)
-      mx1 <- mean(x1[i, g1]) 
-      # get mean of timepoints (e.g. mean number of days) for all the good timepoints for this construct in replicate 1
-      mt1 <- mean(time[g1])       
-      v1 <- Var(time[g1]) # get variance of timepoints " "
-      # f1 = covariance of log2 frequencies for all the good timepoints for this construct in replicate 1 with the timepoints for those good timepoints
-      f1 <- Cov(x1[i, g1], time[g1])
-      }
-    
-    # do the exact same thing as above, but for replicate 2
-    g2 <- good2[i,]
-    if (sum(g2) > 1) {
-      #it's a good experiment
-      mx2 <- mean(x2[i, g2])
-      mt2 <- mean(time[g2])
-      v2 <- Var(time[g2])
-      f2 <- Cov(x2[i, g2], time[g2])
-    }
-    
-    # fc[i] is the combined fitness (across replicates) for construct i .
-    #the combined fitness from replicate 1+2
-    #fc remains defined up to an additive constant
-    fc[i] <- (f1 + f2) / (v1 + v2) 
-    
-    if (sum(g1) > 1) {
-      # if there are at least two good timepoints for this construct in replicate 1
-      # ac1 = mean of log2 freqs for this construct for good timepoints for rep 1 - (mean of timepts for good timepoints for this construct for rep 1)*combined fitness across replicates for this construct
-      ac1[i] <- mx1 - fc[i] * mt1
-    }
-    
-    # same as above but for replicate 2
-    if (sum(g2) > 1) {
-      ac2[i] <- mx2 - fc[i] * mt2
-    }
+    temp4Results = temp4(i, timepointsList, good1, x1, good2, x2)
+    ac1[i] = temp4Results$ac1
+    ac2[i] = temp4Results$ac2
+    fc[i] = temp4Results$fc
   }  
   
   # ac is the initial condition (in log2 frequency) for construct c
@@ -157,122 +170,129 @@ temp2 <- function(nx, has_sd, fc, df, sdfc) {
   return(list(p_t = p_t, lfdr_fc = lfdr_fc))
 }
 
+temp3 <- function(nt, timepointsList, ac1, ac2, fc, x1, x2, nx, allbad, good1, good2) {
+  # ok, the *expected* log2 frequency for construct x at time t is:
+  # xc(t) = ac + fc*t - log2(sum over c of 2^(ac + fc*t))
+  # apparently the below code calls the term starting with "-log2" "lambda".
+  # Note that lambda is being calculated separately for each combination of timepoint+replicate
+  
+  # nt = number of timepoints
+  lambda1 <- rep(0, nt)
+  lambda2 <- rep(0, nt)
+  
+  # for 1 to number of timepoints
+  for (i in 1:nt) {
+    lambda1[i] <- -log2(sum(2 ^ (ac1 + fc * timepointsList[i])))
+    lambda2[i] <- -log2(sum(2 ^ (ac2 + fc * timepointsList[i])))
+  } #these are initial estimates of lambda(t)
+  
+  # x1 is log2 frequencies for the 1st replicate of all timepts
+  #for size # I think this means that xfitX is being set to xX not because we're using *any* of the
+  # xX values but just to initialize xfitX to the desired size (which is the same as the size of xX)
+  xfit1 <- x1
+  
+  # for 1 to number of timepoints
+  for (j in 1:nt) {
+    # the expected value of xc(t) at this timepoint t, calculated as a column for all constructs c
+    xfit1[, j] <- ac1 + fc * timepointsList[j] + lambda1[j]
+  }
+  
+  # same as above but for replicate 2
+  xfit2 <- x2 #for size
+  for (j in 1:nt) {
+    xfit2[, j] <- ac2 + fc * timepointsList[j] + lambda2[j]
+  }
+  
+  sdfc <- rep(0.1, nx) #standard error of fc
+  # df = vector w one entry for each construct, with value from 0 to -2; 0 if both replicates of relevant construct are good, -1 if just one is, -2 if neither are.  Inits to 0 for all
+  df <- rep(0, nx)     
+  
+  # for 1 to number of constructs
+  for (i in 1:nx) {
+    # if this construct doesn't have enough "good" measurements, skip it
+    if (allbad[i])
+      next
+    
+    # g1 = true/false values of whether construct i passes various abundance filters for all timepoints for the first replicate
+    g1 <- good1[i,]       
+    g2 <- good2[i,]
+    
+    # df = vector w one entry for each construct, with value from 0 to -2; 0 if both replicates of relevant construct are good, -1 if just one is, -2 if neither are
+    # I suspect that "df" is "degrees of freedom" for each construct
+    df[i] <- sum(g1) + sum(g2) - 2
+    
+    # sqrtsum<-function(y) sqrt(sum(y^2))
+    # outside of this function, this sdfc value is used only in the output of the construct file
+    # I think that sdfc is "standard deviation of fc" for each construct.
+    
+    # So: while I don't claim to understand why, I know that Roman says:
+    # std err of fc = sqrt of sum over t of (lower-case-epsilon for construct c, as a function of t)^2
+    # divided by sqrt of (nc - 2)*sum over t of (t^2 - (mean of t)^2)
+    # Note that lower-case-epsilon is Xc(t) - xc(t) = xX - xfitX
+    # so xfitX - xX = - lower-case-epsilon ... but since it is being squared and then square-rooted, I
+    # suppose the negation doesn't matter.
+    # nc - 2 is the number of degrees of freedom
+    # where nc = number of data points = 2*nt minus any number of points below the threshold
+    # (note the description above seems to assume 2 replicates) ... seems to me this must mean
+    # number of data points *for this construct c*, not total.
+    # nt in above is number of timepoints, as here ...
+    # Roman also says that tc [i.e., the t statistic for construct c] = fc /SE(fc)
+    # and the internet tells me that SE(x) = SD(x)/sqrt(n) ... but maybe the sqrt(n) is just the most usual
+    # sqrt of degrees of freedom, and could be something else in a more complex system.
+    # So, the value being calculated directly below is SD(x), which is why it doesn't have the
+    # nc - 2 term that is in the denominator of the SE(x) calculation (in the manuscript, Roman says that
+    # fc's sd = sqrt(nc-2)*SE(fc), where nc-2 = degrees of freedom.  Farther below, after the calculation
+    # of sdfc, we get the calculation of tc, which is fc/(sdfc/sqrt(df)), where the sdfc/sqrt(df) term
+    # is the calculation of SE(fc).
+    
+    # result is vector with one std dev of fc for each construct
+    sdfc[i] <-
+      sqrtsum(c(xfit1[i, g1], xfit2[i, g2]) - c(x1[i, g1], x2[i, g2])) /
+      sqrtsum(c(timepointsList[g1], timepointsList[g2]) - mean(c(timepointsList[g1], timepointsList[g2])))
+    
+  }
+  #find median sd
+  has_sd <- df > 0
+  median_sd <- median(sdfc[has_sd])
+  sdfc[!has_sd] <- median_sd #just so it isn't 0
+  
+  return(list(df = df, has_sd = has_sd, sdfc = sdfc))
+}
+
 # x1 is log2 frequencies for the 1st replicate of all timepts
 # x2 is log2 frequencies for the 2nd replicate of all timepts
 # ab1 is abundance thresholds for all 1st replicates
 # ab2 is abundance thresholds for all 2nd replicates
-fit_ac_fc <- function(x1, ab1, x2, ab2, nt) {
-    nx <- nrow(x1)
-    
-    tempResult = temp1(x1, ab1, x2, ab2, nt, nx)
-    ac1 = tempResult$ac1
-    ac2 = tempResult$ac2
-    fc = tempResult$fc
-    allbad = tempResult$allbad
-    good1 = tempResult$good1
-    good2 = tempResult$good2
+fit_ac_fc <- function(x1, ab1, x2, ab2, nt, timepointsList) {
+  nx <- nrow(x1)
+  
+  tempResult = temp1(x1, ab1, x2, ab2, nt, nx, timepointsList)
+  ac1 = tempResult$ac1
+  ac2 = tempResult$ac2
+  fc = tempResult$fc
+  allbad = tempResult$allbad
+  good1 = tempResult$good1
+  good2 = tempResult$good2
 
-    # ok, the *expected* log2 frequency for construct x at time t is:
-    # xc(t) = ac + fc*t - log2(sum over c of 2^(ac + fc*t))
-    # apparently the below code calls the term starting with "-log2" "lambda".
-    # Note that lambda is being calculated separately for each combination of timepoint+replicate
-    
-    # nt = number of timepoints
-    lambda1 <- rep(0, nt)
-    lambda2 <- rep(0, nt)
-    
-    # for 1 to number of timepoints
-    for (i in 1:nt) {
-      lambda1[i] <- -log2(sum(2 ^ (ac1 + fc * time[i])))
-      lambda2[i] <- -log2(sum(2 ^ (ac2 + fc * time[i])))
-    } #these are initial estimates of lambda(t)
-    
-    # x1 is log2 frequencies for the 1st replicate of all timepts
-    #for size # I think this means that xfitX is being set to xX not because we're using *any* of the
-    # xX values but just to initialize xfitX to the desired size (which is the same as the size of xX)
-    xfit1 <- x1
-    
-    # for 1 to number of timepoints
-    for (j in 1:nt) {
-      # the expected value of xc(t) at this timepoint t, calculated as a column for all constructs c
-      xfit1[, j] <- ac1 + fc * time[j] + lambda1[j]
-    }
-    
-    # same as above but for replicate 2
-    xfit2 <- x2 #for size
-    for (j in 1:nt) {
-      xfit2[, j] <- ac2 + fc * time[j] + lambda2[j]
-    }
-    
-    
-    sdfc <- rep(0.1, nx) #standard error of fc
-    # df = vector w one entry for each construct, with value from 0 to -2; 0 if both replicates of relevant construct are good, -1 if just one is, -2 if neither are.  Inits to 0 for all
-    df <- rep(0, nx)     
-
-    
-    # for 1 to number of constructs
-    for (i in 1:nx) {
-      # if this construct doesn't have enough "good" measurements, skip it
-      if (allbad[i])
-        next
-      
-      # g1 = true/false values of whether construct i passes various abundance filters for all timepoints for the first replicate
-      g1 <- good1[i,]       
-      g2 <- good2[i,]
-      
-      # df = vector w one entry for each construct, with value from 0 to -2; 0 if both replicates of relevant construct are good, -1 if just one is, -2 if neither are
-      # I suspect that "df" is "degrees of freedom" for each construct
-      df[i] <- sum(g1) + sum(g2) - 2
-      
-      # sqrtsum<-function(y) sqrt(sum(y^2))
-      # outside of this function, this sdfc value is used only in the output of the construct file
-      # I think that sdfc is "standard deviation of fc" for each construct.
-      
-      # So: while I don't claim to understand why, I know that Roman says:
-      # std err of fc = sqrt of sum over t of (lower-case-epsilon for construct c, as a function of t)^2
-      # divided by sqrt of (nc - 2)*sum over t of (t^2 - (mean of t)^2)
-      # Note that lower-case-epsilon is Xc(t) - xc(t) = xX - xfitX
-      # so xfitX - xX = - lower-case-epsilon ... but since it is being squared and then square-rooted, I
-      # suppose the negation doesn't matter.
-      # nc - 2 is the number of degrees of freedom
-      # where nc = number of data points = 2*nt minus any number of points below the threshold
-      # (note the description above seems to assume 2 replicates) ... seems to me this must mean
-      # number of data points *for this construct c*, not total.
-      # nt in above is number of timepoints, as here ...
-      # Roman also says that tc [i.e., the t statistic for construct c] = fc /SE(fc)
-      # and the internet tells me that SE(x) = SD(x)/sqrt(n) ... but maybe the sqrt(n) is just the most usual
-      # sqrt of degrees of freedom, and could be something else in a more complex system.
-      # So, the value being calculated directly below is SD(x), which is why it doesn't have the
-      # nc - 2 term that is in the denominator of the SE(x) calculation (in the manuscript, Roman says that
-      # fc's sd = sqrt(nc-2)*SE(fc), where nc-2 = degrees of freedom.  Farther below, after the calculation
-      # of sdfc, we get the calculation of tc, which is fc/(sdfc/sqrt(df)), where the sdfc/sqrt(df) term
-      # is the calculation of SE(fc).
-      
-      # result is vector with one std dev of fc for each construct
-      sdfc[i] <-
-        sqrtsum(c(xfit1[i, g1], xfit2[i, g2]) - c(x1[i, g1], x2[i, g2])) /
-        sqrtsum(c(time[g1], time[g2]) - mean(c(time[g1], time[g2])))
-      
-    }
-    #find median sd
-    has_sd <- df > 0
-    median_sd <- median(sdfc[has_sd])
-    sdfc[!has_sd] <- median_sd #just so it isn't 0
-    
-    temp2Results = temp2(nx, has_sd, fc, df, sdfc) 
-    p_t = temp2Results$p_t
-    lfdr_fc = temp2Results$lfdr_fc
-    
-    # ac1 is the initial condition (in log2 frequency) for each construct c for replicate 1
-    # ac2 is the initial condition (in log2 frequency) for each construct c for replicate 2
-    # fc is the fitness of each construct c (calculated across both replicates)
-    # sdfc is the std deviation of the fitness of each construct c (calculated across both replicates)
-    # p_t is the raw p value of the fc of each construct c (calculated across both replicates)
-    # lfdr_fc is the local FDR of each construct (calculated across both replicates)
-    # df is the degrees of freedom of each construct c (calculated across both replicates)
-    # allbad is a boolean value for each construct c that is true for all the constructs that lack at least 2 acceptable-abundance timepoints in BOTH experiments
-    vl <- list(ac1, ac2, fc, sdfc, p_t, lfdr_fc, df, allbad)
-    return(vl)
+  temp3Results = temp3(nt, timepointsList, ac1, ac2, fc, x1, x2, nx, allbad, good1, good2)
+  df = temp3Results$df
+  has_sd = temp3Results$has_sd
+  sdfc = temp3Results$sdfc
+  
+  temp2Results = temp2(nx, has_sd, fc, df, sdfc) 
+  p_t = temp2Results$p_t
+  lfdr_fc = temp2Results$lfdr_fc
+  
+  # ac1 is the initial condition (in log2 frequency) for each construct c for replicate 1
+  # ac2 is the initial condition (in log2 frequency) for each construct c for replicate 2
+  # fc is the fitness of each construct c (calculated across both replicates)
+  # sdfc is the std deviation of the fitness of each construct c (calculated across both replicates)
+  # p_t is the raw p value of the fc of each construct c (calculated across both replicates)
+  # lfdr_fc is the local FDR of each construct (calculated across both replicates)
+  # df is the degrees of freedom of each construct c (calculated across both replicates)
+  # allbad is a boolean value for each construct c that is true for all the constructs that lack at least 2 acceptable-abundance timepoints in BOTH experiments
+  vl <- list(ac1, ac2, fc, sdfc, p_t, lfdr_fc, df, allbad)
+  return(vl)
 }
 
 calcFdrsLeftAndRight <- function(pi_mean, pi_null) {

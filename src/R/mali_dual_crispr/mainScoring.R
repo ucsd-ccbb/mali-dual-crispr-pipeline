@@ -1,3 +1,15 @@
+#' Title
+#'
+#' @param preppedCountsFp 
+#' @param numRobustFittingIterations 
+#' @param timepointsList 
+#' @param outputFilesPrefix 
+#' @param abundanceThresholdsPerSample 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 scoreDualCrisprScreen <-
   function(preppedCountsFp, numRobustFittingIterations, timepointsList, outputFilesPrefix, abundanceThresholdsPerSample) {
     # TODO: add validation: length of timepointsList must be >= 2
@@ -30,7 +42,8 @@ scoreDualCrisprScreen <-
         rep1abundanceThresholds,
         rep2constructBySampleLog2FreqsMatrix,
         rep2abundanceThresholds,
-        numTimepoints
+        numTimepoints,
+        timepointsList
       ) # I don't know what resf means ... maybe "resulting fit"?  Anyway, it is a list, which is unpacked below.
     
     # TODO: 2-replicate assumption is baked into outputs of fit_ac_fc function
@@ -132,6 +145,7 @@ scoreDualCrisprScreen <-
     )
     plotFitToPdf(
       outputFilesPrefix,
+      timepointsList,
       rep1constructBySampleLog2FreqsMatrix,
       rep1log2FreqInitialCondition,
       fitnessPerConstruct,

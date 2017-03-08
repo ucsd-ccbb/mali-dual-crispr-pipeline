@@ -1,6 +1,6 @@
-plot_fit <- function(x1, ac1, fc1, ab1, x2, ac2, fc2, ab2, nt, pA_pB, minfc = 0.10) {
+plot_fit <- function(timepointsList, x1, ac1, fc1, ab1, x2, ac2, fc2, ab2, nt, pA_pB, minfc = 0.10) {
   nx <- nrow(x1)
-  maxt <- time[nt] + 3
+  maxt <- timepointsList[nt] + 3
   plot_lambda1 <- rep(0, maxt)
   plot_lambda2 <- rep(0, maxt)
   
@@ -25,7 +25,7 @@ plot_fit <- function(x1, ac1, fc1, ab1, x2, ac2, fc2, ab2, nt, pA_pB, minfc = 0.
     pch <- rep(1, nt)
     pch[good1[i, ]] <- 16 #circle
     plot(
-      time,
+      timepointsList,
       x1[i, ],
       ylim = rge,
       pch = pch,
@@ -39,7 +39,7 @@ plot_fit <- function(x1, ac1, fc1, ab1, x2, ac2, fc2, ab2, nt, pA_pB, minfc = 0.
     
     pch <- rep(1, nt)
     pch[good2[i, ]] <- 16
-    points(time,
+    points(timepointsList,
            x2[i, ],
            pch = pch,
            cex = 1.2,
@@ -121,7 +121,7 @@ plotOverlappingHist <-
     )
   }
 
-plot_scatterplots <- function(nn, nt, a1, a2, fc, time, bad1, bad2, x1, x2) {
+plot_scatterplots <- function(nn, nt, a1, a2, fc, timepointsList, bad1, bad2, x1, x2) {
   #now plot fitted value scatterplots
   
   good <- !bad1 & !bad2
@@ -129,8 +129,8 @@ plot_scatterplots <- function(nn, nt, a1, a2, fc, time, bad1, bad2, x1, x2) {
   fit_x1 <- matrix(0, nrow = nn, ncol = nt)
   fit_x2 <- matrix(0, nrow = nn, ncol = nt)
   for (j in 1:nt) {
-    fit_x1[, j] <- 2 ^ (a1 + fc * time[j])
-    fit_x2[, j] <- 2 ^ (a2 + fc * time[j])
+    fit_x1[, j] <- 2 ^ (a1 + fc * timepointsList[j])
+    fit_x2[, j] <- 2 ^ (a2 + fc * timepointsList[j])
   }
   fit_x1[bad1, ] <- 0 #remove missing constructs
   fit_x2[bad2, ] <- 0
@@ -155,8 +155,8 @@ plot_scatterplots <- function(nn, nt, a1, a2, fc, time, bad1, bad2, x1, x2) {
       },
       pch = 16,
       cex = 0.4,
-      xlab = paste("log2 frequency, d", time[1], sep = ""),
-      ylab = paste("log2 frequency, d", time[i], sep = ""),
+      xlab = paste("log2 frequency, d", timepointsList[1], sep = ""),
+      ylab = paste("log2 frequency, d", timepointsList[i], sep = ""),
       main = "experimental log2 frequencies, replicate 1"
     )
     abline(0, 1, col = "#000066")
@@ -174,9 +174,9 @@ plot_scatterplots <- function(nn, nt, a1, a2, fc, time, bad1, bad2, x1, x2) {
       cex = 0.4,
       main = paste(
         "experimental log2 frequencies, replicate 1, d",
-        time[1],
+        timepointsList[1],
         "-d",
-        time[i],
+        timepointsList[i],
         sep = ""
       )
     )
@@ -194,8 +194,8 @@ plot_scatterplots <- function(nn, nt, a1, a2, fc, time, bad1, bad2, x1, x2) {
       },
       pch = 16,
       cex = 0.4,
-      xlab = paste("log2 frequency, d", time[1], sep = ""),
-      ylab = paste("log2 frequency, d", time[i], sep = ""),
+      xlab = paste("log2 frequency, d", timepointsList[1], sep = ""),
+      ylab = paste("log2 frequency, d", timepointsList[i], sep = ""),
       main = "experimental log2 frequencies, replicate 2"
     )
     abline(0, 1, col = "#000066")
@@ -213,9 +213,9 @@ plot_scatterplots <- function(nn, nt, a1, a2, fc, time, bad1, bad2, x1, x2) {
       cex = 0.4,
       main = paste(
         "experimental log2 frequencies, replicate 2, d",
-        time[1],
+        timepointsList[1],
         "-d",
-        time[i],
+        timepointsList[i],
         sep = ""
       )
     )
@@ -235,8 +235,8 @@ plot_scatterplots <- function(nn, nt, a1, a2, fc, time, bad1, bad2, x1, x2) {
       },
       pch = 16,
       cex = 0.4,
-      xlab = paste("log2 frequency, d", time[1], sep = ""),
-      ylab = paste("log2 frequency, d", time[i], sep = ""),
+      xlab = paste("log2 frequency, d", timepointsList[1], sep = ""),
+      ylab = paste("log2 frequency, d", timepointsList[i], sep = ""),
       main = "fitted frequencies, replicate 1"
     )
     abline(0, 1, col = "#000066")
@@ -254,9 +254,9 @@ plot_scatterplots <- function(nn, nt, a1, a2, fc, time, bad1, bad2, x1, x2) {
       cex = 0.4,
       main = paste(
         "fitted log2 frequencies, replicate 1, d",
-        time[1],
+        timepointsList[1],
         "-d",
-        time[i],
+        timepointsList[i],
         sep = ""
       )
     )
@@ -274,8 +274,8 @@ plot_scatterplots <- function(nn, nt, a1, a2, fc, time, bad1, bad2, x1, x2) {
       },
       pch = 16,
       cex = 0.4,
-      xlab = paste("log2 frequency, d", time[1], sep = ""),
-      ylab = paste("log2 frequency, d", time[i], sep = ""),
+      xlab = paste("log2 frequency, d", timepointsList[1], sep = ""),
+      ylab = paste("log2 frequency, d", timepointsList[i], sep = ""),
       main = "fitted frequencies, replicate 2"
     )
     abline(0, 1, col = "#000066")
@@ -293,9 +293,9 @@ plot_scatterplots <- function(nn, nt, a1, a2, fc, time, bad1, bad2, x1, x2) {
       cex = 0.4,
       main = paste(
         "fitted log2 frequencies, replicate 1, d",
-        time[1],
+        timepointsList[1],
         "-d",
-        time[i],
+        timepointsList[i],
         sep = ""
       )
     )
@@ -316,9 +316,9 @@ plot_scatterplots <- function(nn, nt, a1, a2, fc, time, bad1, bad2, x1, x2) {
       },
       pch = 16,
       cex = 0.4,
-      xlab = paste("replicate 1, d", time[i], sep = ""),
-      ylab = paste("replicate 2, d", time[i], sep = ""),
-      main = paste("comparison of experimental replicates, d", time[i], sep =
+      xlab = paste("replicate 1, d", timepointsList[i], sep = ""),
+      ylab = paste("replicate 2, d", timepointsList[i], sep = ""),
+      main = paste("comparison of experimental replicates, d", timepointsList[i], sep =
                      "")
     )
     abline(0, 1, col = "#000066")
@@ -334,9 +334,9 @@ plot_scatterplots <- function(nn, nt, a1, a2, fc, time, bad1, bad2, x1, x2) {
       },
       pch = 16,
       cex = 0.4,
-      xlab = paste("replicate 1, d", time[i], sep = ""),
-      ylab = paste("replicate 2, d", time[i], sep = ""),
-      main = paste("comparison of fitted replicates, d", time[i], sep = "")
+      xlab = paste("replicate 1, d", timepointsList[i], sep = ""),
+      ylab = paste("replicate 2, d", timepointsList[i], sep = ""),
+      main = paste("comparison of fitted replicates, d", timepointsList[i], sep = "")
     )
     abline(0, 1, col = "#000066")
   }
@@ -361,11 +361,11 @@ plotFdrsLeftAndRight <-
     ) #right tail test
   }
 
-plotFitToPdf <- function(project, x1, a1, fc, ab1, x2, a2, ab2, nt, pA_pB) {
+plotFitToPdf <- function(project, timepointsList, x1, a1, fc, ab1, x2, a2, ab2, nt, pA_pB) {
   pdf(paste(project, ".pdf", sep = ""))
   par(pty = "s", mfrow = c(1, 1))
   # TODO: I don't know what this is doing, but it looks like the method interface has 2 replicates baked right in ...
-  plot_fit(x1, a1, fc, ab1, x2, a2, fc, ab2, nt, pA_pB, minfc = 0.10)
+  plot_fit(timepointsList, x1, a1, fc, ab1, x2, a2, fc, ab2, nt, pA_pB, minfc = 0.10)
   dev.off()
 }
 
