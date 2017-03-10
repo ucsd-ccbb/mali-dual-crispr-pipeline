@@ -1,13 +1,11 @@
 # standard libraries
 import re
 
-# ccbb libraries
-from ccbbucsd.utilities.pandas_utils import add_series_to_dataframe
-
 # project-specific libraries
 from ccbbucsd.malicrispr.construct_file_extracter import get_target_id_header, \
     get_probe_id_header, get_construct_header, get_target_pair_id_header, \
-    get_probe_pair_id_header
+    get_probe_pair_id_header, compose_probe_pair_id_from_probe_ids, \
+    compose_target_pair_id_from_target_ids, get_header_divider
 
 __author__ = "Amanda Birmingham"
 __maintainer__ = "Amanda Birmingham"
@@ -15,13 +13,8 @@ __email__ = "abirmingham@ucsd.edu"
 __status__ = "development"
 
 
-_HEADER_DIVIDER = "_"
 _TIME_PREFIX = "T"
 _NUM_HEADER_PIECES = 3
-
-
-def get_header_divider():
-    return _HEADER_DIVIDER
 
 
 def get_time_prefix():
@@ -254,11 +247,19 @@ def _generate_scoring_friendly_annotation(annotation_df):
         get_probe_id_header("a"), get_target_id_header("b"), get_probe_id_header("b"))]
     target_pairs = (result[get_target_id_header("a")] + divider +
                     result[get_target_id_header("b")])
-    probe_pairs = (result[get_probe_id_header("a")] + divider + divider +
-                   result[get_probe_id_header("b")])
-    add_series_to_dataframe(result, target_pairs, target_pair_id_header)
-    add_series_to_dataframe(result, probe_pairs, probe_pair_id_header)
+    result[target_pair_id_header] = result.apply(_compose_target_pair_id, axis=1)
+    result[probe_pair_id_header] = result.apply(_compose_probe_pair_id, axis=1)
     return result
+
+
+def _compose_probe_pair_id(row):
+    return compose_probe_pair_id_from_probe_ids(row[get_probe_id_header("a")],
+                                                row[get_probe_id_header("b")])
+
+
+def _compose_target_pair_id(row):
+    return compose_target_pair_id_from_target_ids(row[get_target_id_header("a")],
+                                                row[get_target_id_header("b")])
 
 
 def validate_and_recompose_count_header(expt_timeptnum_rep_tuple):

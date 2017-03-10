@@ -18,7 +18,11 @@ _TARGET_A_NAME = "target_a_id"
 _TARGET_B_NAME = "target_b_id"
 _TARGET_PAIR_ID = "target_pair_id"
 _PROBE_PAIR_ID = "probe_pair_id"
+_HEADER_DIVIDER = "_"
 
+
+def get_header_divider():
+    return _HEADER_DIVIDER
 
 def get_construct_header():
     return _CONSTRUCT_ID
@@ -42,6 +46,16 @@ def get_target_pair_id_header():
 
 def get_probe_pair_id_header():
     return _PROBE_PAIR_ID
+
+
+def compose_probe_pair_id_from_probe_ids(probe_a_id, probe_b_id):
+    divider = get_header_divider()
+    result = probe_a_id + divider + divider + probe_b_id
+    return result
+
+
+def compose_target_pair_id_from_target_ids(target_a_id, target_b_id):
+    return target_a_id + get_header_divider() + target_b_id
 
 
 def extract_construct_and_grna_info(constructs_fp, column_indices):
@@ -117,7 +131,7 @@ def _extract_unique_sets_across_a_and_b(construct_table, a_col_headers_list, b_c
 
 
 def _extract_renamed_subset_df(construct_table, col_headers_list, new_headers_list):
-    result = construct_table[col_headers_list]
+    result = construct_table.loc[:, col_headers_list]
     rename_dictionary = dict(zip(col_headers_list, new_headers_list))
     result.rename(columns=rename_dictionary, inplace=True)
     return result
@@ -135,8 +149,8 @@ def _validate_and_format_probe_seq_pairs(probes_seq_and_name_list):
                 "input '{0}' has {1} pieces instead of the expected {2}".format(
                     curr_set, len(curr_set), expected_num_pieces
                 ))
-        curr_seq = curr_set[0]
-        curr_name = curr_set[1]
+        curr_seq = curr_set[1]
+        curr_name = curr_set[0]
 
         if curr_seq in names_by_seqs:
             raise ValueError(

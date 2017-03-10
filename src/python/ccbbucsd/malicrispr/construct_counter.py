@@ -9,7 +9,7 @@ import logging
 from ccbbucsd.utilities.basic_fastq import FastqHandler, paired_fastq_generator
 
 # project-specific libraries
-from ccbbucsd.malicrispr.construct_file_extracter import get_construct_separator
+from ccbbucsd.malicrispr.construct_file_extracter import compose_probe_pair_id_from_probe_ids
 
 __author__ = "Amanda Birmingham"
 __maintainer__ = "Amanda Birmingham"
@@ -54,7 +54,9 @@ def _match_and_count_constructs(grna_matcher, construct_counts, fw_fastq_handler
 
         grna_name_A, grna_name_B = grna_matcher.find_fw_and_rv_read_matches(*curr_pair_seqs)
         if grna_name_A is not None and grna_name_B is not None:
-            construct_name = _generate_construct_name(grna_name_A, grna_name_B)
+            # TODO: Note assumption that probe pair id is construct name!
+            # True in Mali screens, but if that won't be universal, must refactor here.
+            construct_name = compose_probe_pair_id_from_probe_ids(grna_name_A, grna_name_B)
             summary_counts["num_constructs_found"] += 1
 
             if construct_name in construct_counts:
@@ -73,10 +75,6 @@ def _match_and_count_constructs(grna_matcher, construct_counts, fw_fastq_handler
 def _report_progress(num_fastq_pairs):
     if num_fastq_pairs % 100000 == 0:
         logging.info("On fastq pair number {0} at {1}".format(num_fastq_pairs, datetime.datetime.now()))
-
-
-def _generate_construct_name(grna_name_A, grna_name_B):
-    return "{0}{1}{2}".format(grna_name_A, get_construct_separator(), grna_name_B)
 
 
 def _write_counts(counts_by_construct, counts_by_type, output_fp):
