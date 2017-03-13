@@ -9,7 +9,7 @@ from ccbbucsd.utilities.files_and_paths import build_multipart_fp, get_file_name
     get_filepaths_by_prefix_and_suffix
 
 # project-specific libraries
-from ccbbucsd.malicrispr.count_files_and_dataframes import get_counts_df
+from ccbbucsd.malicrispr.count_files_and_dataframes import get_counts_df, clip_count_header_suffix
 
 __author__ = "Amanda Birmingham"
 __maintainer__ = "Amanda Birmingham"
@@ -83,10 +83,11 @@ def plot_combined_raw_counts(input_dir, input_run_prefix, combined_suffix, outpu
     combined_counts_fp = build_multipart_fp(input_dir, [input_run_prefix, combined_suffix])
     combined_counts_df = pandas.read_table(combined_counts_fp)
     samples_names = combined_counts_df.columns.values[1:]  # TODO: remove hardcode
+    trimmed_sample_names = [clip_count_header_suffix(x) for x in samples_names]
     samples_data = []
     for curr_name in samples_names:
         log2_series = make_log2_series(combined_counts_df[curr_name], DEFAULT_PSEUDOCOUNT)
         samples_data.append(log2_series.tolist())
 
     title = " ".join([input_run_prefix, "all samples", "with pseudocount", str(DEFAULT_PSEUDOCOUNT)])
-    show_and_save_boxplot(output_fp, title, samples_names, samples_data, 90)
+    show_and_save_boxplot(output_fp, title, trimmed_sample_names, samples_data, 90)

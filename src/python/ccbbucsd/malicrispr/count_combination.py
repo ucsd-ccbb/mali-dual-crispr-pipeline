@@ -3,7 +3,7 @@ from ccbbucsd.utilities.analysis_run_prefixes import strip_run_prefix
 from ccbbucsd.utilities.files_and_paths import build_multipart_fp, group_files, get_filepaths_by_prefix_and_suffix
 
 # project-specific libraries
-from ccbbucsd.malicrispr.count_files_and_dataframes import get_counts_df
+import ccbbucsd.malicrispr.count_files_and_dataframes as ns_counts
 
 __author__ = "Amanda Birmingham"
 __maintainer__ = "Amanda Birmingham"
@@ -29,7 +29,7 @@ def combine_count_files(counts_fp_for_dataset, run_prefix):
     combined_df = None
 
     for curr_counts_fp in counts_fp_for_dataset:
-        count_header, curr_counts_df = get_counts_df(curr_counts_fp, run_prefix)
+        count_header, curr_counts_df = ns_counts.get_counts_df(curr_counts_fp, run_prefix)
 
         if combined_df is None:
             combined_df = curr_counts_df
@@ -50,7 +50,7 @@ def write_collapsed_count_files(input_dir, output_dir, curr_run_prefix, counts_r
         combined_df = None
 
         for curr_fp in curr_fps:
-            count_header, curr_counts_df = get_counts_df(curr_fp, counts_run_prefix)
+            count_header, curr_counts_df = ns_counts.get_counts_df(curr_fp, counts_run_prefix)
 
             if combined_df is None:
                 combined_df = curr_counts_df

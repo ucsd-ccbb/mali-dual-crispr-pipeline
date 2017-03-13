@@ -10,11 +10,11 @@ from ccbbucsd.malicrispr.construct_file_extracter import get_target_id_header, \
     get_probe_id_header, get_construct_header, get_target_pair_id_header, \
     get_probe_pair_id_header
 
-from ccbbucsd.malicrispr.scoring_prep import _clip_count_header_suffix, \
+from ccbbucsd.malicrispr.scoring_prep import  \
     _validate_and_standardize_timepoint, _validate_expt_structure, \
-    _validate_and_decompose_count_header, validate_and_parse_data_column_headers, \
+    _validate_and_decompose_count_header, _validate_and_parse_data_column_headers, \
     _generate_scoring_friendly_annotation, _validate_and_standardize_replicate, \
-    validate_and_recompose_count_header
+    _validate_and_recompose_count_header
 
 __author__ = "Amanda Birmingham"
 __maintainer__ = "Amanda Birmingham"
@@ -23,38 +23,25 @@ __status__ = "development"
 
 
 class TestFunctions(unittest.TestCase):
-    # region _clip_count_header_suffix
-    def test__clip_count_header_suffix_clipped(self):
-        header = "PGP1-MV4_d21_2_S9_trimmed53_len_filtered_counts"
-        expected_output = "PGP1-MV4_d21_2"
-        real_output = _clip_count_header_suffix(header)
-        self.assertEqual(expected_output, real_output)
-
-    def test__clip_count_header_suffix_unclipped(self):
-        header = "PGP1-MV4_d21_2_S946"
-        real_output = _clip_count_header_suffix(header)
-        self.assertEqual(header, real_output)
-
-    # end region
-
     # region _validate_and_decompose_count_header
     def test__validate_and_decompose_count_header_valid(self):
-        header = "PGP1-MV4_t21_2_S9_trimmed53_len_filtered_counts"
-        expected_output = ("PGP1-MV4", 21, 2)
+        header = "PGP1MV4_t21_2"
+        expected_output = ("PGP1MV4", 21, 2)
         real_output = _validate_and_decompose_count_header(header)
         self.assertEqual(expected_output, real_output)
 
-        header_2 = "PGP1-MV4_t21_2"
-        real_output_2 = _validate_and_decompose_count_header(header_2)
-        self.assertEqual(expected_output, real_output_2)
-
     def test__validate_and_decompose_count_header_invalid(self):
-        header = "PGP1_MV4_t21_2_S9_trimmed53_len_filtered_counts"
         with self.assertRaises(ValueError):
-            _validate_and_decompose_count_header(header)
+            _validate_and_decompose_count_header("PGP1-MV4_t21_2_S9_trimmed53_len_filtered_counts")
+
+        with self.assertRaises(ValueError):
+            _validate_and_decompose_count_header("PGP1_MV4_t21_2_S9_trimmed53_len_filtered_counts")
 
         with self.assertRaises(ValueError):
             _validate_and_decompose_count_header("PGP1_MV4_t21_2")
+
+        with self.assertRaises(ValueError):
+            _validate_and_decompose_count_header("PGP1-MV4_t21_2")
 
         with self.assertRaises(ValueError):
             _validate_and_decompose_count_header("PGPrep1")
@@ -203,37 +190,37 @@ class TestFunctions(unittest.TestCase):
 
     # end region
 
-    # region validate_and_parse_data_column_headers
-    def test_validate_and_parse_data_column_headers_valid_num_reps(self):
-        data_headers = ["A549-MV4_t28_1_S7_trimmed53_len_filtered_counts",
-                        "A549-MV4_t14_2_S4_trimmed53_len_filtered_counts",
-                        "A549-MV4_t28_2_S8_trimmed53_len_filtered_counts",
-                        "A549-MV4_t3_2_S2_trimmed53_len_filtered_counts",
-                        "A549-MV4_t20_2_S6_trimmed53_len_filtered_counts",
-                        "A549-MV4_t14_1_S3_trimmed53_len_filtered_counts",
-                        "A549-MV4_t3_1_S1_trimmed53_len_filtered_counts",
-                        "A549-MV4_t20_1_S5_trimmed53_len_filtered_counts"]
+    # region _validate_and_parse_data_column_headers
+    def test__validate_and_parse_data_column_headers_valid_num_reps(self):
+        data_headers = ["A549MV4_t28_1_S7_trimmed53_len_filtered_counts",
+                        "A549MV4_t14_2_S4_trimmed53_len_filtered_counts",
+                        "A549MV4_t28_2_S8_trimmed53_len_filtered_counts",
+                        "A549MV4_t3_2_S2_trimmed53_len_filtered_counts",
+                        "A549MV4_t20_2_S6_trimmed53_len_filtered_counts",
+                        "A549MV4_t14_1_S3_trimmed53_len_filtered_counts",
+                        "A549MV4_t3_1_S1_trimmed53_len_filtered_counts",
+                        "A549MV4_t20_1_S5_trimmed53_len_filtered_counts"]
 
-        expected_output = [('A549-MV4', 28, 1), ('A549-MV4', 14, 2), ('A549-MV4', 28, 2), ('A549-MV4', 3, 2),
-                           ('A549-MV4', 20, 2), ('A549-MV4', 14, 1), ('A549-MV4', 3, 1), ('A549-MV4', 20, 1)]
+        expected_output = [('A549MV4', 28, 1), ('A549MV4', 14, 2), ('A549MV4', 28, 2), ('A549MV4', 3, 2),
+                           ('A549MV4', 20, 2), ('A549MV4', 14, 1), ('A549MV4', 3, 1), ('A549MV4', 20, 1)]
 
-        real_output = validate_and_parse_data_column_headers(data_headers)
+        real_output = _validate_and_parse_data_column_headers(data_headers)
         self.assertEqual(expected_output, real_output)
 
-    def test_validate_and_parse_data_column_headers_valid_nonnum_reps(self):
-        data_headers = ["A549-MV4_t28_a_S7_trimmed53_len_filtered_counts",
-                        "A549-MV4_t14_b_S4_trimmed53_len_filtered_counts",
-                        "A549-MV4_t28_b_S8_trimmed53_len_filtered_counts",
-                        "A549-MV4_t3_b_S2_trimmed53_len_filtered_counts",
-                        "A549-MV4_t20_b_S6_trimmed53_len_filtered_counts",
-                        "A549-MV4_t14_a_S3_trimmed53_len_filtered_counts",
-                        "A549-MV4_t3_a_S1_trimmed53_len_filtered_counts",
-                        "A549-MV4_t20_a_S5_trimmed53_len_filtered_counts"]
+    def test__validate_and_parse_data_column_headers_valid_nonnum_reps(self):
+        data_headers = ["A549MV4_t28_a_S7_trimmed53_len_filtered_counts",
+                        "A549MV4_t14_b_S4_trimmed53_len_filtered_counts",
+                        "A549MV4_t28_b_S8_trimmed53_len_filtered_counts",
+                        "A549MV4_t3_b_S2_trimmed53_len_filtered_counts",
+                        "A549MV4_t20_b_S6_trimmed53_len_filtered_counts",
+                        "A549MV4_t14_a_S3_trimmed53_len_filtered_counts",
+                        "A549MV4_t3_a_S1_trimmed53_len_filtered_counts",
+                        "A549MV4_t20_a_S5_trimmed53_len_filtered_counts"]
 
-        expected_output = [('A549-MV4', 28, 'a'), ('A549-MV4', 14, 'b'), ('A549-MV4', 28, 'b'), ('A549-MV4', 3, 'b'),
-                           ('A549-MV4', 20, 'b'), ('A549-MV4', 14, 'a'), ('A549-MV4', 3, 'a'), ('A549-MV4', 20, 'a')]
+        expected_output = [('A549MV4', 28, 'a'), ('A549MV4', 14, 'b'), ('A549MV4', 28, 'b'), ('A549MV4', 3, 'b'),
+                           ('A549MV4', 20, 'b'), ('A549MV4', 14, 'a'), ('A549MV4', 3, 'a'), ('A549MV4', 20, 'a')]
 
-        real_output = validate_and_parse_data_column_headers(data_headers)
+        real_output = _validate_and_parse_data_column_headers(data_headers)
         self.assertEqual(expected_output, real_output)
 
     # end region
@@ -277,16 +264,16 @@ class TestFunctions(unittest.TestCase):
 
     # end region
 
-    # region validate_and_recompose_count_header
-    def test_validate_and_recompose_count_header(self):
-        input = ("A549-MV4", 3, 1)
-        expected_output = "A549-MV4_T3_1"
-        real_output = validate_and_recompose_count_header(input)
+    # region _validate_and_recompose_count_header
+    def test__validate_and_recompose_count_header(self):
+        input = ("A549MV4", 3, 1)
+        expected_output = "A549MV4_T3_1"
+        real_output = _validate_and_recompose_count_header(input)
         self.assertEqual(expected_output, real_output)
 
-    def test_validate_and_recompose_count_header_error(self):
-        input = ("A549-MV4", 3)
+    def test__validate_and_recompose_count_header_error(self):
+        input = ("A549MV4", 3)
         with self.assertRaises(ValueError):
-            validate_and_recompose_count_header(input)
+            _validate_and_recompose_count_header(input)
 
     # end region
