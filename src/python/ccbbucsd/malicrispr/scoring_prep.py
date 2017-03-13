@@ -11,26 +11,27 @@ __maintainer__ = "Amanda Birmingham"
 __email__ = "abirmingham@ucsd.edu"
 __status__ = "development"
 
-_TIME_PREFIX = "T"
 _NUM_HEADER_PIECES = 3
-_SAMPLE_NAME_HEADER = "sampleName"
-_ABUNDANCE_THRESH_HEADER = "log2CountsThresh"
-_ABUNDANCE_THRESH_FILE_SUFFIX = "_abundance_thresholds.txt"
+
 
 def get_time_prefix():
-    return _TIME_PREFIX
+    return "T"
+
+
+def get_prepped_file_suffix():
+    return "timepoint_counts.txt"
 
 
 def get_sample_name_header():
-    return _SAMPLE_NAME_HEADER
+    return "sampleName"
 
 
 def get_abundance_thresh_header():
-    return _ABUNDANCE_THRESH_HEADER
+    return "log2CountsThresh"
 
 
 def get_abundance_thresh_file_suffix():
-    return _ABUNDANCE_THRESH_FILE_SUFFIX
+    return "abundance_thresholds.txt"
 
 
 def merge_and_annotate_counts(count_file_fps, constructs_fp, column_indices, disregard_order=True):
@@ -193,19 +194,29 @@ def _validate_expt_structure(expt_structure_by_id):
 
 def _generate_scoring_friendly_annotation(annotation_df):
     construct_id_header = ns_extracter.get_construct_header()
-    target_pair_id_header = ns_extracter.get_target_pair_id_header()
-    probe_pair_id_header = ns_extracter.get_probe_pair_id_header()
 
-    divider = ns_extracter.get_header_divider()
-
-    result = annotation_df.loc[:, (construct_id_header, ns_extracter.get_target_id_header("a"),
+    result = annotation_df.loc[:, (construct_id_header,
                                    ns_extracter.get_probe_id_header("a"),
-                                   ns_extracter.get_target_id_header("b"),
-                                   ns_extracter.get_probe_id_header("b"))]
-    target_pairs = (result[ns_extracter.get_target_id_header("a")] + divider +
-                    result[ns_extracter.get_target_id_header("b")])
-    result[target_pair_id_header] = result.apply(_compose_target_pair_id, axis=1)
-    result[probe_pair_id_header] = result.apply(_compose_probe_pair_id, axis=1)
+                                   ns_extracter.get_probe_id_header("b"),
+                                   ns_extracter.get_target_id_header("a"),
+                                   ns_extracter.get_target_id_header("b")
+                                   )]
+
+    # Below is what I expect the output to be after scoring data prep code is refactored to accept more
+    # detail (and generate less itself).
+    # result = annotation_df.loc[:, (construct_id_header, ns_extracter.get_target_id_header("a"),
+    #                                ns_extracter.get_probe_id_header("a"),
+    #                                ns_extracter.get_target_id_header("b"),
+    #                                ns_extracter.get_probe_id_header("b"))]
+    #target_pair_id_header = ns_extracter.get_target_pair_id_header()
+    #probe_pair_id_header = ns_extracter.get_probe_pair_id_header()
+    # Note: the below column creations could be done without using apply (i.e., by
+    # just writing "df[colA] + divider + df[colB]") but I used apply because I want
+    # to centralize the code that creates these strings, and sometimes it needs to work
+    # on a single pair of variables rather than columns of variables, so it needed to be
+    # a non-vectorized function.
+    #result[target_pair_id_header] = result.apply(_compose_target_pair_id, axis=1)
+    #result[probe_pair_id_header] = result.apply(_compose_probe_pair_id, axis=1)
     return result
 
 
