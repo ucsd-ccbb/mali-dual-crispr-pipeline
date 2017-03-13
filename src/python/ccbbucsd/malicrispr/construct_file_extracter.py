@@ -21,8 +21,14 @@ _PROBE_PAIR_ID = "probe_pair_id"
 _HEADER_DIVIDER = "_"
 
 
+def get_potential_annotation_headers():
+    return [_CONSTRUCT_ID, _PROBE_A_SEQ, _PROBE_B_SEQ, _PROBE_A_NAME, _PROBE_B_NAME, _TARGET_A_NAME, _TARGET_B_NAME,
+            _TARGET_PAIR_ID, _PROBE_PAIR_ID]
+
+
 def get_header_divider():
     return _HEADER_DIVIDER
+
 
 def get_construct_header():
     return _CONSTRUCT_ID
@@ -75,6 +81,23 @@ def trim_probes(probes_name_and_seq_list, retain_len):
         trimmed_seq = trim_seq(full_seq, retain_len, False)  # False = do not retain from 5p end but from 3p end
         result.append((probe_name, trimmed_seq))
     return result
+
+
+def load_annotation_df(constructs_fp, column_indices, disregard_order):
+    construct_df = _read_in_construct_table(constructs_fp, column_indices, rows_to_skip=1)
+
+    # TODO: I'm not thrilled that if there is non-uniqueness, I don't learn about it till this call;
+    # I'd sort of like to learn about it from extract_construct_and_grna_info, even though that
+    # method is able to successfully work around non-unique construct ids ...
+    if len(construct_df[_CONSTRUCT_ID].unique()) != len(construct_df[_CONSTRUCT_ID]):
+        raise ValueError("Non-unique construct ids detected.")
+
+    if disregard_order:
+        construct_df = _alphabetize_two_fields_in_row(construct_df,
+                                                      get_target_id_header("a"), get_target_id_header("b"))
+        construct_df = _alphabetize_two_fields_in_row(construct_df,
+                                                      get_probe_id_header("a"), get_probe_id_header("b"))
+    return construct_df
 
 
 def _is_letter_a(letter):
