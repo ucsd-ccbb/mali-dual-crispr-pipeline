@@ -171,7 +171,7 @@ def run_counts_pipeline(dirs_dict, shared_params):
     execute_run(pipeline_steps, shared_params, steps_to_run, dirs_dict[DirectoryKeys.PROCESSED_DATA])
 
 
-def generate_score_params(expt_name, day_timepoints_str, dirs_dict, library_tuple):
+def generate_score_params(expt_name, counts_fp_or_dir, day_timepoints_str, dirs_dict, library_tuple):
     spacers_file_name = library_tuple[0]
     col_indices = library_tuple[1]
 
@@ -182,7 +182,7 @@ def generate_score_params(expt_name, day_timepoints_str, dirs_dict, library_tupl
                  ALG_NAME_KEY: "method2",
                  'g_constructs_fp': os.path.join(dirs_dict[DirectoryKeys.LIBRARIES], spacers_file_name),
                  'g_col_indices_str': col_indices,
-                 'g_count_fps_or_dirs': dirs_dict[DirectoryKeys.PROCESSED_DATA],
+                 'g_count_fps_or_dirs': counts_fp_or_dir,
                  'g_prepped_counts_run_prefix': expt_name + "_{timestamp}",
                  'g_prepped_counts_dir': "{run_dir}",
                  'g_min_count_limit': 10,  # Note: in absolute counts, not log2.
