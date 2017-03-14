@@ -1,6 +1,7 @@
 # standard libraries
 import enum
 import os
+import warnings
 
 # ccbb libraries
 import ccbbucsd.utilities.files_and_paths as ns_file
@@ -171,9 +172,17 @@ def run_counts_pipeline(dirs_dict, shared_params):
     execute_run(pipeline_steps, shared_params, steps_to_run, dirs_dict[DirectoryKeys.PROCESSED_DATA])
 
 
-def generate_score_params(expt_name, counts_fp_or_dir, day_timepoints_str, dirs_dict, library_tuple):
+def generate_score_params(expt_name, counts_fp_or_dir, day_timepoints_str, dirs_dict, library_tuple, is_test):
     spacers_file_name = library_tuple[0]
     col_indices = library_tuple[1]
+
+    use_seed = False
+    num_iterations = 1000
+    if is_test:
+        use_seed = True
+        num_iterations = 2
+        warnings.warn('Scoring is running in TEST MODE; do not use results for data analysis!')
+
 
     result = {'g_code_location': dirs_dict[DirectoryKeys.CODE],
                  'g_timestamp': "{timestamp}",
@@ -191,12 +200,14 @@ def generate_score_params(expt_name, counts_fp_or_dir, day_timepoints_str, dirs_
                  'g_thresholds_dir': "{run_dir}",
                  'g_thresholds_run_prefix': "{run_prefix}",
                  'g_collapsed_counts_run_prefix': "{run_prefix}",
-                 'g_use_seed': False,  # This should be *False* when running on real data!
-                 'g_num_iterations': 1000,  # This should be *1000* when running on real data!
+                 'g_use_seed': use_seed,  # This should be *False* when running on real data!
+                 'g_num_iterations': num_iterations,  # This should be *1000* when running on real data!
                  'g_counts_fp': "{run_dir}",
                  'g_day_timepoints_str': day_timepoints_str,
                  'g_scoring_dir': "{run_dir}"
           }
+
+    return result
 
 
 def run_score_pipeline(dirs_dict, shared_params):
