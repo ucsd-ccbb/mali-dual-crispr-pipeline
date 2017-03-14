@@ -122,8 +122,8 @@ def _validate_and_standardize_expt_id(expt_id):
     # to delimit the pieces of the sample name (i.e., exptid_timept_replicatenum).  That means expt id
     # can't contain any underscores itself--leaving only alphanumerics :(
     if not expt_id.isalnum():
-        raise ValueError("Experiment id '{0}' is not strictly alphanumeric.",
-                         expt_id)
+        raise ValueError("Experiment id '{0}' is not strictly alphanumeric.".format(
+                         expt_id))
 
     return expt_id
 
@@ -142,8 +142,8 @@ def _validate_and_standardize_timepoint(timept):
         timept = str(timept)
 
     if not timept.isdigit():
-        raise ValueError("Time point value '{0}' is not recognizable as a positive integer.",
-                         timept)
+        raise ValueError("Time point value '{0}' is not recognizable as a positive integer.".format(
+                         timept))
 
     return int(timept)
 
