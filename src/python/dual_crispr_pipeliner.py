@@ -39,7 +39,7 @@ class PipelineSteps(enum.Enum):
 # TODO: either refactor out directory-making or rename method to alert users to side-effects
 def generate_dirs_dict(main_dir="/home/ec2-user/mali-dual-crispr-pipeline", data_dir="/data", fastq_set_name=""):
     dirs_dict = {}
-    dirs_dict[DirectoryKeys.CODE] = os.path.join(main_dir, "src", "Python")
+    dirs_dict[DirectoryKeys.CODE] = os.path.join(main_dir, "src", "python")
     dirs_dict[DirectoryKeys.NOTEBOOKS] = os.path.join(main_dir, DirectoryKeys.NOTEBOOKS.value)
     dirs_dict[DirectoryKeys.LIBRARIES] =  os.path.join(main_dir, "library_definitions")
     dirs_dict[DirectoryKeys.RAW_DATA] = os.path.join(data_dir, DirectoryKeys.RAW_DATA.value)
