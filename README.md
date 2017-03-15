@@ -10,9 +10,9 @@ As of now, this code is still private.  Contact Amanda Birmingham (abirmingham@u
 Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 
 ## Table of Contents
-* [Pipeline Set-Up](#Pipeline-Set-Up)
-* [Count Pipeline Execution](#Count-Pipeline-Execution)
-* [Score Pipeline Execution](#Score-Pipeline-Execution)
+* Pipeline Set-Up
+* Count Pipeline Execution
+* Score Pipeline Execution
 
 ## Pipeline Set-Up
 
