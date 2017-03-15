@@ -6,8 +6,7 @@ As of now, this code is still private.  Contact Amanda Birmingham (abirmingham@u
 
 ---------------------------------------
 
-# Dual CRISPR Screen Analysis
-# Quick-Start Guide
+# Dual CRISPR Screen Analysis Quick-Start Guide
 Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 
 ## Table of Contents
@@ -30,8 +29,8 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 
 	* An example command is shown below; of course, the path to the the pem file should be replaced with the path to your pem, and the  *.amazonaws.com should be replaced with the Public DNS value for your AMI:
 
-	ssh -i ~/Keys/abirmingham_oregon.pem ec2-user@ec2-52-42-121-79.us-west-2.compute.amazonaws.com
-	screen
+		ssh -i ~/Keys/abirmingham_oregon.pem ec2-user@ec2-52-42-121-79.us-west-2.compute.amazonaws.com
+		screen
 	
 	* Instructions from AWS are at [https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html)
 	* If you receive a message stating 'The authenticity of host ... can't be established' and asking 'Are you sure you want to continue connecting (yes/no)?', enter `yes`.	
@@ -40,8 +39,8 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 
 3. Download and install the `conda` package manager software
     
-	curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o miniconda_py3.sh
-    	bash miniconda_py3.sh
+		curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o miniconda_py3.sh
+    		bash miniconda_py3.sh
     	
     * Press the space bar to move through the license agreement
     * Enter `yes` when asked "Do you wish the installer to prepend the Miniconda3 install location to PATH in your /home/ec2-user/.bashrc ?"
@@ -69,22 +68,22 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 
 6. Create a `conda` environment with the base third-party software necessary for the pipeline; as before, enter `y` when prompted to proceed
 
-    	conda create -n crispr_pipeline python=3.4 ipython=4.2.0 git matplotlib pandas jupyter rpy2 bioconductor-qvalue cutadapt
+    		conda create -n crispr_pipeline python=3.4 ipython=4.2.0 git matplotlib pandas jupyter rpy2 bioconductor-qvalue cutadapt
     	
     * This may take a minute or two, as many packages are being installed    
 	* Note that it is important to force python 3.4, which the pipeline was developed on, as the miniconda default is 3.5, which is apparently different enough to break things somewhere in Jupyter's `nbformat` module.
 
 7. Activate the new environment
    
-    	source activate crispr_pipeline
+    		source activate crispr_pipeline
 
 8. Install the `nbparameterise` package (note the British spelling!), which isn't available through `conda` but can be installed with `pip`
 
-    	pip install nbparameterise 
+    		pip install nbparameterise 
 
 9. Download the dual crispr pipeline software using your authorized BitBucket account by replacing XXXXXXXX in the below command with your BitBucket user name
 
-    	git clone https://XXXXXXXX@bitbucket.org/ccb_ucsd/mali-dual-crispr-pipeline.git
+    		git clone https://XXXXXXXX@bitbucket.org/ccb_ucsd/mali-dual-crispr-pipeline.git
     	
     * Enter your BitBucket password when prompted (note that no characters will show on the screen as you type!)
     * After this download, there will be a `mali-dual-crispr-pipeline` in the directory in the `/home/ec2-user/` directory
@@ -92,23 +91,23 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 10. Set up the expected local folders to store your data
 	* Note that these instructions assume you are storing the data and software on the same EBS volume (if you don't know what this means, you probably are :) If data will reside on a separate volume, that volume must mounted to the instance.
 
-			sudo mkdir /data
-			sudo chown -R ec2-user /data
-			cd ~/mali-dual-crispr-pipeline/src/python/
-			python set_up_mali_pipeline.py
+		sudo mkdir /data
+		sudo chown -R ec2-user /data
+		cd ~/mali-dual-crispr-pipeline/src/python/
+		python set_up_mali_pipeline.py
 	
 10. Configure the built-in `aws` software to allow transfer of data back and forth from Amazon's `s3` data storage
     
-    	aws configure
+    		aws configure
     	
     * Enter your AWS Access Key ID and AWS Secret Access Key when prompted, and hit Enter to accept the defaults for the additional prompts.    
 	* At this point, you may continue to one of the run set-up steps below, or may exit the configured instance and return to it later.  
 
 12. When you are ready, exit the instance
 
-	    source deactivate
-	    exit
-	    logout
+	    	source deactivate
+	    	exit
+	    	logout
 	    
 	    
 ## Count Pipeline Execution
