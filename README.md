@@ -50,7 +50,7 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 		exit	
    		logout
    		
-   	* Then re-enter the same `ssh` command you used in step 1 (Hint: if you press the up-arrow while in the terminal window, it should appear for you!)
+   	* Then re-enter the same ssh command you used in step 1 (Hint: if you press the up-arrow while in the terminal window, it should appear for you!)
 5. Update conda
 
 			screen
