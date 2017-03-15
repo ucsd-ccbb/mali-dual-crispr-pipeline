@@ -27,6 +27,7 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 
 ### Steps
 1. From the command line, log into your instance
+
 	* An example command is shown below; of course, the path to the the pem file should be replaced with the path to your pem, and the  *.amazonaws.com should be replaced with the Public DNS value for your AMI:
 
 		    ssh -i ~/Keys/abirmingham_oregon.pem ec2-user@ec2-52-42-121-79.us-west-2.compute.amazonaws.com
@@ -36,6 +37,7 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 	* If you receive a message stating 'The authenticity of host ... can't be established' and asking 'Are you sure you want to continue connecting (yes/no)?', enter `yes`.	
 	* If you encounter a `Permission denied (publickey)` error, remember that the permissions on your key (.pem) file must be set so that it is not public, e.g. by running `chmod 0400 ~/Keys/abirmingham_oregon.pem`
 	* `screen` ensures you will be able to reconnect to the process if you are disconnected at any point; more details of its operation are available at [https://www.linux.com/learn/taking-command-terminal-gnu-screen](https://www.linux.com/learn/taking-command-terminal-gnu-screen).	
+
 3. Download and install the `conda` package manager software
     
 	    curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o miniconda_py3.sh
@@ -56,17 +58,20 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 		conda update conda
 		
 	* Enter `y` when prompted to proceed
+
 5. Set up the conda software sources ("channels")
 		conda config --add channels defaults
 		conda config --add channels r
 		conda config --add channels bioconda
 	* order matters here so don't change it :)
+
 6. Create a `conda` environment with the base third-party software necessary for the pipeline; as before, enter `y` when prompted to proceed
 
     	conda create -n crispr_pipeline python=3.4 ipython=4.2.0 git matplotlib pandas jupyter rpy2 bioconductor-qvalue cutadapt
     	
     * This may take a minute or two, as many packages are being installed    
-	* Note that it is important to force python 3.4, which the pipeline was developed on, as the miniconda default is 3.5, which is apparently different enough to break things somewhere in Jupyter's nbformat module.
+	* Note that it is important to force python 3.4, which the pipeline was developed on, as the miniconda default is 3.5, which is apparently different enough to break things somewhere in Jupyter's `nbformat` module.
+
 7. Activate the new environment
    
     	source activate crispr_pipeline
@@ -81,6 +86,7 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
     	
     * Enter your BitBucket password when prompted (note that no characters will show on the screen as you type!)
     * After this download, there will be a `mali-dual-crispr-pipeline` in the directory in the `/home/ec2-user/` directory
+
 10. Set up the expected local folders to store your data
 	* Note that these instructions assume you are storing the data and software on the same EBS volume (if you don't know what this means, you probably are :) If data will reside on a separate volume, that volume must mounted to the instance.
 
@@ -95,6 +101,7 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
     	
     * Enter your AWS Access Key ID and AWS Secret Access Key when prompted, and hit Enter to accept the defaults for the additional prompts.    
 	* At this point, you may continue to one of the run set-up steps below, or may exit the configured instance and return to it later.  
+
 12. When you are ready, exit the instance
 
 	    source deactivate
