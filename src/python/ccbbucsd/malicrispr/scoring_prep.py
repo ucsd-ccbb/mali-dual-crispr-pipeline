@@ -34,13 +34,15 @@ def get_abundance_thresh_file_suffix():
     return "abundance_thresholds.txt"
 
 
-def merge_and_annotate_counts(count_file_fps, constructs_fp, column_indices, disregard_order=True):
+def merge_and_annotate_counts(count_file_fps, constructs_fp, column_indices,
+                              dataset_name, disregard_order=True):
+
     construct_id_header = ns_extracter.get_construct_header()
 
     # load and validate the counts file(s)
     combined_counts_df = ns_pandas.merge_files_by_shared_header(count_file_fps, construct_id_header)
-    header_pieces_tuples_list = _validate_and_rename_counts_columns(combined_counts_df)
-    expt_name = header_pieces_tuples_list[0][0]
+    header_pieces_tuples_list = _validate_and_rename_counts_columns(combined_counts_df, dataset_name)
+    #expt_name = header_pieces_tuples_list[0][0]
 
     # load and standardize the annotation file (containing construct definitions)
     annotation_df = ns_extracter.load_annotation_df(constructs_fp, column_indices, disregard_order)
@@ -50,19 +52,25 @@ def merge_and_annotate_counts(count_file_fps, constructs_fp, column_indices, dis
     joined_df = minimal_annotation_df.merge(combined_counts_df, on=construct_id_header)
     sorted_col_headers = _get_sorted_joined_df_column_headers(minimal_annotation_df,
                                                               header_pieces_tuples_list)
-    return expt_name, joined_df.loc[:, sorted_col_headers]
+    return dataset_name, joined_df.loc[:, sorted_col_headers]
 
 
-def _validate_and_recompose_count_header(expt_timeptnum_rep_tuple):
-    standardized_pieces = _validate_and_standardize_count_header_pieces(expt_timeptnum_rep_tuple)
+def _validate_and_rename_counts_columns(combined_counts_df, expt_id):
+    data_col_headers = list(combined_counts_df.columns.values)
+    data_col_headers.remove(ns_extracter.get_construct_header())
 
-    divider = ns_extracter.get_header_divider()
-    result = "{}{}{}{}{}{}".format(standardized_pieces[0], divider, get_time_prefix(), standardized_pieces[1],
-                                   divider, standardized_pieces[2])
+    result = _validate_and_parse_data_column_headers(data_col_headers, expt_id)
+
+    # recompose headers rather than using data_col_headers because their components
+    # may have been changed by standardization done in _validate_and_parse_data_column_headers
+    unsorted_headers_list = _recompose_headers_from_tuples(result)
+    rename_dictionary = dict(zip(data_col_headers, unsorted_headers_list))
+    combined_counts_df.rename(columns=rename_dictionary, inplace=True)
+
     return result
 
 
-def _validate_and_parse_data_column_headers(count_headers):
+def _validate_and_parse_data_column_headers(count_headers, expt_id):
     # ensure that there is only one experiment represented in headers
     # ensure that every timepoint in the experiment has the exact same set of replicates
 
@@ -72,10 +80,10 @@ def _validate_and_parse_data_column_headers(count_headers):
     for curr_count_header in count_headers:
         # Required count header format: experiment_timept_rep
         count_header_pieces = _validate_and_decompose_count_header(curr_count_header)
-        some_id = count_header_pieces[0]
+        some_id = _validate_and_standardize_expt_id(expt_id) # count_header_pieces[0]
         timept = count_header_pieces[1]
         replicate = count_header_pieces[2]
-        result.append(count_header_pieces)
+        result.append((some_id, timept, replicate))  # TODO: Ugly hacking here; come back and clean up
 
         # fill out structure {some_id: {timept: {set of replicates}}} for use in
         # validation after all columns are examined
@@ -87,10 +95,6 @@ def _validate_and_parse_data_column_headers(count_headers):
 
     _validate_expt_structure(expt_structure_by_id)
     return result
-
-
-def _get_num_header_pieces():
-    return _NUM_HEADER_PIECES
 
 
 def _validate_and_decompose_count_header(count_header):
@@ -106,11 +110,15 @@ def _validate_and_standardize_count_header_pieces(count_header_pieces):
         raise ValueError("Count header has {0} piece(s) instead of the expected {1}: '{2}'.".format(
                          len(count_header_pieces), num_expected_pieces, count_header_pieces))
 
-    some_id = _validate_and_standardize_expt_id(count_header_pieces[0])
+    some_id = count_header_pieces[0]  # _validate_and_standardize_expt_id(count_header_pieces[0])
     timept = _validate_and_standardize_timepoint(count_header_pieces[1])
     replicate = _validate_and_standardize_replicate(count_header_pieces[2])
 
     return some_id, timept, replicate
+
+
+def _get_num_header_pieces():
+    return _NUM_HEADER_PIECES
 
 
 def _validate_and_standardize_expt_id(expt_id):
@@ -192,6 +200,11 @@ def _validate_expt_structure(expt_structure_by_id):
                         sorted(reference_reps_set)))
 
 
+def _recompose_headers_from_tuples(header_pieces_tuples_list, sort=False):
+    input_list = sorted(header_pieces_tuples_list) if sort else header_pieces_tuples_list
+    return [_validate_and_recompose_count_header(x) for x in input_list]
+
+
 def _generate_scoring_friendly_annotation(annotation_df):
     construct_id_header = ns_extracter.get_construct_header()
 
@@ -220,33 +233,22 @@ def _generate_scoring_friendly_annotation(annotation_df):
     return result
 
 
-def _compose_probe_pair_id(row):
-    return ns_extracter.compose_probe_pair_id_from_probe_ids(row[ns_extracter.get_probe_id_header("a")],
-                                                row[ns_extracter.get_probe_id_header("b")])
+# def _compose_probe_pair_id(row):
+#     return ns_extracter.compose_probe_pair_id_from_probe_ids(row[ns_extracter.get_probe_id_header("a")],
+#                                                 row[ns_extracter.get_probe_id_header("b")])
+#
+#
+# def _compose_target_pair_id(row):
+#     return ns_extracter.compose_target_pair_id_from_target_ids(row[ns_extracter.get_target_id_header("a")],
+#                                                   row[ns_extracter.get_target_id_header("b")])
 
 
-def _compose_target_pair_id(row):
-    return ns_extracter.compose_target_pair_id_from_target_ids(row[ns_extracter.get_target_id_header("a")],
-                                                  row[ns_extracter.get_target_id_header("b")])
+def _validate_and_recompose_count_header(expt_timeptnum_rep_tuple):
+    standardized_pieces = _validate_and_standardize_count_header_pieces(expt_timeptnum_rep_tuple)
 
-
-def _recompose_headers_from_tuples(header_pieces_tuples_list, sort=False):
-    input_list = sorted(header_pieces_tuples_list) if sort else header_pieces_tuples_list
-    return [_validate_and_recompose_count_header(x) for x in input_list]
-
-
-def _validate_and_rename_counts_columns(combined_counts_df):
-    data_col_headers = list(combined_counts_df.columns.values)
-    data_col_headers.remove(ns_extracter.get_construct_header())
-
-    result = _validate_and_parse_data_column_headers(data_col_headers)
-
-    # recompose headers rather than using data_col_headers because their components
-    # may have been changed by standardization done in _validate_and_parse_data_column_headers
-    unsorted_headers_list = _recompose_headers_from_tuples(result)
-    rename_dictionary = dict(zip(data_col_headers, unsorted_headers_list))
-    combined_counts_df.rename(columns=rename_dictionary, inplace=True)
-
+    divider = ns_extracter.get_header_divider()
+    result = "{}{}{}{}{}{}".format(standardized_pieces[0], divider, get_time_prefix(), standardized_pieces[1],
+                                   divider, standardized_pieces[2])
     return result
 
 
