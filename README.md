@@ -30,8 +30,8 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 
 	* An example command is shown below; of course, the path to the the pem file should be replaced with the path to your pem, and the  *.amazonaws.com should be replaced with the Public DNS value for your AMI:
 
-		    ssh -i ~/Keys/abirmingham_oregon.pem ec2-user@ec2-52-42-121-79.us-west-2.compute.amazonaws.com
-		    screen
+	ssh -i ~/Keys/abirmingham_oregon.pem ec2-user@ec2-52-42-121-79.us-west-2.compute.amazonaws.com
+	screen
 	
 	* Instructions from AWS are at [https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html)
 	* If you receive a message stating 'The authenticity of host ... can't be established' and asking 'Are you sure you want to continue connecting (yes/no)?', enter `yes`.	
@@ -40,7 +40,7 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 
 3. Download and install the `conda` package manager software
     
-	    curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o miniconda_py3.sh
+	curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o miniconda_py3.sh
     	bash miniconda_py3.sh
     	
     * Press the space bar to move through the license agreement
@@ -60,9 +60,11 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 	* Enter `y` when prompted to proceed
 
 5. Set up the conda software sources ("channels")
+
 		conda config --add channels defaults
 		conda config --add channels r
 		conda config --add channels bioconda
+
 	* order matters here so don't change it :)
 
 6. Create a `conda` environment with the base third-party software necessary for the pipeline; as before, enter `y` when prompted to proceed
