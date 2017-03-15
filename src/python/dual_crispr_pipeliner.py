@@ -72,14 +72,13 @@ def get_library_params(library_name):
         col_indices = "1,3,6,7,8,11,12"
         min_trimmed_grna_len = 19
         max_trimmed_grna_len = 21
+    elif library_name == "MV4":
+        spacers_file_name = "Metabolism_dual_spacers_w_probe_names.txt"
+        col_indices = "1,3,6,7,8,11,12"
+        min_trimmed_grna_len = 19
+        max_trimmed_grna_len = 21
     else:
         raise ValueError("Unrecognized library name: {0}".format(library_name))
-
-    # for MV4 library:
-    # spacers_file_name = "Metabolism_dual_spacers.txt"
-    # col_indices = "1,6,10"
-    # min_trimmed_grna_len = 19
-    # max_trimmed_grna_len = 21
 
     # for CRV4 library:
     # spacers_file_name = "Cancer_rep2_CRV4.txt"
