@@ -40,7 +40,7 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 3. Download and install the `conda` package manager software
     
 		curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o miniconda_py3.sh
-    		bash miniconda_py3.sh
+    	bash miniconda_py3.sh
     	
     * Press the space bar to move through the license agreement
     * Enter `yes` when asked "Do you wish the installer to prepend the Miniconda3 install location to PATH in your /home/ec2-user/.bashrc ?"
@@ -53,8 +53,8 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
    	* Then re-enter the same `ssh` command you used in step 1 (Hint: if you press the up-arrow while in the terminal window, it should appear for you!)
 5. Update conda
 
-		screen
-		conda update conda
+			screen
+			conda update conda
 		
 	* Enter `y` when prompted to proceed
 
