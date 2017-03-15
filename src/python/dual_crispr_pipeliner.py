@@ -43,7 +43,7 @@ def generate_dirs_dict(main_dir="/home/ec2-user/mali-dual-crispr-pipeline", data
     dirs_dict[DirectoryKeys.NOTEBOOKS] = os.path.join(main_dir, DirectoryKeys.NOTEBOOKS.value)
     dirs_dict[DirectoryKeys.LIBRARIES] =  os.path.join(main_dir, "library_definitions")
     dirs_dict[DirectoryKeys.RAW_DATA] = os.path.join(data_dir, DirectoryKeys.RAW_DATA.value)
-    dirs_dict[DirectoryKeys.INTERIM_DATA] = os.path.join(data_dir, DirectoryKeys.INTERIM_DATA.value, fastq_set_name)
+    dirs_dict[DirectoryKeys.INTERIM_DATA] = os.path.join(data_dir, DirectoryKeys.INTERIM_DATA.value)
     dirs_dict[DirectoryKeys.PROCESSED_DATA] = os.path.join(data_dir, DirectoryKeys.PROCESSED_DATA.value)
 
     ns_file.verify_or_make_dir(dirs_dict[DirectoryKeys.RAW_DATA])
