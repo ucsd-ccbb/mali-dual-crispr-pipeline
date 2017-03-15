@@ -133,6 +133,7 @@ def generate_counts_params(fastq_set_name, expt_name, dirs_dict, library_tuple):
                      'g_full_5p_r2': full_5p_r2,
                      'g_full_3p_r1': full_3p_r1,
                      'g_full_3p_r2': full_3p_r2,
+                     'g_keep_gzs': False,
                      'g_filtered_fastqs_dir': os.path.join(dirs_dict[DirectoryKeys.INTERIM_DATA], fastq_set_name),
                      'g_min_trimmed_grna_len': min_trimmed_grna_len,
                      'g_max_trimmed_grna_len': max_trimmed_grna_len,
