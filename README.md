@@ -89,12 +89,13 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
     * After this download, there will be a `mali-dual-crispr-pipeline` in the directory in the `/home/ec2-user/` directory
 
 10. Set up the expected local folders to store your data
+
 	* Note that these instructions assume you are storing the data and software on the same EBS volume (if you don't know what this means, you probably are :) If data will reside on a separate volume, that volume must mounted to the instance.
 
-		sudo mkdir /data
-		sudo chown -R ec2-user /data
-		cd ~/mali-dual-crispr-pipeline/src/python/
-		python set_up_mali_pipeline.py
+	sudo mkdir /data
+	sudo chown -R ec2-user /data
+	cd ~/mali-dual-crispr-pipeline/src/python/
+	python set_up_mali_pipeline.py
 	
 10. Configure the built-in `aws` software to allow transfer of data back and forth from Amazon's `s3` data storage
     
