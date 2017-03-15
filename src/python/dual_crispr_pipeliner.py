@@ -94,12 +94,13 @@ def get_expt_name(human_readable_name, library_name):
         raise ValueError("Human-readable name '{0}' is invalid; must contain only letters and numbers.".format(
             human_readable_name))
 
-    if not library_name.isalnum():
-        raise ValueError("Library name '{0}' is invalid; must contain only letters and numbers.".format(
-            library_name))
+    # if not library_name.isalnum():
+    #     raise ValueError("Library name '{0}' is invalid; must contain only letters and numbers.".format(
+    #         library_name))
+    #
+    # return "{0}{1}".format(human_readable_name, library_name)
 
-    return "{0}{1}".format(human_readable_name, library_name)
-
+    return human_readable_name
 
 def generate_counts_params(fastq_set_name, expt_name, dirs_dict, library_tuple):
     # *********************************************************
@@ -138,12 +139,12 @@ def generate_counts_params(fastq_set_name, expt_name, dirs_dict, library_tuple):
                      'g_min_trimmed_grna_len': min_trimmed_grna_len,
                      'g_max_trimmed_grna_len': max_trimmed_grna_len,
                      'g_len_of_seq_to_match': len_of_seq_to_match,
-                     ALG_NAME_KEY: "{0}mer_{1}mm_py".format(len_of_seq_to_match, num_allowed_mismatches),
+                     ALG_NAME_KEY: "{0}mer_{1}mm".format(len_of_seq_to_match, num_allowed_mismatches),
                      'g_num_allowed_mismatches': num_allowed_mismatches,
                      'g_constructs_fp': os.path.join(dirs_dict[DirectoryKeys.LIBRARIES], spacers_file_name),
                      'g_col_indices_str': col_indices,
-                     'g_fastq_counts_dir': dirs_dict[DirectoryKeys.PROCESSED_DATA],
-                     'g_fastq_counts_run_prefix': expt_name + "_{timestamp}",
+                     'g_fastq_counts_dir': "{run_dir}",
+                     'g_fastq_counts_run_prefix': "{run_prefix}",
                      'g_collapsed_counts_dir': "{run_dir}",
                      'g_collapsed_counts_run_prefix': "{run_prefix}",
                      'g_combined_counts_dir': "{run_dir}",
