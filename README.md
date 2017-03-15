@@ -92,10 +92,10 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 
 	* Note that these instructions assume you are storing the data and software on the same EBS volume (if you don't know what this means, you probably are :) If data will reside on a separate volume, that volume must mounted to the instance.
 
-	sudo mkdir /data
-	sudo chown -R ec2-user /data
-	cd ~/mali-dual-crispr-pipeline/src/python/
-	python set_up_mali_pipeline.py
+		sudo mkdir /data
+		sudo chown -R ec2-user /data
+		cd ~/mali-dual-crispr-pipeline/src/python/
+		python set_up_mali_pipeline.py
 	
 10. Configure the built-in `aws` software to allow transfer of data back and forth from Amazon's `s3` data storage
     
@@ -127,6 +127,7 @@ The count pipeline takes in raw fastq or fastq.gz files from the sequencing cent
 1. If you are not already logged into your instance, follow Set-Up step 1 above to do so
 2. If you are not already in your `conda` environment for the pipeline, follow Set-Up step 7 to activate it
 3. Create a directory for your fastq data and download it there
+
 	* In the following commands, replacing `fastq_dir_name` everywhere with the name of this run (e.g., `160817_D00611_0339_BHWTT2BCXX`)
 	* Replace XXXX and YYYY with the user name and password of the FTP server, and ZZZZ with the full URL of the folder in which the fastq data reside
 		
@@ -138,23 +139,31 @@ The count pipeline takes in raw fastq or fastq.gz files from the sequencing cent
 	* Depending on how much data you have, this may take from a few minutes to a few hours!
 		
 4. Run the count pipeline script
+
 	* Specify the name of the fastq directory you created above in place of `fastq_dir_name`.  Provide an alphanumeric-only name for your dataset in place of `dataset_name`, and input the recognized library name for the library used in your screen (e.g., "CV4") in place of `library_name`.
 
 			cd ~/mali-dual-crispr-pipeline/src/python/
 			python run_mali_counting.py fastq_dir_name dataset_name library_name
+
 5.  Wait for the run to complete
+
 	* This frequently takes several hours for a typical dataset
+
 5.  After the run is complete, find the results directory
 
 		cd /data/processed/
 		
 	* Look for a directory with a name whose timestamp suffix matches the timeframe of your most recent run (e.g., `20160801_LN229_CV4_19mer_1mm_py_20160804205646`)
+
 6. Zip the results directory and upload it to `s3`
+
 	* Replace `results_dir_name` everywhere below with the name identified in the last step and `s3_folder_path` with the `s3` path to which you wish to store the results
 
 			zip -r results_dir_name.zip results_dir_name/
 			aws s3 cp results_dir_name.zip s3://s3_folder_path/ 
+
 	* At this point, you may continue to run the score pipeline below, or may exit the configured instance and return to it later.  
+
 8. If you are ready to exit, follow Set-Up step 12 to exit your instance
 			
 			
@@ -173,17 +182,23 @@ The score pipeline takes in counts files, such as those produced by the count pi
 1. If you are not already logged into your instance, follow Set-Up step 1 above to do so
 2. If you are not already in your `conda` environment for the pipeline, follow Set-Up step 7 to activate it
 3. If the counts file you plan to use is not already on the instance, download it from `s3` and make a note of the path to it
+
 	* A sample `s3` download command looks like 
 	
 			aws s3 cp s3://path/to/my/counts_file.txt /data/raw/counts_file.txt
 		
 	* Alternately, if you are using the output of the count pipeline, you only need the full path to the relevant run's output folder that was identified in Counts Pipeline step 6
+
 4. Run the score pipeline script
+
 	* Provide an alphanumeric-only name for your dataset in place of `dataset_name`, and input the recognized library name for the library used in your screen (e.g., "CV4") in place of `library_name`.  Replace `counts_fp_or_dir` with the path identified above in step 3, and `day_timepoints_str` with a comma-separated string listing--in order--the days on which timepoints were collected (e.g., "3,14,21,28").
 
 			cd ~/mali-dual-crispr-pipeline/src/python/
 			python run_mali_scoring.py dataset_name library_name counts_fp_or_dir day_timepoints_str
+
 5.  Wait for the run to complete
+
 	* This usually takes between 20 minutes and an hour for a typical dataset
+
 6. Follow Counts Pipeline steps 6 and 7 to locate, zip, and upload the results
 7. Follow Set-Up step 12 to exit your instance
