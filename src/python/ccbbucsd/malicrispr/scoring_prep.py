@@ -208,12 +208,12 @@ def _recompose_headers_from_tuples(header_pieces_tuples_list, sort=False):
 def _generate_scoring_friendly_annotation(annotation_df):
     construct_id_header = ns_extracter.get_construct_header()
 
-    result = annotation_df.loc[:, (construct_id_header,
+    result = annotation_df.loc[:, [construct_id_header,
                                    ns_extracter.get_probe_id_header("a"),
                                    ns_extracter.get_probe_id_header("b"),
                                    ns_extracter.get_target_id_header("a"),
                                    ns_extracter.get_target_id_header("b")
-                                   )]
+                                   ]]
 
     # Below is what I expect the output to be after scoring data prep code is refactored to accept more
     # detail (and generate less itself).
