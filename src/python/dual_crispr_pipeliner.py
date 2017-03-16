@@ -36,6 +36,10 @@ class PipelineSteps(enum.Enum):
     SCORING = 7
 
 
+
+
+
+
 # TODO: either refactor out directory-making or rename method to alert users to side-effects
 def generate_dirs_dict(main_dir="/home/ec2-user/mali-dual-crispr-pipeline", data_dir="/data", fastq_set_name=""):
     dirs_dict = {}
