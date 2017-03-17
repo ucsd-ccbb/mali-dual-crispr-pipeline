@@ -29,8 +29,8 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 
 	* An example command is shown below; of course, the path to the the pem file should be replaced with the path to your pem, and the  *.amazonaws.com should be replaced with the Public DNS value for your AMI:
 
-		ssh -i ~/Keys/abirmingham_oregon.pem ec2-user@ec2-52-42-121-79.us-west-2.compute.amazonaws.com
-		screen
+			ssh -i ~/Keys/abirmingham_oregon.pem ec2-user@ec2-52-42-121-79.us-west-2.compute.amazonaws.com
+			screen
 	
 	* Instructions from AWS are at [https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html)
 	* If you receive a message stating 'The authenticity of host ... can't be established' and asking 'Are you sure you want to continue connecting (yes/no)?', enter `yes`.	
@@ -40,7 +40,7 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 3. Download and install the `conda` package manager software
     
 		curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o miniconda_py3.sh
-    		bash miniconda_py3.sh
+    	bash miniconda_py3.sh
     	
     * Press the space bar to move through the license agreement
     * Enter `yes` when asked "Do you wish the installer to prepend the Miniconda3 install location to PATH in your /home/ec2-user/.bashrc ?"
@@ -50,11 +50,11 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 		exit	
    		logout
    		
-   	* Then re-enter the same `ssh` command you used in step 1 (Hint: if you press the up-arrow while in the terminal window, it should appear for you!)
+   	* Then re-enter the same ssh command you used in step 1 (Hint: if you press the up-arrow while in the terminal window, it should appear for you!)
 5. Update conda
 
-		screen
-		conda update conda
+			screen
+			conda update conda
 		
 	* Enter `y` when prompted to proceed
 
@@ -92,10 +92,10 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 
 	* Note that these instructions assume you are storing the data and software on the same EBS volume (if you don't know what this means, you probably are :) If data will reside on a separate volume, that volume must mounted to the instance.
 
-		sudo mkdir /data
-		sudo chown -R ec2-user /data
-		cd ~/mali-dual-crispr-pipeline/src/python/
-		python set_up_mali_pipeline.py
+			sudo mkdir /data
+			sudo chown -R ec2-user /data
+			cd ~/mali-dual-crispr-pipeline/src/python/
+			python set_up_mali_pipeline.py
 	
 10. Configure the built-in `aws` software to allow transfer of data back and forth from Amazon's `s3` data storage
     

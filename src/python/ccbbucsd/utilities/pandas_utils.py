@@ -21,18 +21,20 @@ def add_series_to_dataframe(dataframe, series, header):
 
 
 def merge_files_by_shared_header(file_fps, merge_col_header):
+    is_first = True
     combined_df = None
 
     for curr_file_fp in file_fps:
         curr_df = pandas.read_table(curr_file_fp)
-        if combined_df is None:
+        if is_first:
             combined_df = curr_df
+            is_first = False
         else:
-            # check to make sure header lists are identical in both files
-            if curr_df[[merge_col_header]] != combined_df[[merge_col_header]]:
+            # check to make sure merge identifiers are identical in both files
+            if curr_df[merge_col_header].values.tolist() != combined_df[merge_col_header].values.tolist():
                 raise ValueError("{0} column of file {1} does not match expected list.".format(
                     merge_col_header, curr_file_fp))
 
-            combined_df.merge(curr_df, on=merge_col_header)
+            combined_df = combined_df.merge(curr_df, on=merge_col_header)
 
-        return combined_df
+    return combined_df
