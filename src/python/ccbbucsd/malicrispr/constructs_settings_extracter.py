@@ -23,23 +23,32 @@ def _extract_library_info_from_files(library_name, library_dir):
     text_fps = ns_file.get_filepaths_from_wildcard(library_dir, ".txt")
     for curr_fp in text_fps:
         with open(curr_fp, 'r') as curr_file:
-            first_line = curr_file.readline()
-            first_line_settings = _id_and_trim_settings_line(first_line)
-            if first_line_settings is not None:
-                if first_line_settings[0] == _LIBRARY_NAME_KEY:
-                    if first_line_settings[1] == library_name:
-                        curr_library_info = {first_line_settings[0]: first_line_settings[1],
-                                             _LIBRARY_FP_KEY: curr_fp}
-                        # read as many lines as there should be settings
-                        for i in range(0, len(_LIBRARY_SETTINGS_KEYS)):
-                            curr_line = curr_file.readline()
-                            curr_settings = _id_and_trim_settings_line(curr_line)
-                            if curr_settings is not None:
-                                curr_library_info[curr_settings[0]] = curr_settings[1]
-
-                        libraries_dict_list.append(curr_library_info)
+            library_dict = _mine_library_file(library_name, curr_fp, curr_file)
+            if library_dict is not None:
+                libraries_dict_list.append(library_dict)
 
     return libraries_dict_list
+
+
+def _mine_library_file(library_name, curr_fp, curr_file):
+    result = None
+
+    first_line = curr_file.readline()
+    first_line_settings = _id_and_trim_settings_line(first_line)
+    if first_line_settings is not None:
+        if first_line_settings[0] == _LIBRARY_NAME_KEY:
+            if first_line_settings[1] == library_name:
+                result = {first_line_settings[0]: first_line_settings[1],
+                          _LIBRARY_FP_KEY: curr_fp}
+
+                # read as many lines as there should be settings
+                for i in range(0, len(_LIBRARY_SETTINGS_KEYS)):
+                    curr_line = curr_file.readline()
+                    curr_settings = _id_and_trim_settings_line(curr_line)
+                    if curr_settings is not None:
+                        result[curr_settings[0]] = curr_settings[1]
+
+    return result
 
 
 def _id_and_trim_settings_line(a_line):
@@ -91,15 +100,16 @@ def _validate_settings_keys(library_name, library_dict):
     expected_keys_set = set(expected_keys_list)
     found_keys_set = set(library_dict.keys())
 
-    missing_keys = expected_keys_set - found_keys_set
-    if len(missing_keys) != 0:
-        raise ValueError("Library '{0}' is missing the following expected settings: {1}".format(
-            library_name, ", ".join(missing_keys)))
-
+    # warnings done first so that we see them even if there are *also* errors later
     ignored_keys = found_keys_set - expected_keys_set
     if len(ignored_keys) != 0:
         warnings.warn("Library '{0}' includes the following ignored settings: {1}".format(
             library_name, ", ".join(ignored_keys)))
+
+    missing_keys = expected_keys_set - found_keys_set
+    if len(missing_keys) != 0:
+        raise ValueError("Library '{0}' is missing the following expected settings: {1}".format(
+            library_name, ", ".join(missing_keys)))
 
 
 def _validate_settings_values(library_name, library_dict):
@@ -111,3 +121,5 @@ def _validate_settings_values(library_name, library_dict):
     if len(problem_keys) > 0:
         raise ValueError("Library '{0}' is missing settings values for the following settings: {1}".format(
             library_name, ", ".join(problem_keys)))
+
+
