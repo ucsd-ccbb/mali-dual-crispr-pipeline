@@ -4,17 +4,32 @@ import warnings
 # ccbb libraries
 import ccbbucsd.utilities.files_and_paths as ns_file
 
-_COMMENT_CHAR = "#"
-_LIBRARY_NAME_KEY = "library_name"
-_LIBRARY_FP_KEY = "library_fp"
-_LIBRARY_SETTINGS_KEYS = ["max_trimmed_grna_len", "min_trimmed_grna_len"]
-_SETTINGS_SEPARATOR = "="
+# project-specific libraries
+import ccbbucsd.malicrispr.construct_file_extracter as ns_extracter
 
 
+# public
 def id_library_info(library_name, library_dir):
     libraries_dict_list = _extract_library_info_from_files(library_name, library_dir)
     result = _id_and_validate_library(library_name, libraries_dict_list)
     return result
+
+
+# private
+def _get_library_fp_key():
+    return "library_fp"
+
+
+def _get_library_name_key():
+    return "library_name"
+
+
+def _get_library_settings_keys():
+    return ["max_trimmed_grna_len", "min_trimmed_grna_len"]
+
+
+def _get_settings_separator():
+    return "="
 
 
 def _extract_library_info_from_files(library_name, library_dir):
@@ -36,13 +51,13 @@ def _mine_library_file(library_name, curr_fp, curr_file):
     first_line = curr_file.readline()
     first_line_settings = _id_and_trim_settings_line(first_line)
     if first_line_settings is not None:
-        if first_line_settings[0] == _LIBRARY_NAME_KEY:
+        if first_line_settings[0] == _get_library_name_key():
             if first_line_settings[1] == library_name:
                 result = {first_line_settings[0]: first_line_settings[1],
-                          _LIBRARY_FP_KEY: curr_fp}
+                          _get_library_fp_key(): curr_fp}
 
                 # read as many lines as there should be settings
-                for i in range(0, len(_LIBRARY_SETTINGS_KEYS)):
+                for i in range(0, len(_get_library_settings_keys())):
                     curr_line = curr_file.readline()
                     curr_settings = _id_and_trim_settings_line(curr_line)
                     if curr_settings is not None:
@@ -54,11 +69,11 @@ def _mine_library_file(library_name, curr_fp, curr_file):
 def _id_and_trim_settings_line(a_line):
     result = None  # assume line does not contain valid settings
 
-    if a_line.startswith(_COMMENT_CHAR):
+    if a_line.startswith(ns_extracter.get_comment_char()):
         # Take any comment characters off the left end of the string, and then whitespace off both ends
-        trimmed_line = a_line.lstrip(_COMMENT_CHAR).strip()
+        trimmed_line = a_line.lstrip(ns_extracter.get_comment_char()).strip()
         # split on = and trim result
-        split_line = [x.strip() for x in trimmed_line.split(_SETTINGS_SEPARATOR)]
+        split_line = [x.strip() for x in trimmed_line.split(_get_settings_separator())]
 
         # a real settings line should split into two pieces (key and setting) on the settings separator,
         # and neither of the two pieces should be empty strings.  Note that in python an empty string
@@ -91,12 +106,12 @@ def _validate_library_id(library_name, libraries_dict_list):
         raise ValueError("No library file found with library name '{0}'".format(library_name))
     elif len(libraries_dict_list) > 1:
         raise ValueError("Multiple library files found with library name '{0}': {1}".format(
-            library_name, ", ".join([x[_LIBRARY_FP_KEY] for x in libraries_dict_list])))
+            library_name, ", ".join([x[_get_library_fp_key()] for x in libraries_dict_list])))
 
 
 def _validate_settings_keys(library_name, library_dict):
-    expected_keys_list = _LIBRARY_SETTINGS_KEYS
-    expected_keys_list.extend([_LIBRARY_NAME_KEY, _LIBRARY_FP_KEY])
+    expected_keys_list = _get_library_settings_keys()
+    expected_keys_list.extend([_get_library_name_key(), _get_library_fp_key()])
     expected_keys_set = set(expected_keys_list)
     found_keys_set = set(library_dict.keys())
 
