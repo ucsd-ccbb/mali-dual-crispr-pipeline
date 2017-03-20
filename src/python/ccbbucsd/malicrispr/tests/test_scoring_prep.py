@@ -6,15 +6,8 @@ import unittest
 import pandas
 
 # project-specific libraries
-from ccbbucsd.malicrispr.construct_file_extracter import get_target_id_header, \
-    get_probe_id_header, get_construct_header, get_target_pair_id_header, \
-    get_probe_pair_id_header
-
-from ccbbucsd.malicrispr.scoring_prep import  \
-    _validate_and_standardize_timepoint, _validate_expt_structure, \
-    _validate_and_decompose_count_header, _validate_and_parse_data_column_headers, \
-    _generate_scoring_friendly_annotation, _validate_and_standardize_replicate, \
-    _validate_and_recompose_count_header
+import ccbbucsd.malicrispr.construct_file_extracter as ns_extractor
+import ccbbucsd.malicrispr.scoring_prep as ns_test
 
 __author__ = "Amanda Birmingham"
 __maintainer__ = "Amanda Birmingham"
@@ -23,70 +16,165 @@ __status__ = "development"
 
 
 class TestFunctions(unittest.TestCase):
-    # region _validate_and_decompose_count_header
-    def test__validate_and_decompose_count_header_valid(self):
+    # region read_timepoint_from_standardized_count_header
+    def test_read_timepoint_from_standardized_count_header_valid(self):
+        real_output = ns_test.read_timepoint_from_standardized_count_header("PGP1MV4_t4_1", ["T", "t", "D", "d"])
+        self.assertEqual(4, real_output)
+
+        real_output2 = ns_test.read_timepoint_from_standardized_count_header("PGP1MV4_d40_1", ["T", "t", "D", "d"])
+        self.assertEqual(40, real_output2)
+
+    def test_read_timepoint_from_standardized_count_header_invalid_timept(self):
+        with self.assertRaises(ValueError):
+            ns_test.read_timepoint_from_standardized_count_header("PGP1MV4_q4_1", ["T", "t", "D", "d"])
+
+        with self.assertRaises(ValueError):
+            ns_test.read_timepoint_from_standardized_count_header("PGP1MV4_test40_1", ["T", "t", "D", "d"])
+
+        with self.assertRaises(ValueError):
+            ns_test.read_timepoint_from_standardized_count_header("PGP1MV4_t-40_1", ["T", "t", "D", "d"])
+
+        with self.assertRaises(ValueError):
+            ns_test.read_timepoint_from_standardized_count_header("PGP1MV4_t4.1_1", ["T", "t", "D", "d"])
+
+    def test_read_timepoint_from_standardized_count_header_invalid_header_too_few_pieces(self):
+        with self.assertRaises(ValueError):
+            ns_test.read_timepoint_from_standardized_count_header("PGP1MV4-t4.1-1", ["T", "t", "D", "d"])
+
+    def test_read_timepoint_from_standardized_count_header_invalid_header_too_many_pieces(self):
+        with self.assertRaises(ValueError):
+            ns_test.read_timepoint_from_standardized_count_header("PGP1_MV4_t4.1_1", ["T", "t", "D", "d"])
+
+    # end region
+
+    # region merge_and_annotate_counts
+    def test_merge_and_annotate_counts(self):
+        constructs_file_str = """# library_name = CV4
+# min_trimmed_grna_len = 19
+# max_trimmed_grna_len = 21
+construct_id	target_a_id	probe_a_id	probe_a_seq	target_b_id	probe_b_id	probe_b_seq	FinalSequence	Gene_A_chr	Gene_A_pos	Gene_B_chr	Gene_B_pos
+NonTargetingControlGuideForHuman0412__FLT3_chr13_28636131	NonTargetingControlGuideForHuman0412_NA	NonTargetingControlGuideForHuman0412	GCACGCTGTACAGACGACAA	FLT3-5	FLT3_chr13_28636131	GCGAGGCGCGCCGCTCCAGG	NonTargetingControlGuideForHuman0412_NA__FLT3-5	tatatatcttgtggaaaggacgaaacACCGGCACGCTGTACAGACGACAAGTTTTgagacgTAGGGATAACAGGGTAATcgtctcGTTTGGCGAGGCGCGCCGCTCCAGGGTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGGCT	146
+HDAC1_chr1_32757816__NonTargetingControlGuideForHuman0412	HDAC1-1	HDAC1_chr1_32757816	gcgctcgcgcccggacgcgg	NonTargetingControlGuideForHuman0412_NA	NonTargetingControlGuideForHuman0412	GCACGCTGTACAGACGACAA	HDAC1-1__NonTargetingControlGuideForHuman0412_NA	tatatatcttgtggaaaggacgaaacACCGGACCGACTGACGGTAGGGACGTTTTgagacgTAGGGATAACAGGGTAATcgtctcGTTTGGCACGCTGTACAGACGACAAGTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGGCT	146
+FGFR2_chr10_123298215__NonTargetingControlGuideForHuman0412	FGFR2-13	FGFR2_chr10_123298215	gcgcggccgccACAAAGCTC	NonTargetingControlGuideForHuman0412_NA	NonTargetingControlGuideForHuman0412	GCACGCTGTACAGACGACAA	FGFR2-13__NonTargetingControlGuideForHuman0412_NA	tatatatcttgtggaaaggacgaaacACCGgcgcggccgccACAAAGCTCGTTTTgagacgTAGGGATAACAGGGTAATcgtctcGTTTGGCACGCTGTACAGACGACAAGTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGGCT	146
+"""
+        count_file_str = """construct_id	PGP1_MV4_t1_2_S9_trimmed53_len_filtered_counts	PGP1-MV4_t21_2_S9_trimmed53_len_filtered_counts
+NonTargetingControlGuideForHuman0412__FLT3_chr13_28636131	40	1874
+HDAC1_chr1_32757816__NonTargetingControlGuideForHuman0412	0	37
+FGFR2_chr10_123298215__NonTargetingControlGuideForHuman0412	1938	1736
+"""
+        merge_df_str = """construct_id	probe_a_id	probe_b_id	target_a_id	target_b_id	PGP1MV4_T1_2	PGP1MV4_T21_2
+NonTargetingControlGuideForHuman0412__FLT3_chr13_28636131	FLT3_chr13_28636131	NonTargetingControlGuideForHuman0412	FLT3-5	NonTargetingControlGuideForHuman0412_NA	40	1874
+HDAC1_chr1_32757816__NonTargetingControlGuideForHuman0412	HDAC1_chr1_32757816	NonTargetingControlGuideForHuman0412	HDAC1-1	NonTargetingControlGuideForHuman0412_NA	0	37
+FGFR2_chr10_123298215__NonTargetingControlGuideForHuman0412	FGFR2_chr10_123298215	NonTargetingControlGuideForHuman0412	FGFR2-13	NonTargetingControlGuideForHuman0412_NA	1938	1736
+"""
+        merge_df_file_obj = io.StringIO(merge_df_str)
+        expected_output = pandas.read_table(merge_df_file_obj)
+
+        construct_file_obj = io.StringIO(constructs_file_str)
+        count_file_obj = io.StringIO(count_file_str)
+        real_output = ns_test.merge_and_annotate_counts([count_file_obj], construct_file_obj, "PGP1MV4", ["T", "D"])
+        self.assertTrue(expected_output.equals(real_output))
+
+    # end region
+
+    # region _get_orig_count_headers
+    def test__get_orig_count_headers(self):
+        count_file_str = """construct_id\tPGP1_MV4_t1_2_S9_trimmed53_len_filtered_counts\tPGP1-MV4_t21_2_S9_trimmed53_len_filtered_counts
+NonTargetingControlGuideForHuman0412__FLT3_chr13_28636131\t40\t1874
+HDAC1_chr1_32757816__NonTargetingControlGuideForHuman0412\t0\t37
+FGFR2_chr10_123298215__NonTargetingControlGuideForHuman0412\t1938\t1736
+"""
+        expected_output = ["PGP1_MV4_t1_2_S9_trimmed53_len_filtered_counts",
+                           "PGP1-MV4_t21_2_S9_trimmed53_len_filtered_counts"]
+
+        count_file_obj = io.StringIO(count_file_str)
+        count_file_df = pandas.read_table(count_file_obj, sep="\t")
+        real_output = ns_test._get_orig_count_headers(count_file_df)
+        self.assertListEqual(expected_output, real_output)
+
+    # end region
+
+    # region _validate_and_standardize_header_pieces
+    def test__validate_and_standardize_header_pieces_valid(self):
         header = "PGP1MV4_t21_2"
         expected_output = ("PGP1MV4", 21, 2)
-        real_output = _validate_and_decompose_count_header(header)
+        real_output = ns_test._validate_and_standardize_header_pieces(header, "PGP1MV4", ["T", "t", "D", "d"])
         self.assertEqual(expected_output, real_output)
 
-        real_output2 = _validate_and_decompose_count_header("PGP1-MV4_t21_2_S9_trimmed53_len_filtered_counts")
-        self.assertEqual(("PGP1-MV4", 21, 2), real_output2)
+        real_output2 = ns_test._validate_and_standardize_header_pieces(
+            "PGP1-MV4_t21_2_S9_trimmed53_len_filtered_counts", "PGP1MV4", ["T", "t", "D", "d"])
+        self.assertEqual(("PGP1MV4", 21, 2), real_output2)
 
-        real_output3 = _validate_and_decompose_count_header("PGP1-MV4_t21_2")
-        self.assertEqual(("PGP1-MV4", 21, 2), real_output2)
+        real_output3 = ns_test._validate_and_standardize_header_pieces("PGP1-MV4_t21_2", "PGP1MV4",
+                                                                       ["T", "t", "D", "d"])
+        self.assertEqual(("PGP1MV4", 21, 2), real_output3)
 
-    def test__validate_and_decompose_count_header_invalid(self):
+        real_output4 = ns_test._validate_and_standardize_header_pieces("PGP1_MV4_t21_2", "PGP1MV4",
+                                                                       ["T", "t", "D", "d"])
+        self.assertEqual(("PGP1MV4", 21, 2), real_output4)
+
+    def test___validate_and_standardize_header_pieces_invalid(self):
         with self.assertRaises(ValueError):
-            _validate_and_decompose_count_header("PGP1_MV4_t21_2_S9_trimmed53_len_filtered_counts")
-
+            ns_test._validate_and_standardize_header_pieces("PGP1_MV4_t_21_2_S9_trimmed53_len_filtered_counts",
+                                                            "PGP1MV4", ["T", "t", "D", "d"])
         with self.assertRaises(ValueError):
-            _validate_and_decompose_count_header("PGP1_MV4_t21_2")
+            ns_test._validate_and_standardize_header_pieces("PGPrep1", "PGP1MV4", ["T", "t", "D", "d"])
 
+    # end region
+
+    # region _validate_and_standardize_timept_and_replicate
+    def test__validate_and_standardize_timept_and_replicate_valid(self):
+        real_timept, real_replicate = ns_test._validate_and_standardize_timept_and_replicate("PGP1MV4_t4_1", ["T", "D"])
+        self.assertEqual(4, real_timept)
+        self.assertEqual(1, real_replicate)
+
+    def test__validate_and_standardize_timept_and_replicate_invalid_too_few_pieces(self):
         with self.assertRaises(ValueError):
-            _validate_and_decompose_count_header("PGPrep1")
+            ns_test._validate_and_standardize_timept_and_replicate("PGP1MV4-t4-1", ["T", "D"])
+
+    # I am not testing all the functionality of _validate_and_standardize_timepoint and
+    # _validate_and_standardize_replicate *again* here ... this is already a whitebox test (since I'm testing a
+    # private function) so anyone who modifies it should know it references those other two.
 
     # end region
 
     # region _validate_and_standardize_timepoint
     def test__validate_and_standardize_timepoint_valid(self):
         expected_output = 40
-        real_output = _validate_and_standardize_timepoint("t40")
+        real_output = ns_test._validate_and_standardize_timepoint("d40", ["T", "t", "D", "d"])
         self.assertEqual(expected_output, real_output)
 
-        real_output_2 = _validate_and_standardize_timepoint("T40")
+        real_output_2 = ns_test._validate_and_standardize_timepoint("T40", ["T", "t", "D", "d"])
         self.assertEqual(expected_output, real_output_2)
 
     def test__validate_and_standardize_timepoint_invalid_letter(self):
         with self.assertRaises(ValueError):
-            # any letter other than "t" or "T" at beginnning of
-            # timepoint should fail
-            _validate_and_standardize_timepoint("d40")
+            ns_test._validate_and_standardize_timepoint("r40", ["T", "t", "D", "d"])
 
     def test__validate_and_standardize_timepoint_invalid_number(self):
         with self.assertRaises(ValueError):
-            _validate_and_standardize_timepoint("test40")
+            ns_test._validate_and_standardize_timepoint("test40", ["T", "t", "D", "d"])
 
         with self.assertRaises(ValueError):
-            _validate_and_standardize_timepoint("t-40")
+            ns_test._validate_and_standardize_timepoint("t-40", ["T", "t", "D", "d"])
 
         with self.assertRaises(ValueError):
-            _validate_and_standardize_timepoint("t4.1")
+            ns_test._validate_and_standardize_timepoint("t4.1", ["T", "t", "D", "d"])
 
     # end region
 
     # region _validate_and_standardize_replicate
     def test__validate_and_standardize_replicate_digit(self):
-        real_output = _validate_and_standardize_replicate("10")
+        real_output = ns_test._validate_and_standardize_replicate("10")
         self.assertEqual(10, real_output)
 
     def test__validate_and_standardize_replicate_non_digit(self):
         input = "A"
-        real_output = _validate_and_standardize_replicate(input)
+        real_output = ns_test._validate_and_standardize_replicate(input)
         self.assertEqual(input, real_output)
 
         input_2 = "4.1"
-        real_output_2 = _validate_and_standardize_replicate(input_2)
+        real_output_2 = ns_test._validate_and_standardize_replicate(input_2)
         self.assertEqual(input_2, real_output_2)
 
     # end region
@@ -99,7 +187,7 @@ class TestFunctions(unittest.TestCase):
                 "T1": {"1", "2", "3"}}
             }
 
-        _validate_expt_structure(input)
+        ns_test._validate_expt_structure(input)
 
         # If we got this far, then the test
         # passed by definition
@@ -113,7 +201,7 @@ class TestFunctions(unittest.TestCase):
         }
 
         with self.assertRaises(ValueError):
-            _validate_expt_structure(input)
+            ns_test._validate_expt_structure(input)
 
     def test__validate_expt_structure_multiple_expts(self):
         input = {
@@ -126,7 +214,7 @@ class TestFunctions(unittest.TestCase):
             }
 
         with self.assertRaises(ValueError):
-            _validate_expt_structure(input)
+            ns_test._validate_expt_structure(input)
 
     def test__validate_expt_structure_no_timepts(self):
         input = {
@@ -134,7 +222,7 @@ class TestFunctions(unittest.TestCase):
         }
 
         with self.assertRaises(ValueError):
-            _validate_expt_structure(input)
+            ns_test._validate_expt_structure(input)
 
     def test__validate_expt_structure_no_reps(self):
         input = {
@@ -143,55 +231,13 @@ class TestFunctions(unittest.TestCase):
         }
 
         with self.assertRaises(ValueError):
-            _validate_expt_structure(input)
-
-    # def test__validate_expt_structure_valid(self):
-    #     input = {
-    #         "expt1": {
-    #             "T0": {"1", "2", "3"},
-    #             "T1": {"1", "2", "3"}},
-    #         "expt2": {
-    #             "T0": {"1", "2", "3"},
-    #             "T1": {"1", "2", "3"}}
-    #         }
-    #
-    #     _validate_expt_structure(input)
-    #
-    #     # If we got this far, then the test
-    #     # passed by definition
-    #     self.assertTrue(True, True)
-    #
-    # def test__validate_expt_structure_diff_reps_for_timept_in_expt(self):
-    #     input = {
-    #         "expt1": {
-    #             "T0": {"1", "2", "3"},
-    #             "T1": {"1", "2"}},
-    #         "expt2": {
-    #             "T0": {"1", "2", "3"},
-    #             "T1": {"1", "2"}}
-    #     }
-    #
-    #     with self.assertRaises(ValueError):
-    #         _validate_expt_structure(input)
-    #
-    # def test__validate_expt_structure_diff_timept_reps_for_expts(self):
-    #     input = {
-    #         "expt1": {
-    #             "T0": {"1", "2", "3"},
-    #             "T1": {"1", "2", "3"}},
-    #         "expt2": {
-    #             "T0": {"1", "2", "3"},
-    #             "T1": {"1", "2", "3"},
-    #             "T2": {"1", "2", "3"}},
-    #     }
-    #
-    #     with self.assertRaises(ValueError):
-    #         _validate_expt_structure(input)
+            ns_test._validate_expt_structure(input)
 
     # end region
 
-    # region _validate_and_parse_data_column_headers
-    def test__validate_and_parse_data_column_headers_valid_num_reps(self):
+    # region _validate_and_standardize_count_headers
+    def test__validate_and_standardize_count_headers_valid_num_reps(self):
+        input_prefixes = "T,t,D,d"
         data_headers = ["A549-MV4_t28_1_S7_trimmed53_len_filtered_counts",
                         "A549-MV4_t14_2_S4_trimmed53_len_filtered_counts",
                         "A549-MV4_t28_2_S8_trimmed53_len_filtered_counts",
@@ -201,13 +247,14 @@ class TestFunctions(unittest.TestCase):
                         "A549-MV4_t3_1_S1_trimmed53_len_filtered_counts",
                         "A549-MV4_t20_1_S5_trimmed53_len_filtered_counts"]
 
-        expected_output = [('A549MV4', 28, 1), ('A549MV4', 14, 2), ('A549MV4', 28, 2), ('A549MV4', 3, 2),
-                           ('A549MV4', 20, 2), ('A549MV4', 14, 1), ('A549MV4', 3, 1), ('A549MV4', 20, 1)]
+        expected_output = ['A549MV4_T28_1', 'A549MV4_T14_2', 'A549MV4_T28_2', 'A549MV4_T3_2',
+                           'A549MV4_T20_2', 'A549MV4_T14_1', 'A549MV4_T3_1', 'A549MV4_T20_1']
 
-        real_output = _validate_and_parse_data_column_headers(data_headers, "A549MV4")
+        real_output = ns_test._validate_and_standardize_count_headers(data_headers, "A549MV4", input_prefixes)
         self.assertEqual(expected_output, real_output)
 
-    def test__validate_and_parse_data_column_headers_valid_nonnum_reps(self):
+    def test__validate_and_standardize_count_headers_valid_nonnum_reps(self):
+        input_prefixes = "T,t,D,d"
         data_headers = ["A549-MV4_t28_a_S7_trimmed53_len_filtered_counts",
                         "A549-MV4_t14_b_S4_trimmed53_len_filtered_counts",
                         "A549-MV4_t28_b_S8_trimmed53_len_filtered_counts",
@@ -217,10 +264,10 @@ class TestFunctions(unittest.TestCase):
                         "A549-MV4_t3_a_S1_trimmed53_len_filtered_counts",
                         "A549-MV4_t20_a_S5_trimmed53_len_filtered_counts"]
 
-        expected_output = [('A549MV4', 28, 'a'), ('A549MV4', 14, 'b'), ('A549MV4', 28, 'b'), ('A549MV4', 3, 'b'),
-                           ('A549MV4', 20, 'b'), ('A549MV4', 14, 'a'), ('A549MV4', 3, 'a'), ('A549MV4', 20, 'a')]
+        expected_output = ['A549MV4_T28_a', 'A549MV4_T14_b', 'A549MV4_T28_b', 'A549MV4_T3_b',
+                           'A549MV4_T20_b', 'A549MV4_T14_a', 'A549MV4_T3_a', 'A549MV4_T20_a']
 
-        real_output = _validate_and_parse_data_column_headers(data_headers, "A549MV4")
+        real_output = ns_test._validate_and_standardize_count_headers(data_headers, "A549MV4", input_prefixes)
         self.assertEqual(expected_output, real_output)
 
     # end region
@@ -239,24 +286,24 @@ class TestFunctions(unittest.TestCase):
 
         input_df = pandas.read_csv(io.StringIO(input_str), sep="\t")
         expected_output_df = pandas.read_csv(io.StringIO(expected_output_str), sep="\t")
-        real_output_df = _generate_scoring_friendly_annotation(input_df)
+        real_output_df = ns_test._generate_scoring_friendly_annotation(input_df)
 
-        expected_column_headers = [get_construct_header(),
-            get_probe_id_header("a"), get_probe_id_header("b"),
-            get_target_id_header("a"), get_target_id_header("b")]
+        expected_column_headers = [ns_extractor.get_construct_header(),
+                                   ns_extractor.get_probe_id_header("a"), ns_extractor.get_probe_id_header("b"),
+                                   ns_extractor.get_target_id_header("a"), ns_extractor.get_target_id_header("b")]
         self.assertEqual(expected_column_headers, real_output_df.columns.values.tolist())
 
         # these dfs aren't equal, but some of their columns should be:
-        self.assertEqual(expected_output_df[get_construct_header()].tolist(),
-                         real_output_df[get_construct_header()].tolist())
-        self.assertEqual(expected_output_df[get_target_id_header("a")].tolist(),
-                         real_output_df[get_target_id_header("a")].tolist())
-        self.assertEqual(expected_output_df[get_target_id_header("b")].tolist(),
-                         real_output_df[get_target_id_header("b")].tolist())
-        self.assertEqual(expected_output_df[get_probe_id_header("a")].tolist(),
-                         real_output_df[get_probe_id_header("a")].tolist())
-        self.assertEqual(expected_output_df[get_probe_id_header("b")].tolist(),
-                         real_output_df[get_probe_id_header("b")].tolist())
+        self.assertEqual(expected_output_df[ns_extractor.get_construct_header()].tolist(),
+                         real_output_df[ns_extractor.get_construct_header()].tolist())
+        self.assertEqual(expected_output_df[ns_extractor.get_target_id_header("a")].tolist(),
+                         real_output_df[ns_extractor.get_target_id_header("a")].tolist())
+        self.assertEqual(expected_output_df[ns_extractor.get_target_id_header("b")].tolist(),
+                         real_output_df[ns_extractor.get_target_id_header("b")].tolist())
+        self.assertEqual(expected_output_df[ns_extractor.get_probe_id_header("a")].tolist(),
+                         real_output_df[ns_extractor.get_probe_id_header("a")].tolist())
+        self.assertEqual(expected_output_df[ns_extractor.get_probe_id_header("b")].tolist(),
+                         real_output_df[ns_extractor.get_probe_id_header("b")].tolist())
 
     # This test represents what I'm trying to refactor the scoring data prep code to accept; not there yet.
     #     def test__generate_scoring_friendly_annotation(self):
@@ -297,16 +344,12 @@ class TestFunctions(unittest.TestCase):
 
     # end region
 
-    # region _validate_and_recompose_count_header
-    def test__validate_and_recompose_count_header(self):
-        input = ("A549MV4", 3, 1)
-        expected_output = "A549MV4_T3_1"
-        real_output = _validate_and_recompose_count_header(input)
-        self.assertEqual(expected_output, real_output)
+    # region _recompose_count_header
 
-    def test__validate_and_recompose_count_header_error(self):
-        input = ("A549MV4", 3)
-        with self.assertRaises(ValueError):
-            _validate_and_recompose_count_header(input)
+    def test__recompose_count_header(self):
+        input_prefixes = "T,t,D,d"
+        expected_output = "A549MV4_T3_1"
+        real_output = ns_test._recompose_count_header("A549MV4", 3, 1, input_prefixes)
+        self.assertEqual(expected_output, real_output)
 
     # end region
