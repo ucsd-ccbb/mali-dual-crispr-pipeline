@@ -54,6 +54,10 @@ def get_probe_pair_id_header():
     return _PROBE_PAIR_ID
 
 
+def get_comment_char():
+    return "#"
+
+
 def compose_probe_pair_id_from_probe_ids(probe_a_id, probe_b_id):
     divider = get_header_divider()
     result = probe_a_id + divider + divider + probe_b_id
@@ -64,8 +68,8 @@ def compose_target_pair_id_from_target_ids(target_a_id, target_b_id):
     return target_a_id + get_header_divider() + target_b_id
 
 
-def extract_construct_and_grna_info(constructs_fp, column_indices):
-    construct_table = _read_in_construct_table(constructs_fp, column_indices, rows_to_skip=1)
+def extract_construct_and_grna_info(constructs_fp):
+    construct_table = _read_in_construct_table(constructs_fp)
     seq_name_sets = _extract_unique_sets_across_a_and_b(construct_table,
         [_PROBE_A_NAME, _PROBE_A_SEQ], [_PROBE_B_NAME, _PROBE_B_SEQ])
     probe_name_seq_pairs = _validate_and_format_probe_seq_pairs(seq_name_sets)
@@ -83,8 +87,8 @@ def trim_probes(probes_name_and_seq_list, retain_len):
     return result
 
 
-def load_annotation_df(constructs_fp, column_indices, disregard_order):
-    construct_df = _read_in_construct_table(constructs_fp, column_indices, rows_to_skip=1)
+def load_annotation_df(constructs_fp, disregard_order):
+    construct_df = _read_in_construct_table(constructs_fp)
 
     # TODO: I'm not thrilled that if there is non-uniqueness, I don't learn about it till this call;
     # I'd sort of like to learn about it from extract_construct_and_grna_info, even though that
@@ -111,16 +115,18 @@ def _is_letter_a(letter):
     return result
 
 
-def _read_in_construct_table(constructs_fp, column_indices, rows_to_skip=1):
-    result = pandas.read_table(constructs_fp, skiprows=rows_to_skip, header=None)
-    result = _rename_columns(result, column_indices)
+def _read_in_construct_table(constructs_fp, rows_to_skip=4):
+    result = pandas.read_table(constructs_fp, comment=get_comment_char(), skiprows=rows_to_skip, header=None)
+    result = _rename_columns(result)
     return result
 
 
-def _rename_columns(construct_table, column_indices):
+def _rename_columns(construct_table, column_indices=None):
     new_names = [_CONSTRUCT_ID, _TARGET_A_NAME, _PROBE_A_NAME, _PROBE_A_SEQ,
                  _TARGET_B_NAME, _PROBE_B_NAME, _PROBE_B_SEQ]
     existing_names = list(construct_table.columns.values)
+    if column_indices is None:
+        column_indices = range(0, len(new_names))
 
     if len(column_indices) != len(new_names):
         raise ValueError("Expected indices for {0} columns but received indices for {1}.".format(
