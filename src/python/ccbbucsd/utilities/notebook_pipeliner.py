@@ -3,8 +3,8 @@ import os
 import re
 
 # ccbb libraries
-from ccbbucsd.utilities.analysis_run_prefixes import get_timestamp, get_run_prefix
-from ccbbucsd.utilities.notebook_runner import execute_notebook, export_notebook_to_html
+import ccbbucsd.utilities.analysis_run_prefixes as ns_runs
+import ccbbucsd.utilities.notebook_runner as ns_notebook
 
 __author__ = "Amanda Birmingham"
 __maintainer__ = "Amanda Birmingham"
@@ -12,42 +12,46 @@ __email__ = "abirmingham@ucsd.edu"
 __status__ = "development"
 
 
-DATASET_NAME_KEY = "g_dataset_name"
-ALG_NAME_KEY = "g_count_alg_name"
+def execute_run_from_full_params(run_params, params_preprocess_func=None, test_val=None):
+    notebook_dir = run_params[ns_runs.get_notebooks_dir_key()]
+    notebook_basenames_list = run_params[ns_runs.get_notebook_names_list_key()]
+    results_dir = run_params[ns_runs.get_results_dir_key()]
+
+    _execute_run(notebook_dir, notebook_basenames_list, results_dir, run_params, params_preprocess_func, test_val)
 
 
-def execute_run(possible_actions_dict, run_params, ordered_run_steps, parent_dir, run_folder=None):
-    timestamp = get_timestamp()
-    run_prefix = _generate_run_prefix(run_params, timestamp)
-    if run_folder is None:
-        run_dir = _make_run_dir(parent_dir, run_prefix)
-    else:
-        run_dir = os.path.join(parent_dir, run_folder)
-    methods_dir = _create_run_and_methods_dirs(run_dir)
+def _execute_run(notebook_dir, notebook_basenames_list, results_dir, run_params, params_preprocess_func=None,
+                 test_val=None):
 
-    for run_action in ordered_run_steps:
-        step_details = possible_actions_dict[run_action]
-        run_and_output_notebook(step_details, run_params, timestamp, run_prefix, run_dir, methods_dir)
+    run_prefix, run_dir_name, extended_params = _add_run_prefix_and_dir_to_params(results_dir, run_params,
+                                                                                  params_preprocess_func, test_val)
+
+    methods_dir = _create_run_and_methods_dirs(run_dir_name)
+
+    for curr_notebook_basename in notebook_basenames_list:
+        _run_and_output_notebook(notebook_dir, curr_notebook_basename, extended_params, run_prefix, methods_dir)
 
 
-def run_and_output_notebook(step_settings, params_dict, timestamp, run_prefix, run_dir, methods_dir):
-    run_path = step_settings[0]
-    base_notebook_filename = step_settings[1]
+def _add_run_prefix_and_dir_to_params(results_dir, run_params, params_preprocess_func=None, test_val=None):
+    if not ns_runs.get_run_prefix_key() in run_params:
+        run_params[ns_runs.get_run_prefix_key()] = ns_runs.generate_run_prefix(test_val=test_val)
+    run_prefix = run_params[ns_runs.get_run_prefix_key()]
 
-    formatted_params_dict = _format_parameters(run_dir, timestamp, run_prefix, params_dict)
-    notebook_out_fp = _get_output_fp(base_notebook_filename, timestamp, methods_dir, ".ipynb")
-    execute_notebook(base_notebook_filename, notebook_out_fp, formatted_params_dict, run_path)
-    export_notebook_to_html(notebook_out_fp, methods_dir)
+    if not ns_runs.get_run_dir_key() in run_params:
+        run_params[ns_runs.get_run_dir_key()] = ns_runs.generate_run_dir(results_dir, run_prefix)
+    run_dir = run_params[ns_runs.get_run_dir_key()]
+
+    if params_preprocess_func is not None:
+        run_params = params_preprocess_func(run_params)
+
+    return run_prefix, run_dir, run_params
 
 
-def _generate_run_prefix(run_params, timestamp):
-    dataset_name = run_params[DATASET_NAME_KEY]
-    alg_name = run_params[ALG_NAME_KEY]
-    return get_run_prefix(dataset_name, alg_name, timestamp)
-
-
-def _make_run_dir(parent_path, run_prefix):
-    return os.path.join(parent_path, run_prefix)
+def _run_and_output_notebook(notebook_dir, base_notebook_filename, params_dict, run_prefix, methods_dir):
+    notebook_out_fp = _get_output_fp(base_notebook_filename, run_prefix, methods_dir, ".ipynb")
+    ns_notebook.execute_notebook(base_notebook_filename, params_dict, notebook_out_fp, run_path=notebook_dir)
+    html_out_fp = ns_notebook.export_notebook_to_html(notebook_out_fp, methods_dir)
+    return notebook_out_fp, html_out_fp
 
 
 def _create_run_and_methods_dirs(run_dir_name):
@@ -62,30 +66,17 @@ def _get_methods_folder_name():
     return "methods"
 
 
-def _mangle_notebook_name(timestamp, notebook_filename):
-    delimiter = "_"
-    name_base, _ = os.path.splitext(notebook_filename)
-    lower_base = name_base.lower()
-    delimited_notebook_base = re.sub("\s+", delimiter, lower_base)
-    new_base = "{0}{1}{2}".format(timestamp, delimiter, delimited_notebook_base)
-    return new_base
-
-
-def _get_output_fp(notebook_fp, timestamp, methods_dir, output_ext):
+def _get_output_fp(notebook_fp, run_prefix, methods_dir, output_ext):
     _, notebook_name = os.path.split(notebook_fp)
-    new_base = _mangle_notebook_name(timestamp, notebook_name)
+    new_base = _mangle_notebook_name(notebook_name, run_prefix)
     new_fp = os.path.join(methods_dir, new_base + output_ext)
     return new_fp
 
 
-def _format_parameters(output_dir, timestamp, run_prefix, params_dict):
-    result = {}
-    for curr_param_key, curr_param_item in params_dict.items():
-        if hasattr(curr_param_item, 'format'):  # if this item has a format method
-            final_item = curr_param_item.format(run_dir=output_dir, timestamp=timestamp, run_prefix=run_prefix)
-        else:
-            final_item = curr_param_item
-        result[curr_param_key] = final_item
-    return result
-
-
+def _mangle_notebook_name(notebook_filename, run_prefix):
+    delimiter = "_"
+    name_base, _ = os.path.splitext(notebook_filename)
+    lower_base = name_base.lower().strip()
+    delimited_notebook_base = re.sub("\s+", delimiter, lower_base)
+    new_base = "{0}{1}{2}".format(run_prefix, delimiter, delimited_notebook_base)
+    return new_base
