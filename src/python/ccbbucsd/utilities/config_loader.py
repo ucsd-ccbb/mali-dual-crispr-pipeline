@@ -1,8 +1,10 @@
 import configparser
+import os
 
 
 def get_default_config_fp():
-    return "config.txt"  # expected to be in same directory as the running script
+    result = os.path.join(os.environ['HOME'], "mali-dual-crispr-pipeline", ".config.txt")
+    return result
 
 
 def load_config_parser_from_fp(config_fp=None):

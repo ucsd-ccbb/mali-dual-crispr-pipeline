@@ -1,5 +1,6 @@
 # standard libraries
 import os
+import tempfile
 import unittest
 
 import ccbbucsd.utilities.config_loader as ns_config
@@ -72,14 +73,10 @@ num_iterations = 2
                                                       'Counting.ipynb,Dual CRISPR 4-Count Combination.ipynb,'
                                                       'Dual CRISPR 5-Count Plots.ipynb'}
 
-        temp_configfile_fp = ns_config.get_default_config_fp()
-        try:
-            with open(ns_config.get_default_config_fp(), "w") as f:
-                f.write(config_str)
+        temp_config = tempfile.NamedTemporaryFile(mode="w")
+        temp_config.write(config_str)
+        temp_config.seek(0)
 
-            real_output = ns_test._set_params(input_fastq_dir_name)
-        finally:
-            if os.path.exists(temp_configfile_fp):
-                os.remove(temp_configfile_fp)
+        real_output = ns_test._set_params(input_fastq_dir_name, temp_config.name)
 
         self.assertEqual(expected_output, real_output)

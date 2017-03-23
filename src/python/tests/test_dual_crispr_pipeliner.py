@@ -68,8 +68,11 @@ code_dir: ${main_dir}/src/python
                            "code_dir": "/home/ec2-user/src/python"
                            }
 
-        configparser = ns_config.load_config_parser(config_string)
-        real_output = ns_test.get_machine_config_params(configparser)
+        temp_config = tempfile.NamedTemporaryFile(mode="w")
+        temp_config.write(config_string)
+        temp_config.seek(0)
+
+        real_output = ns_test.get_machine_config_params(temp_config.name)
         self.assertEqual(expected_output, real_output)
 
     def test_set_up_data_subdirs_and_get_machine_configs(self):
@@ -97,7 +100,9 @@ processed_data_dir: ${data_dir}/processed
 """
 
         config_string = config_string.replace("REPLACE", tempdir.name)
-        configparser = ns_config.load_config_parser(config_string)
+        temp_config = tempfile.NamedTemporaryFile(mode="w")
+        temp_config.write(config_string)
+        temp_config.seek(0)
 
         expected_output = {"machine_configuration": "laptop",
                            "keep_gzs": "False",
@@ -110,7 +115,7 @@ processed_data_dir: ${data_dir}/processed
         for curr_key in dirs_dict:
             self.assertFalse(os.path.exists(dirs_dict[curr_key]))
 
-        real_output = ns_test.set_up_data_subdirs_and_get_machine_configs(configparser)
+        real_output = ns_test.set_up_data_subdirs_and_get_machine_configs(temp_config.name)
 
         for curr_key, curr_val in dirs_dict.items():
             self.assertTrue(os.path.exists(curr_val))
@@ -273,8 +278,11 @@ NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	NonTargetingControlGui
  "nbformat_minor": 1
 }
 """
-        # set up the mock config parser
+        # set up the mock config file
         config_string = config_string.replace("REPLACE", tempdir.name)
+        temp_config = tempfile.NamedTemporaryFile(mode="w")
+        temp_config.write(config_string)
+        temp_config.seek(0)
         configparser = ns_config.load_config_parser(config_string)
 
         # set up the mock library file
@@ -298,7 +306,7 @@ NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	NonTargetingControlGui
         arg_based_params_input = {"interim_data_dir":"an overwrite",
                                   "notebook_basenames_list": "first_nb.ipynb, second_nb.ipynb"}
 
-        real_output = ns_test.generate_notebook_params("test", "CV4", arg_based_params_input, configparser)
+        real_output = ns_test.generate_notebook_params("test", "CV4", arg_based_params_input, temp_config.name)
 
         # check that default values from the config "file" were added
         self.assertEqual("laptop", real_output["machine_configuration"])

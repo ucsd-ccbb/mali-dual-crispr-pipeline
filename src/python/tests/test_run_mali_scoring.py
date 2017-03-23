@@ -1,5 +1,6 @@
 # standard libraries
 import os
+import tempfile
 import unittest
 import warnings
 
@@ -82,24 +83,18 @@ num_iterations = 2
                            'time_prefixes': 'T,D',
                            'use_seed': True}
 
-        temp_configfile_fp = ns_config.get_default_config_fp()
-        try:
-            with open(ns_config.get_default_config_fp(), "w") as f:
-                f.write(config_str)
+        temp_config = tempfile.NamedTemporaryFile(mode="w")
+        temp_config.write(config_str)
+        temp_config.seek(0)
 
-            with warnings.catch_warnings(record=True) as warnings_list:
-                # Cause all warnings to always be triggered.
-                warnings.simplefilter("always")
+        with warnings.catch_warnings(record=True) as warnings_list:
+            # Cause all warnings to always be triggered.
+            warnings.simplefilter("always")
 
-                real_output = ns_test._set_params(count_fps_or_dirs, day_timepoints_str, is_test)
+            real_output = ns_test._set_params(count_fps_or_dirs, day_timepoints_str, is_test, temp_config.name)
 
-                assert len(warnings_list) == 1
-                assert "Scoring is running in TEST MODE; do not use results for data analysis!" in str(warnings_list[-1].message)
-
-
-        finally:
-            if os.path.exists(temp_configfile_fp):
-                os.remove(temp_configfile_fp)
+            assert len(warnings_list) == 1
+            assert "Scoring is running in TEST MODE; do not use results for data analysis!" in str(warnings_list[-1].message)
 
         self.assertEqual(expected_output, real_output)
 
@@ -171,16 +166,11 @@ num_iterations = 2
                            'time_prefixes': 'T,D',
                            'use_seed': False}
 
-        temp_configfile_fp = ns_config.get_default_config_fp()
-        try:
-            with open(ns_config.get_default_config_fp(), "w") as f:
-                f.write(config_str)
+        temp_config = tempfile.NamedTemporaryFile(mode="w")
+        temp_config.write(config_str)
+        temp_config.seek(0)
 
-            real_output = ns_test._set_params(count_fps_or_dirs, day_timepoints_str, is_test)
-        finally:
-            if os.path.exists(temp_configfile_fp):
-                os.remove(temp_configfile_fp)
-
+        real_output = ns_test._set_params(count_fps_or_dirs, day_timepoints_str, is_test, temp_config.name)
         self.assertEqual(expected_output, real_output)
 
     # end region

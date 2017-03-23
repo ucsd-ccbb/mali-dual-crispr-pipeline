@@ -33,11 +33,13 @@ def _parse_cmd_line_args():
                                                    "which data were collected")
     parser.add_argument("--test", help="run with set seed and only two iterations, suitable for testing ONLY",
                         action="store_true")
+    parser.add_argument("--config", help="path to config file; if not specified, config file in default location will "
+                                         "be used")
     args = parser.parse_args()
-    return args.dataset_name, args.library_name, args.counts_fps_or_dirs, args.day_timepoints_str, args.test
+    return args.dataset_name, args.library_name, args.counts_fps_or_dirs, args.day_timepoints_str, args.test, args.config
 
 
-def _set_params(count_fps_or_dirs, day_timepoints_str, is_test):
+def _set_params(count_fps_or_dirs, day_timepoints_str, is_test, config_fp):
     test_config_section_key = "test"
     score_notebooks_key = "score_notebooks"
     time_prefixes_key = "time_prefixes"
@@ -47,7 +49,7 @@ def _set_params(count_fps_or_dirs, day_timepoints_str, is_test):
     num_iterations_key = "num_iterations"
 
     # load the config file
-    config_parser = ns_config.load_config_parser_from_fp()
+    config_parser = ns_config.load_config_parser_from_fp(config_fp)
     # delimited string NOT split here--done in shared code in dual_crispr_pipeliner
     score_notebooks_list_str = config_parser.get(config_parser.default_section, score_notebooks_key)
 
@@ -78,8 +80,8 @@ def _set_params(count_fps_or_dirs, day_timepoints_str, is_test):
 
 
 def main():
-    dataset_name, library_name, counts_fps_or_dirs, day_timepoints_str, is_test = _parse_cmd_line_args()
-    score_params = _set_params(dataset_name, library_name, counts_fps_or_dirs, day_timepoints_str, is_test)
+    dataset_name, library_name, counts_fps_or_dirs, day_timepoints_str, is_test, config_fp = _parse_cmd_line_args()
+    score_params = _set_params(counts_fps_or_dirs, day_timepoints_str, is_test, config_fp)
     full_params = ns_dcpipe.generate_notebook_params(dataset_name, library_name, score_params)
     # Note: second argument is the *function*, not results of calling the function
     ns_pipeliner.execute_run_from_full_params(full_params, ns_dcpipe.rename_param_names_as_global_vars)

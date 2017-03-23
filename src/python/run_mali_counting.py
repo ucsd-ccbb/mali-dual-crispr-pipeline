@@ -4,7 +4,6 @@ import os
 
 # ccbb libraries
 import ccbbucsd.utilities.analysis_run_prefixes as ns_runs
-import ccbbucsd.utilities.config_loader as ns_config
 import ccbbucsd.utilities.notebook_pipeliner as ns_pipeliner
 
 # project-specific libraries
@@ -21,13 +20,15 @@ def _parse_cmd_line_args():
     parser.add_argument("fastq_dir_name", help="name of the folder in which the fastq data to be analyzed reside")
     parser.add_argument("dataset_name", help="short, alphanumeric human-readable name for the dataset to be analyzed")
     parser.add_argument("library_name", help="name of the construct library for the dataset to be analyzed")
+    parser.add_argument("--config", help="path to config file; if not specified, config file in default location will "
+                                         "be used")
     args = parser.parse_args()
-    return args.fastq_dir_name, args.dataset_name, args.library_name
+    return args.fastq_dir_name, args.dataset_name, args.library_name, args.config
 
 
-def _set_params(fastq_dir_name):
+def _set_params(fastq_dir_name, config_fp):
     # load the config file
-    config_params = ns_dcpipe.get_machine_config_params()
+    config_params = ns_dcpipe.get_machine_config_params(config_fp)
     raw_dir = config_params[ns_dcpipe.DirectoryKeys.RAW_DATA.value]
     interim_dir = config_params[ns_dcpipe.DirectoryKeys.INTERIM_DATA.value]
     count_notebooks_list = config_params["count_notebooks"]
@@ -41,8 +42,8 @@ def _set_params(fastq_dir_name):
 
 
 def main():
-    fastq_dir_name, dataset_name, library_name = parse_cmd_line_args()
-    count_params = set_params(fastq_dir_name)
+    fastq_dir_name, dataset_name, library_name, config_fp = _parse_cmd_line_args()
+    count_params = _set_params(fastq_dir_name, config_fp)
     full_params = ns_dcpipe.generate_notebook_params(dataset_name, library_name, count_params)
     # Note: second argument is the *function*, not results of calling the function
     ns_pipeliner.execute_run_from_full_params(full_params, ns_dcpipe.rename_param_names_as_global_vars)
