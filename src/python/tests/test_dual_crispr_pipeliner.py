@@ -42,7 +42,7 @@ class TestFunctions(unittest.TestCase):
         for curr_key, curr_val in input_dict.items():
             self.assertTrue(os.path.exists(curr_val))
 
-    def test__get_machine_config_params(self):
+    def test_get_machine_config_params(self):
         config_string = """[DEFAULT]
 machine_configuration = c4_2xlarge
 keep_gzs: False
@@ -69,7 +69,7 @@ code_dir: ${main_dir}/src/python
                            }
 
         configparser = ns_config.load_config_parser(config_string)
-        real_output = ns_test._get_machine_config_params(configparser)
+        real_output = ns_test.get_machine_config_params(configparser)
         self.assertEqual(expected_output, real_output)
 
     def test_set_up_data_subdirs_and_get_machine_configs(self):

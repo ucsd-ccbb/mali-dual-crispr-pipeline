@@ -1,5 +1,11 @@
 # standard libraries
 import argparse
+import os
+
+# ccbb libraries
+import ccbbucsd.utilities.analysis_run_prefixes as ns_runs
+import ccbbucsd.utilities.config_loader as ns_config
+import ccbbucsd.utilities.notebook_pipeliner as ns_pipeliner
 
 # project-specific libraries
 import dual_crispr_pipeliner as ns_dcpipe
@@ -19,14 +25,27 @@ def parse_cmd_line_args():
     return args.fastq_dir_name, args.dataset_name, args.library_name
 
 
-def main():
-    fastq_set_name, human_readable_name, library_name = parse_cmd_line_args()
-    dirs_dict = ns_dcpipe.generate_dirs_dict(fastq_set_name=fastq_set_name)
-    expt_name = ns_dcpipe.get_expt_name(human_readable_name, library_name)
-    library_tuple = ns_dcpipe.get_library_params(library_name)
-    count_params = ns_dcpipe.generate_counts_params(fastq_set_name, expt_name, dirs_dict, library_tuple)
+def set_params(fastq_dir_name):
+    # load the config file
+    config_params = ns_dcpipe.get_machine_config_params()
+    raw_dir = config_params[ns_dcpipe.DirectoryKeys.RAW_DATA.value]
+    interim_dir = config_params[ns_dcpipe.DirectoryKeys.INTERIM_DATA.value]
+    count_notebooks_list = config_params["count_notebooks"]
 
-    ns_dcpipe.run_counts_pipeline(dirs_dict, count_params)
+    result = {}
+    result[ns_dcpipe.DirectoryKeys.RAW_DATA.value] = os.path.join(raw_dir, fastq_dir_name)
+    result[ns_dcpipe.DirectoryKeys.INTERIM_DATA.value] = os.path.join(interim_dir, fastq_dir_name)
+    result[ns_runs.get_notebook_names_list_key()] = count_notebooks_list
+
+    return result
+
+
+def main():
+    fastq_dir_name, dataset_name, library_name = parse_cmd_line_args()
+    count_params = set_params(fastq_dir_name)
+    full_params = ns_dcpipe.generate_notebook_params(dataset_name, library_name, count_params)
+    # Note: second argument is the *function*, not results of calling the function
+    ns_pipeliner.execute_run_from_full_params(full_params, ns_dcpipe.rename_param_names_as_global_vars)
 
 if __name__ == '__main__':
     main()

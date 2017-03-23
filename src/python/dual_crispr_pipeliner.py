@@ -28,12 +28,18 @@ class DirectoryKeys(enum.Enum):
 
 
 def set_up_data_subdirs_and_get_machine_configs(config_parser=None):
+    result = get_machine_config_params(config_parser)
+    _verify_or_make_data_subdirs(result)
+    return result
+
+
+def get_machine_config_params(config_parser=None):
     if config_parser is None:
         config_parser = ns_config.load_config_parser_from_fp()
 
-    result = _get_machine_config_params(config_parser)
-    _verify_or_make_data_subdirs(result)
-    return result
+    machine_config_key = config_parser.get(config_parser.default_section, "machine_configuration")
+    machine_config_dict = ns_config.load_config_section_dict(config_parser, machine_config_key)
+    return machine_config_dict
 
 
 def generate_notebook_params(expt_name, library_name, arg_based_params_dict, config_parser=None):
@@ -87,12 +93,6 @@ def rename_param_names_as_global_vars(params_dict):
         revised_key = curr_key if curr_key.startswith(prefix) else prefix + curr_key
         result[revised_key] = curr_val
     return result
-
-
-def _get_machine_config_params(config_parser):
-    machine_config_key = config_parser.get(config_parser.default_section, "machine_configuration")
-    machine_config_dict = ns_config.load_config_section_dict(config_parser, machine_config_key)
-    return machine_config_dict
 
 
 def _verify_or_make_data_subdirs(machine_config_params):
