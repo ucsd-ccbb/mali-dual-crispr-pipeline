@@ -16,7 +16,7 @@ __email__ = "abirmingham@ucsd.edu"
 __status__ = "prototype"
 
 
-def parse_cmd_line_args():
+def _parse_cmd_line_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("fastq_dir_name", help="name of the folder in which the fastq data to be analyzed reside")
     parser.add_argument("dataset_name", help="short, alphanumeric human-readable name for the dataset to be analyzed")
@@ -25,7 +25,7 @@ def parse_cmd_line_args():
     return args.fastq_dir_name, args.dataset_name, args.library_name
 
 
-def set_params(fastq_dir_name):
+def _set_params(fastq_dir_name):
     # load the config file
     config_params = ns_dcpipe.get_machine_config_params()
     raw_dir = config_params[ns_dcpipe.DirectoryKeys.RAW_DATA.value]

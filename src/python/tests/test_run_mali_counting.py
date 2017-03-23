@@ -9,10 +9,10 @@ import run_mali_counting as ns_test
 
 
 class TestFunctions(unittest.TestCase):
-    # no tests for parse_cmd_line_args as it is so simple
+    # no tests for _parse_cmd_line_args as it is so simple
     # no tests for main as it just chains together calls to other tested methods
 
-    def test_set_params(self):
+    def test__set_params(self):
         config_str = """[DEFAULT]
 machine_configuration = c4_2xlarge
 keep_gzs: False
@@ -77,7 +77,7 @@ num_iterations = 2
             with open(ns_config.get_default_config_fp(), "w") as f:
                 f.write(config_str)
 
-            real_output = ns_test.set_params(input_fastq_dir_name)
+            real_output = ns_test._set_params(input_fastq_dir_name)
         finally:
             if os.path.exists(temp_configfile_fp):
                 os.remove(temp_configfile_fp)
