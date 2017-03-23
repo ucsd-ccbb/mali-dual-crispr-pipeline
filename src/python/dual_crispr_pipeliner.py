@@ -27,28 +27,24 @@ class DirectoryKeys(enum.Enum):
     PROCESSED_DATA = "processed_data_dir"
 
 
-def set_up_data_subdirs_and_get_machine_configs(config_parser=None):
-    result = get_machine_config_params(config_parser)
+def set_up_data_subdirs_and_get_machine_configs(config_fp=None):
+    result = get_machine_config_params(config_fp)
     _verify_or_make_data_subdirs(result)
     return result
 
 
-def get_machine_config_params(config_parser=None):
-    if config_parser is None:
-        config_parser = ns_config.load_config_parser_from_fp()
+def get_machine_config_params(config_fp=None):
+    config_parser = ns_config.load_config_parser_from_fp(config_fp)
 
     machine_config_key = config_parser.get(config_parser.default_section, "machine_configuration")
     machine_config_dict = ns_config.load_config_section_dict(config_parser, machine_config_key)
     return machine_config_dict
 
 
-def generate_notebook_params(expt_name, library_name, arg_based_params_dict, config_parser=None):
+def generate_notebook_params(expt_name, library_name, arg_based_params_dict, config_fp=None):
     _validate_expt_name(expt_name)
 
-    if config_parser is None:
-        config_parser = ns_config.load_config_parser_from_fp()
-
-    machine_config_dict = set_up_data_subdirs_and_get_machine_configs(config_parser)
+    machine_config_dict = set_up_data_subdirs_and_get_machine_configs(config_fp)
     result = machine_config_dict.copy()
 
     library_dict = ns_settings.id_library_info(library_name, result[DirectoryKeys.LIBRARIES.value])
