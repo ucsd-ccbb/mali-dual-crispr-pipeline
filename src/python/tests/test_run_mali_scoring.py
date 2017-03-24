@@ -17,26 +17,7 @@ class TestFunctions(unittest.TestCase):
     # region _set_params
     def test__set_params_test(self):
         config_str = """[DEFAULT]
-machine_configuration = c4_2xlarge
-keep_gzs: False
-full_5p_r1: TATATATCTTGTGGAAAGGACGAAACACCG
-full_5p_r2: CCTTATTTTAACTTGCTATTTCTAGCTCTAAAAC
-full_3p_r1: GTTTCAGAGCTATGCTGGAAACTGCATAGCAAGTTGAAATAAGGCTAGTCCGTTATCAACTTGAAAAAGTGGCACCGAGTCGGTGCTTTTTTGTACTGAG
-full_3p_r2: CAAACAAGGCTTTTCTCCAAGGGATATTTATAGTCTCAAAACACACAATTACTTTACAGTTAGGGTGAGTTTCCTTTTGTGCTGTTTTTTAAAATA
-len_of_seq_to_match = 19
-num_allowed_mismatches = 1
-# min_count_limit in absolute counts, not log2
-min_count_limit: 10
-# max_fraction_acceptable_spline_density_diff is % of diff between max spline and min density
-max_fraction_acceptable_spline_density_diff: 0.02
-# any threshold throwing out > max_fraction_counts_excluded% of counts is not acceptable
-max_fraction_counts_excluded: 0.95
-use_seed = False
-num_iterations = 1000
-# Set-up for pipeline notebooks; do not modify unless you are a power user!
-time_prefixes: T,D
-count_notebooks: Dual CRISPR 1-Construct Scaffold Trimming.ipynb,Dual CRISPR 2-Constuct Filter.ipynb,Dual CRISPR 3-Construct Counting.ipynb,Dual CRISPR 4-Count Combination.ipynb,Dual CRISPR 5-Count Plots.ipynb
-score_notebooks: Dual CRISPR 6-Scoring Preparation.ipynb,Dual CRISPR 7-Abundance Thresholds.ipynb,Dual CRISPR 8-Construct Scoring.ipynb
+machine_configuration = laptop
 
 [c4_2xlarge]
 main_dir: /home/ec2-user
@@ -51,7 +32,7 @@ interim_data_dir: ${data_dir}/interim
 processed_data_dir: ${data_dir}/processed
 
 [laptop]
-main_dir: /Users/Birmingham/Work/Repositories/ccbb_tickets_2017/
+main_dir: /Users/Birmingham/Work/Repositories/ccbb_tickets_2017/mali-dual-crispr-pipeline
 data_dir: /Users/Birmingham/Work/Data
 num_processors: 3
 # Set-up for directory structure; do not modify unless you are a power user!
@@ -62,10 +43,34 @@ raw_data_dir: ${data_dir}/raw
 interim_data_dir: ${data_dir}/interim
 processed_data_dir: ${data_dir}/processed
 
+[count_pipeline]
+keep_gzs: False
+full_5p_r1: TATATATCTTGTGGAAAGGACGAAACACCG
+full_5p_r2: CCTTATTTTAACTTGCTATTTCTAGCTCTAAAAC
+full_3p_r1: GTTTCAGAGCTATGCTGGAAACTGCATAGCAAGTTGAAATAAGGCTAGTCCGTTATCAACTTGAAAAAGTGGCACCGAGTCGGTGCTTTTTTGTACTGAG
+full_3p_r2: CAAACAAGGCTTTTCTCCAAGGGATATTTATAGTCTCAAAACACACAATTACTTTACAGTTAGGGTGAGTTTCCTTTTGTGCTGTTTTTTAAAATA
+len_of_seq_to_match = 19
+num_allowed_mismatches = 1
+# Set-up for pipeline notebooks; do not modify unless you are a power user!
+notebook_basenames_list: Dual CRISPR 1-Construct Scaffold Trimming.ipynb,Dual CRISPR 2-Constuct Filter.ipynb,Dual CRISPR 3-Construct Counting.ipynb,Dual CRISPR 4-Count Combination.ipynb,Dual CRISPR 5-Count Plots.ipynb
+
+[score_pipeline]
+time_prefixes: T,D
+# min_count_limit in absolute counts, not log2
+min_count_limit: 10
+# max_fraction_acceptable_spline_density_diff is % of diff between max spline and min density
+max_fraction_acceptable_spline_density_diff: 0.02
+# any threshold throwing out > max_fraction_counts_excluded% of counts is not acceptable
+max_fraction_counts_excluded: 0.95
+use_seed = False
+num_iterations = 1000
+# Set-up for pipeline notebooks; do not modify unless you are a power user!
+notebook_basenames_list: Dual CRISPR 6-Scoring Preparation.ipynb,Dual CRISPR 7-Abundance Thresholds.ipynb,Dual CRISPR 8-Construct Scoring.ipynb
+
 [test]
 use_seed = True
 num_iterations = 2
-    """
+"""
 
         count_fps_or_dirs = "/my/counts/dir1,/my/counts_dir2"
         day_timepoints_str = "3,10,21"
@@ -74,11 +79,15 @@ num_iterations = 2
         # count_fps_or_dirs string, day_timepoints_str, time_prefixes, and notebooks list should NOT be parsed to list
         # use_seed SHOULD be parsed to boolean
         # num_iterations SHOULD be parsed to int
-        expected_output = {'count_fps_or_dirs': '/my/counts/dir1,/my/counts_dir2',
+        expected_output = {'machine_configuration': "laptop",
+                           'count_fps_or_dirs': '/my/counts/dir1,/my/counts_dir2',
                            'day_timepoints_str': '3,10,21',
                            'notebook_basenames_list': 'Dual CRISPR 6-Scoring Preparation.ipynb,Dual '
-                                                      'CRISPR 7-Abundance Thresholds.ipynb,Dual CRISPR '
-                                                      '8-Construct Scoring.ipynb',
+                            'CRISPR 7-Abundance Thresholds.ipynb,Dual CRISPR '
+                             '8-Construct Scoring.ipynb',
+                           'min_count_limit': 10,
+                           'max_fraction_acceptable_spline_density_diff': 0.02,
+                           'max_fraction_counts_excluded': 0.95,
                            'num_iterations': 2,
                            'time_prefixes': 'T,D',
                            'use_seed': True}
@@ -100,26 +109,7 @@ num_iterations = 2
 
     def test_set_params_real(self):
         config_str = """[DEFAULT]
-machine_configuration = c4_2xlarge
-keep_gzs: False
-full_5p_r1: TATATATCTTGTGGAAAGGACGAAACACCG
-full_5p_r2: CCTTATTTTAACTTGCTATTTCTAGCTCTAAAAC
-full_3p_r1: GTTTCAGAGCTATGCTGGAAACTGCATAGCAAGTTGAAATAAGGCTAGTCCGTTATCAACTTGAAAAAGTGGCACCGAGTCGGTGCTTTTTTGTACTGAG
-full_3p_r2: CAAACAAGGCTTTTCTCCAAGGGATATTTATAGTCTCAAAACACACAATTACTTTACAGTTAGGGTGAGTTTCCTTTTGTGCTGTTTTTTAAAATA
-len_of_seq_to_match = 19
-num_allowed_mismatches = 1
-# min_count_limit in absolute counts, not log2
-min_count_limit: 10
-# max_fraction_acceptable_spline_density_diff is % of diff between max spline and min density
-max_fraction_acceptable_spline_density_diff: 0.02
-# any threshold throwing out > max_fraction_counts_excluded% of counts is not acceptable
-max_fraction_counts_excluded: 0.95
-use_seed = False
-num_iterations = 1000
-# Set-up for pipeline notebooks; do not modify unless you are a power user!
-time_prefixes: T,D
-count_notebooks: Dual CRISPR 1-Construct Scaffold Trimming.ipynb,Dual CRISPR 2-Constuct Filter.ipynb,Dual CRISPR 3-Construct Counting.ipynb,Dual CRISPR 4-Count Combination.ipynb,Dual CRISPR 5-Count Plots.ipynb
-score_notebooks: Dual CRISPR 6-Scoring Preparation.ipynb,Dual CRISPR 7-Abundance Thresholds.ipynb,Dual CRISPR 8-Construct Scoring.ipynb
+machine_configuration = laptop
 
 [c4_2xlarge]
 main_dir: /home/ec2-user
@@ -134,7 +124,7 @@ interim_data_dir: ${data_dir}/interim
 processed_data_dir: ${data_dir}/processed
 
 [laptop]
-main_dir: /Users/Birmingham/Work/Repositories/ccbb_tickets_2017/
+main_dir: /Users/Birmingham/Work/Repositories/ccbb_tickets_2017/mali-dual-crispr-pipeline
 data_dir: /Users/Birmingham/Work/Data
 num_processors: 3
 # Set-up for directory structure; do not modify unless you are a power user!
@@ -144,6 +134,30 @@ libraries_dir: ${main_dir}/library_definitions
 raw_data_dir: ${data_dir}/raw
 interim_data_dir: ${data_dir}/interim
 processed_data_dir: ${data_dir}/processed
+
+[count_pipeline]
+keep_gzs: False
+full_5p_r1: TATATATCTTGTGGAAAGGACGAAACACCG
+full_5p_r2: CCTTATTTTAACTTGCTATTTCTAGCTCTAAAAC
+full_3p_r1: GTTTCAGAGCTATGCTGGAAACTGCATAGCAAGTTGAAATAAGGCTAGTCCGTTATCAACTTGAAAAAGTGGCACCGAGTCGGTGCTTTTTTGTACTGAG
+full_3p_r2: CAAACAAGGCTTTTCTCCAAGGGATATTTATAGTCTCAAAACACACAATTACTTTACAGTTAGGGTGAGTTTCCTTTTGTGCTGTTTTTTAAAATA
+len_of_seq_to_match = 19
+num_allowed_mismatches = 1
+# Set-up for pipeline notebooks; do not modify unless you are a power user!
+notebook_basenames_list: Dual CRISPR 1-Construct Scaffold Trimming.ipynb,Dual CRISPR 2-Constuct Filter.ipynb,Dual CRISPR 3-Construct Counting.ipynb,Dual CRISPR 4-Count Combination.ipynb,Dual CRISPR 5-Count Plots.ipynb
+
+[score_pipeline]
+time_prefixes: T,D
+# min_count_limit in absolute counts, not log2
+min_count_limit: 10
+# max_fraction_acceptable_spline_density_diff is % of diff between max spline and min density
+max_fraction_acceptable_spline_density_diff: 0.02
+# any threshold throwing out > max_fraction_counts_excluded% of counts is not acceptable
+max_fraction_counts_excluded: 0.95
+use_seed = False
+num_iterations = 1000
+# Set-up for pipeline notebooks; do not modify unless you are a power user!
+notebook_basenames_list: Dual CRISPR 6-Scoring Preparation.ipynb,Dual CRISPR 7-Abundance Thresholds.ipynb,Dual CRISPR 8-Construct Scoring.ipynb
 
 [test]
 use_seed = True
@@ -157,11 +171,15 @@ num_iterations = 2
         # count_fps_or_dirs string, day_timepoints_str, time_prefixes, and notebooks list should NOT be parsed to list
         # use_seed SHOULD be parsed to boolean
         # num_iterations SHOULD be parsed to int
-        expected_output = {'count_fps_or_dirs': '/my/counts/dir1,/my/counts_dir2',
+        expected_output = {'machine_configuration': "laptop",
+                           'count_fps_or_dirs': '/my/counts/dir1,/my/counts_dir2',
                            'day_timepoints_str': '3,10,21',
                            'notebook_basenames_list': 'Dual CRISPR 6-Scoring Preparation.ipynb,Dual '
                             'CRISPR 7-Abundance Thresholds.ipynb,Dual CRISPR '
                              '8-Construct Scoring.ipynb',
+                           'min_count_limit': 10,
+                           'max_fraction_acceptable_spline_density_diff': 0.02,
+                           'max_fraction_counts_excluded': 0.95,
                            'num_iterations': 1000,
                            'time_prefixes': 'T,D',
                            'use_seed': False}

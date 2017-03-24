@@ -38,6 +38,8 @@ def get_machine_config_params(config_fp=None):
 
     machine_config_key = config_parser.get(config_parser.default_section, "machine_configuration")
     machine_config_dict = ns_config.load_config_section_dict(config_parser, machine_config_key)
+    machine_config_dict[ns_runs.get_num_processors_key()] = int(
+        machine_config_dict[ns_runs.get_num_processors_key()])
     return machine_config_dict
 
 

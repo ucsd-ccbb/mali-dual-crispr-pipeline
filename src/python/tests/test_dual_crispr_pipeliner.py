@@ -45,7 +45,6 @@ class TestFunctions(unittest.TestCase):
     def test_get_machine_config_params(self):
         config_string = """[DEFAULT]
 machine_configuration = c4_2xlarge
-keep_gzs: False
 
 [laptop]
 main_dir: /Users/Birmingham/Work/Repositories/ccbb_tickets_2017/
@@ -61,10 +60,9 @@ code_dir: ${main_dir}/src/python
 """
 
         expected_output = {"machine_configuration": "c4_2xlarge",
-                           "keep_gzs": "False",
                            "main_dir": "/home/ec2-user",
                            "data_dir": "/data",
-                           "num_processors": "7",
+                           "num_processors": 7,
                            "code_dir": "/home/ec2-user/src/python"
                            }
 
@@ -80,7 +78,6 @@ code_dir: ${main_dir}/src/python
 
         config_string = """[DEFAULT]
 machine_configuration = laptop
-keep_gzs: False
 
 [laptop]
 main_dir: REPLACE
@@ -105,10 +102,9 @@ processed_data_dir: ${data_dir}/processed
         temp_config.seek(0)
 
         expected_output = {"machine_configuration": "laptop",
-                           "keep_gzs": "False",
                            "main_dir": tempdir.name,
                            "data_dir": tempdir.name,
-                           "num_processors": "3"}
+                           "num_processors": 3}
         dirs_dict = {ns_test.DirectoryKeys.RAW_DATA.value: os.path.join(tempdir.name, "raw"),
                       ns_test.DirectoryKeys.INTERIM_DATA.value: os.path.join(tempdir.name, "interim"),
                       ns_test.DirectoryKeys.PROCESSED_DATA.value: os.path.join(tempdir.name, "processed")}
@@ -313,7 +309,7 @@ NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	NonTargetingControlGui
         self.assertEqual("False", real_output["keep_gzs"])
 
         # check that params from the selected machine config in the config "file" were added
-        self.assertEqual("3", real_output["num_processors"])
+        self.assertEqual(3, real_output["num_processors"])
         # testing here that all dir keys exist, but not what they are since they
         # are being generated on the fly in the temp directory
         for curr_key in ['main_dir','data_dir', "raw_data_dir", 'processed_data_dir',

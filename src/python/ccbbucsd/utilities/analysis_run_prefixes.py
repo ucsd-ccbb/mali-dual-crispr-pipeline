@@ -20,6 +20,10 @@ def get_notebook_names_list_key():
     return "notebook_basenames_list"
 
 
+def get_num_processors_key():
+    return "num_processors"
+
+
 def get_run_prefix_key():
     return "run_prefix"
 

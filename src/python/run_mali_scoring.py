@@ -1,5 +1,6 @@
 # standard libraries
 import argparse
+import distutils.util
 import warnings
 
 # ccbb libraries
@@ -41,40 +42,42 @@ def _parse_cmd_line_args():
 
 def _set_params(count_fps_or_dirs, day_timepoints_str, is_test, config_fp):
     test_config_section_key = "test"
-    score_notebooks_key = "score_notebooks"
-    time_prefixes_key = "time_prefixes"
     count_fps_or_dirs_key = "count_fps_or_dirs"
+    min_count_limit_key = "min_count_limit"
+    max_fraction_acceptable_spline_density_diff_key = "max_fraction_acceptable_spline_density_diff"
+    max_fraction_counts_excluded_key = "max_fraction_counts_excluded"
     day_timepoints_str_key = "day_timepoints_str"
     use_seed_key = "use_seed"
     num_iterations_key = "num_iterations"
 
     # load the config file
     config_parser = ns_config.load_config_parser_from_fp(config_fp)
-    # delimited string NOT split here--done in shared code in dual_crispr_pipeliner
-    score_notebooks_list_str = config_parser.get(config_parser.default_section, score_notebooks_key)
+    score_params = ns_config.load_config_section_dict(config_parser, "score_pipeline")
 
-    # Note: the time_prefixes_str comma-delimited string value below need to be converted to a list, but the conversion
-    # is NOT being done here--it is done in the notebook, because if users run the notebook directly,
-    # they will have to put in a comma-delimited string there, so the notebook needs to know how to deal with it.
-    time_prefixes_str = config_parser.get(config_parser.default_section, time_prefixes_key)
+    result = score_params.copy()
+    if is_test:
+        result[use_seed_key] = config_parser.get(test_config_section_key, use_seed_key)
+        result[num_iterations_key] = config_parser.get(test_config_section_key, num_iterations_key)
 
-    # Inputs below *are* converted here because notebook users can directly input booleans and ints into
-    # the notebook params (unlike lists, which nbparameterise won't accept)
-    score_config_section = test_config_section_key if is_test else config_parser.default_section
-    use_seed = config_parser.getboolean(score_config_section, use_seed_key)
-    num_iterations = config_parser.getint(score_config_section, num_iterations_key)
+    result[count_fps_or_dirs_key] = count_fps_or_dirs
+    # Note: the time_prefixes_str and day_timepoints_str comma-delimited string params are not being converted to lists
+    # here--that is done in the notebook, because if users run the notebooks directly, they will have to put in
+    # comma-delimited strings there, so the notebooks needs to know how to deal with it.
+    result[day_timepoints_str_key] = day_timepoints_str
+
+    # the below values DO need to be converted because users have the ability to input int, float, and boolean values
+    # directly into the notebooks, so the notebooks don't need to know how to convert those
+    result[min_count_limit_key] = int(result[min_count_limit_key])
+    result[max_fraction_acceptable_spline_density_diff_key] = float(
+        result[max_fraction_acceptable_spline_density_diff_key])
+    result[max_fraction_counts_excluded_key] = float(
+        result[max_fraction_counts_excluded_key])
+    result[use_seed_key] = bool(distutils.util.strtobool(result[use_seed_key]))
+    result[num_iterations_key] = int(result[num_iterations_key])
 
     # if test parameters are detected, remind user! Results should not be used for real analysis
-    if use_seed or score_config_section == test_config_section_key:
+    if result[use_seed_key] or is_test:
         warnings.warn('Scoring is running in TEST MODE; do not use results for data analysis!')
-
-    result = {}
-    result[ns_runs.get_notebook_names_list_key()] = score_notebooks_list_str
-    result[time_prefixes_key] = time_prefixes_str
-    result[count_fps_or_dirs_key] = count_fps_or_dirs
-    result[day_timepoints_str_key] = day_timepoints_str
-    result[use_seed_key] = use_seed
-    result[num_iterations_key] = num_iterations
 
     return result
 
@@ -82,7 +85,7 @@ def _set_params(count_fps_or_dirs, day_timepoints_str, is_test, config_fp):
 def main():
     dataset_name, library_name, counts_fps_or_dirs, day_timepoints_str, is_test, config_fp = _parse_cmd_line_args()
     score_params = _set_params(counts_fps_or_dirs, day_timepoints_str, is_test, config_fp)
-    full_params = ns_dcpipe.generate_notebook_params(dataset_name, library_name, score_params)
+    full_params = ns_dcpipe.generate_notebook_params(dataset_name, library_name, score_params, config_fp)
     # Note: second argument is the *function*, not results of calling the function
     ns_pipeliner.execute_run_from_full_params(full_params, ns_dcpipe.rename_param_names_as_global_vars)
 
