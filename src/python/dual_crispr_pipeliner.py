@@ -55,6 +55,8 @@ def generate_notebook_params(expt_name, library_name, arg_based_params_dict, con
     result.update(machine_config_dict)
 
     library_dict = ns_settings.id_library_info(library_name, result[DirectoryKeys.LIBRARIES.value])
+    library_dict["min_trimmed_grna_len"] = int(library_dict["min_trimmed_grna_len"])
+    library_dict["max_trimmed_grna_len"] = int(library_dict["max_trimmed_grna_len"])
     result.update(library_dict)
 
     # create and add run prefix, run directory

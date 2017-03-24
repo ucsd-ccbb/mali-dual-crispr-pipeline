@@ -325,10 +325,10 @@ NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	NonTargetingControlGui
                          'code_dir', 'libraries_dir', 'notebook_dir']:  # note interim_dir tested later
             self.assertTrue(curr_key in real_output)
 
-        # check that the parameters from the library file were added
+        # check that the parameters from the library file were added (and cast as necessary)
         self.assertEqual("CV4", real_output["library_name"])
-        self.assertEqual("19", real_output["min_trimmed_grna_len"])
-        self.assertEqual("21", real_output["max_trimmed_grna_len"])
+        self.assertEqual(19, real_output["min_trimmed_grna_len"])
+        self.assertEqual(21, real_output["max_trimmed_grna_len"])
         self.assertEqual(temp_library_fp, real_output["library_fp"])
 
         # check that the run prefix and run dir were added
