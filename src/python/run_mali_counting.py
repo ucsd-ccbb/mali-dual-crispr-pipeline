@@ -1,6 +1,5 @@
 # standard libraries
 import argparse
-import distutils.util
 import os
 
 # ccbb libraries
@@ -29,10 +28,8 @@ def _parse_cmd_line_args():
 
 
 def _set_params(fastq_dir_name, config_fp):
-    keep_gz_key = "keep_gzs"
     len_of_seq_to_match_key = "len_of_seq_to_match"
     num_allowed_mismatches_key = "num_allowed_mismatches"
-
 
     # load the config file
     config_params = ns_dcpipe.get_machine_config_params(config_fp)
@@ -41,14 +38,17 @@ def _set_params(fastq_dir_name, config_fp):
 
     configparser = ns_config.load_config_parser_from_fp(config_fp)
     count_params = ns_config.load_config_section_dict(configparser, "count_pipeline")
-
     result = count_params.copy()
+
     # overwrite the params that need to be more specific
     result[ns_dcpipe.DirectoryKeys.RAW_DATA.value] = os.path.join(raw_dir, fastq_dir_name)
     result[ns_dcpipe.DirectoryKeys.INTERIM_DATA.value] = os.path.join(interim_dir, fastq_dir_name)
 
+    result["g_fastqs_dir"] = result[ns_dcpipe.DirectoryKeys.RAW_DATA.value]
+    result["g_trimmed_fastqs_dir"] = result[ns_dcpipe.DirectoryKeys.INTERIM_DATA.value]
+    result["g_filtered_fastqs_dir"] = result[ns_dcpipe.DirectoryKeys.INTERIM_DATA.value]
+
     # cast the params that aren't supposed to be strings
-    result[keep_gz_key] = bool(distutils.util.strtobool(result[keep_gz_key]))
     result[len_of_seq_to_match_key] = int(result[len_of_seq_to_match_key])
     result[num_allowed_mismatches_key] = int(result[num_allowed_mismatches_key])
 

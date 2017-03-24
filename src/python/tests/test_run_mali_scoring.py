@@ -115,6 +115,7 @@ machine_configuration = laptop
 main_dir: /home/ec2-user
 data_dir: /data
 num_processors: 7
+keep_gzs: False
 # Set-up for directory structure; do not modify unless you are a power user!
 code_dir: ${main_dir}/src/python
 notebook_dir: ${main_dir}/notebooks
@@ -127,6 +128,7 @@ processed_data_dir: ${data_dir}/processed
 main_dir: /Users/Birmingham/Work/Repositories/ccbb_tickets_2017/mali-dual-crispr-pipeline
 data_dir: /Users/Birmingham/Work/Data
 num_processors: 3
+keep_gzs: True
 # Set-up for directory structure; do not modify unless you are a power user!
 code_dir: ${main_dir}/src/python
 notebook_dir: ${main_dir}/notebooks
@@ -136,7 +138,6 @@ interim_data_dir: ${data_dir}/interim
 processed_data_dir: ${data_dir}/processed
 
 [count_pipeline]
-keep_gzs: False
 full_5p_r1: TATATATCTTGTGGAAAGGACGAAACACCG
 full_5p_r2: CCTTATTTTAACTTGCTATTTCTAGCTCTAAAAC
 full_3p_r1: GTTTCAGAGCTATGCTGGAAACTGCATAGCAAGTTGAAATAAGGCTAGTCCGTTATCAACTTGAAAAAGTGGCACCGAGTCGGTGCTTTTTTGTACTGAG

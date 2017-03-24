@@ -1,4 +1,5 @@
 # standard libraries
+import distutils.util
 import enum
 import os
 
@@ -34,12 +35,15 @@ def set_up_data_subdirs_and_get_machine_configs(config_fp=None):
 
 
 def get_machine_config_params(config_fp=None):
+    keep_gz_key = "keep_gzs"
+    num_processors_key = "num_processors"
+
     config_parser = ns_config.load_config_parser_from_fp(config_fp)
 
     machine_config_key = config_parser.get(config_parser.default_section, "machine_configuration")
     machine_config_dict = ns_config.load_config_section_dict(config_parser, machine_config_key)
-    machine_config_dict[ns_runs.get_num_processors_key()] = int(
-        machine_config_dict[ns_runs.get_num_processors_key()])
+    machine_config_dict[keep_gz_key] = bool(distutils.util.strtobool(machine_config_dict[keep_gz_key]))
+    machine_config_dict[num_processors_key] = int(machine_config_dict[num_processors_key])
     return machine_config_dict
 
 

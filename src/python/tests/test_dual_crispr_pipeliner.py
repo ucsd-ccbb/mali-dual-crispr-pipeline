@@ -50,12 +50,14 @@ machine_configuration = c4_2xlarge
 main_dir: /Users/Birmingham/Work/Repositories/ccbb_tickets_2017/
 data_dir: /Users/Birmingham/Work/Data
 num_processors: 3
+keep_gzs: True
 code_dir: ${main_dir}/src/python
 
 [c4_2xlarge]
 main_dir: /home/ec2-user
 data_dir: /data
 num_processors: 7
+keep_gzs: False
 code_dir: ${main_dir}/src/python
 """
 
@@ -63,7 +65,8 @@ code_dir: ${main_dir}/src/python
                            "main_dir": "/home/ec2-user",
                            "data_dir": "/data",
                            "num_processors": 7,
-                           "code_dir": "/home/ec2-user/src/python"
+                           "code_dir": "/home/ec2-user/src/python",
+                           "keep_gzs": False
                            }
 
         temp_config = tempfile.NamedTemporaryFile(mode="w")
@@ -83,6 +86,7 @@ machine_configuration = laptop
 main_dir: REPLACE
 data_dir: REPLACE
 num_processors: 3
+keep_gzs: True
 raw_data_dir: ${data_dir}/raw
 interim_data_dir: ${data_dir}/interim
 processed_data_dir: ${data_dir}/processed
@@ -91,6 +95,7 @@ processed_data_dir: ${data_dir}/processed
 main_dir: /home/ec2-user
 data_dir: /data
 num_processors: 7
+keep_gzs: False
 raw_data_dir: ${data_dir}/raw
 interim_data_dir: ${data_dir}/interim
 processed_data_dir: ${data_dir}/processed
@@ -104,7 +109,8 @@ processed_data_dir: ${data_dir}/processed
         expected_output = {"machine_configuration": "laptop",
                            "main_dir": tempdir.name,
                            "data_dir": tempdir.name,
-                           "num_processors": 3}
+                           "num_processors": 3,
+                           "keep_gzs": True}
         dirs_dict = {ns_test.DirectoryKeys.RAW_DATA.value: os.path.join(tempdir.name, "raw"),
                       ns_test.DirectoryKeys.INTERIM_DATA.value: os.path.join(tempdir.name, "interim"),
                       ns_test.DirectoryKeys.PROCESSED_DATA.value: os.path.join(tempdir.name, "processed")}
@@ -306,7 +312,7 @@ NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	NonTargetingControlGui
 
         # check that default values from the config "file" were added
         self.assertEqual("laptop", real_output["machine_configuration"])
-        self.assertEqual("False", real_output["keep_gzs"])
+        self.assertEqual(False, real_output["keep_gzs"])
 
         # check that params from the selected machine config in the config "file" were added
         self.assertEqual(3, real_output["num_processors"])

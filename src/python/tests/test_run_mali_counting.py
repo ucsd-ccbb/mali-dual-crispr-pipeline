@@ -21,6 +21,7 @@ machine_configuration = c4_2xlarge
 main_dir: /home/ec2-user
 data_dir: /data
 num_processors: 7
+keep_gzs: False
 # Set-up for directory structure; do not modify unless you are a power user!
 raw_data_dir: ${data_dir}/raw
 interim_data_dir: ${data_dir}/interim
@@ -29,12 +30,12 @@ interim_data_dir: ${data_dir}/interim
 main_dir: /Users/Birmingham/Work/Repositories/ccbb_tickets_2017/mali-dual-crispr-pipeline
 data_dir: /Users/Birmingham/Work/Data
 num_processors: 3
+keep_gzs: True
 # Set-up for directory structure; do not modify unless you are a power user!
 raw_data_dir: ${data_dir}/raw
 interim_data_dir: ${data_dir}/interim
 
 [count_pipeline]
-keep_gzs: False
 full_5p_r1: TATATATCTTGTGGAAAGGACGAAACACCG
 full_5p_r2: CCTTATTTTAACTTGCTATTTCTAGCTCTAAAAC
 full_3p_r1: GTTTCAGAGCTATGCTGGAAACTGCATAGCAAGTTGAAATAAGGCTAGTCCGTTATCAACTTGAAAAAGTGGCACCGAGTCGGTGCTTTTTTGTACTGAG
@@ -70,13 +71,15 @@ num_iterations = 2
                                                       '2-Constuct Filter.ipynb,Dual CRISPR 3-Construct '
                                                       'Counting.ipynb,Dual CRISPR 4-Count Combination.ipynb,'
                                                       'Dual CRISPR 5-Count Plots.ipynb',
-                           'keep_gzs': False,
                            'full_5p_r1': 'TATATATCTTGTGGAAAGGACGAAACACCG',
                            'full_5p_r2': 'CCTTATTTTAACTTGCTATTTCTAGCTCTAAAAC',
                            'full_3p_r1': 'GTTTCAGAGCTATGCTGGAAACTGCATAGCAAGTTGAAATAAGGCTAGTCCGTTATCAACTTGAAAAAGTGGCACCGAGTCGGTGCTTTTTTGTACTGAG',
                            'full_3p_r2': 'CAAACAAGGCTTTTCTCCAAGGGATATTTATAGTCTCAAAACACACAATTACTTTACAGTTAGGGTGAGTTTCCTTTTGTGCTGTTTTTTAAAATA',
                            'len_of_seq_to_match': 19,
-                           'num_allowed_mismatches': 1
+                           'num_allowed_mismatches': 1,
+                           'g_fastqs_dir':'/data/raw/test_fastq_dir',
+                           'g_trimmed_fastqs_dir':'/data/interim/test_fastq_dir',
+                           'g_filtered_fastqs_dir': '/data/interim/test_fastq_dir'
                            }
 
         temp_config = tempfile.NamedTemporaryFile(mode="w")
@@ -84,5 +87,4 @@ num_iterations = 2
         temp_config.seek(0)
 
         real_output = ns_test._set_params(input_fastq_dir_name, temp_config.name)
-        print(real_output)
         self.assertEqual(expected_output, real_output)
