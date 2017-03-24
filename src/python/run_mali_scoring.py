@@ -37,7 +37,7 @@ def _parse_cmd_line_args():
     parser.add_argument("--config", help="path to config file; if not specified, config file in default location will "
                                          "be used")
     args = parser.parse_args()
-    return args.dataset_name, args.library_name, args.counts_fps_or_dirs, args.day_timepoints_str, args.test, args.config
+    return args.dataset_name, args.library_name, args.count_fps_or_dirs, args.day_timepoints_str, args.test, args.config
 
 
 def _set_params(count_fps_or_dirs, day_timepoints_str, is_test, config_fp):
