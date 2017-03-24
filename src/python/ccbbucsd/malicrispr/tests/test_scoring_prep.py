@@ -17,33 +17,34 @@ __status__ = "development"
 
 class TestFunctions(unittest.TestCase):
     # region read_timepoint_from_standardized_count_header
+
     def test_read_timepoint_from_standardized_count_header_valid(self):
-        real_output = ns_test.read_timepoint_from_standardized_count_header("PGP1MV4_t4_1", ["T", "t", "D", "d"])
+        real_output = ns_test.read_timepoint_from_standardized_count_header("PGP1MV4_t4_1", ["T","D"])
         self.assertEqual(4, real_output)
 
-        real_output2 = ns_test.read_timepoint_from_standardized_count_header("PGP1MV4_d40_1", ["T", "t", "D", "d"])
+        real_output2 = ns_test.read_timepoint_from_standardized_count_header("PGP1MV4_d40_1", ["T","D"])
         self.assertEqual(40, real_output2)
 
     def test_read_timepoint_from_standardized_count_header_invalid_timept(self):
         with self.assertRaises(ValueError):
-            ns_test.read_timepoint_from_standardized_count_header("PGP1MV4_q4_1", ["T", "t", "D", "d"])
+            ns_test.read_timepoint_from_standardized_count_header("PGP1MV4_q4_1", ["T","D"])
 
         with self.assertRaises(ValueError):
-            ns_test.read_timepoint_from_standardized_count_header("PGP1MV4_test40_1", ["T", "t", "D", "d"])
+            ns_test.read_timepoint_from_standardized_count_header("PGP1MV4_test40_1", ["T","D"])
 
         with self.assertRaises(ValueError):
-            ns_test.read_timepoint_from_standardized_count_header("PGP1MV4_t-40_1", ["T", "t", "D", "d"])
+            ns_test.read_timepoint_from_standardized_count_header("PGP1MV4_t-40_1", ["T","D"])
 
         with self.assertRaises(ValueError):
-            ns_test.read_timepoint_from_standardized_count_header("PGP1MV4_t4.1_1", ["T", "t", "D", "d"])
+            ns_test.read_timepoint_from_standardized_count_header("PGP1MV4_t4.1_1", ["T","D"])
 
     def test_read_timepoint_from_standardized_count_header_invalid_header_too_few_pieces(self):
         with self.assertRaises(ValueError):
-            ns_test.read_timepoint_from_standardized_count_header("PGP1MV4-t4.1-1", ["T", "t", "D", "d"])
+            ns_test.read_timepoint_from_standardized_count_header("PGP1MV4-t4.1-1", ["T","D"])
 
     def test_read_timepoint_from_standardized_count_header_invalid_header_too_many_pieces(self):
         with self.assertRaises(ValueError):
-            ns_test.read_timepoint_from_standardized_count_header("PGP1_MV4_t4.1_1", ["T", "t", "D", "d"])
+            ns_test.read_timepoint_from_standardized_count_header("PGP1_MV4_t4.1_1", ["T","D"])
 
     # end region
 
@@ -57,12 +58,12 @@ NonTargetingControlGuideForHuman0412__FLT3_chr13_28636131	NonTargetingControlGui
 HDAC1_chr1_32757816__NonTargetingControlGuideForHuman0412	HDAC1-1	HDAC1_chr1_32757816	gcgctcgcgcccggacgcgg	NonTargetingControlGuideForHuman0412_NA	NonTargetingControlGuideForHuman0412	GCACGCTGTACAGACGACAA	HDAC1-1__NonTargetingControlGuideForHuman0412_NA	tatatatcttgtggaaaggacgaaacACCGGACCGACTGACGGTAGGGACGTTTTgagacgTAGGGATAACAGGGTAATcgtctcGTTTGGCACGCTGTACAGACGACAAGTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGGCT	146
 FGFR2_chr10_123298215__NonTargetingControlGuideForHuman0412	FGFR2-13	FGFR2_chr10_123298215	gcgcggccgccACAAAGCTC	NonTargetingControlGuideForHuman0412_NA	NonTargetingControlGuideForHuman0412	GCACGCTGTACAGACGACAA	FGFR2-13__NonTargetingControlGuideForHuman0412_NA	tatatatcttgtggaaaggacgaaacACCGgcgcggccgccACAAAGCTCGTTTTgagacgTAGGGATAACAGGGTAATcgtctcGTTTGGCACGCTGTACAGACGACAAGTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGGCT	146
 """
-        count_file_str = """construct_id	PGP1_MV4_t1_2_S9_trimmed53_len_filtered_counts	PGP1-MV4_t21_2_S9_trimmed53_len_filtered_counts
+        count_file_str = """construct_id	PGP1_MV4_t3_2_S9_trimmed53_len_filtered_counts	PGP1-MV4_t21_2_S9_trimmed53_len_filtered_counts
 NonTargetingControlGuideForHuman0412__FLT3_chr13_28636131	40	1874
 HDAC1_chr1_32757816__NonTargetingControlGuideForHuman0412	0	37
 FGFR2_chr10_123298215__NonTargetingControlGuideForHuman0412	1938	1736
 """
-        merge_df_str = """construct_id	probe_a_id	probe_b_id	target_a_id	target_b_id	PGP1MV4_T1_2	PGP1MV4_T21_2
+        merge_df_str = """construct_id	probe_a_id	probe_b_id	target_a_id	target_b_id	PGP1MV4_T3_2	PGP1MV4_T21_2
 NonTargetingControlGuideForHuman0412__FLT3_chr13_28636131	FLT3_chr13_28636131	NonTargetingControlGuideForHuman0412	FLT3-5	NonTargetingControlGuideForHuman0412_NA	40	1874
 HDAC1_chr1_32757816__NonTargetingControlGuideForHuman0412	HDAC1_chr1_32757816	NonTargetingControlGuideForHuman0412	HDAC1-1	NonTargetingControlGuideForHuman0412_NA	0	37
 FGFR2_chr10_123298215__NonTargetingControlGuideForHuman0412	FGFR2_chr10_123298215	NonTargetingControlGuideForHuman0412	FGFR2-13	NonTargetingControlGuideForHuman0412_NA	1938	1736
@@ -98,27 +99,27 @@ FGFR2_chr10_123298215__NonTargetingControlGuideForHuman0412\t1938\t1736
     def test__validate_and_standardize_header_pieces_valid(self):
         header = "PGP1MV4_t21_2"
         expected_output = ("PGP1MV4", 21, 2)
-        real_output = ns_test._validate_and_standardize_header_pieces(header, "PGP1MV4", ["T", "t", "D", "d"])
+        real_output = ns_test._validate_and_standardize_header_pieces(header, "PGP1MV4", ["T","D"])
         self.assertEqual(expected_output, real_output)
 
         real_output2 = ns_test._validate_and_standardize_header_pieces(
-            "PGP1-MV4_t21_2_S9_trimmed53_len_filtered_counts", "PGP1MV4", ["T", "t", "D", "d"])
+            "PGP1-MV4_t21_2_S9_trimmed53_len_filtered_counts", "PGP1MV4", ["T","D"])
         self.assertEqual(("PGP1MV4", 21, 2), real_output2)
 
         real_output3 = ns_test._validate_and_standardize_header_pieces("PGP1-MV4_t21_2", "PGP1MV4",
-                                                                       ["T", "t", "D", "d"])
+                                                                       ["T","D"])
         self.assertEqual(("PGP1MV4", 21, 2), real_output3)
 
         real_output4 = ns_test._validate_and_standardize_header_pieces("PGP1_MV4_t21_2", "PGP1MV4",
-                                                                       ["T", "t", "D", "d"])
+                                                                       ["T","D"])
         self.assertEqual(("PGP1MV4", 21, 2), real_output4)
 
     def test___validate_and_standardize_header_pieces_invalid(self):
         with self.assertRaises(ValueError):
             ns_test._validate_and_standardize_header_pieces("PGP1_MV4_t_21_2_S9_trimmed53_len_filtered_counts",
-                                                            "PGP1MV4", ["T", "t", "D", "d"])
+                                                            "PGP1MV4", ["T","D"])
         with self.assertRaises(ValueError):
-            ns_test._validate_and_standardize_header_pieces("PGPrep1", "PGP1MV4", ["T", "t", "D", "d"])
+            ns_test._validate_and_standardize_header_pieces("PGPrep1", "PGP1MV4", ["T","D"])
 
     # end region
 
@@ -141,25 +142,25 @@ FGFR2_chr10_123298215__NonTargetingControlGuideForHuman0412\t1938\t1736
     # region _validate_and_standardize_timepoint
     def test__validate_and_standardize_timepoint_valid(self):
         expected_output = 40
-        real_output = ns_test._validate_and_standardize_timepoint("d40", ["T", "t", "D", "d"])
+        real_output = ns_test._validate_and_standardize_timepoint("d40", ["T","D"])
         self.assertEqual(expected_output, real_output)
 
-        real_output_2 = ns_test._validate_and_standardize_timepoint("T40", ["T", "t", "D", "d"])
+        real_output_2 = ns_test._validate_and_standardize_timepoint("T40", ["T","D"])
         self.assertEqual(expected_output, real_output_2)
 
     def test__validate_and_standardize_timepoint_invalid_letter(self):
         with self.assertRaises(ValueError):
-            ns_test._validate_and_standardize_timepoint("r40", ["T", "t", "D", "d"])
+            ns_test._validate_and_standardize_timepoint("r40", ["T","D"])
 
     def test__validate_and_standardize_timepoint_invalid_number(self):
         with self.assertRaises(ValueError):
-            ns_test._validate_and_standardize_timepoint("test40", ["T", "t", "D", "d"])
+            ns_test._validate_and_standardize_timepoint("test40", ["T","D"])
 
         with self.assertRaises(ValueError):
-            ns_test._validate_and_standardize_timepoint("t-40", ["T", "t", "D", "d"])
+            ns_test._validate_and_standardize_timepoint("t-40", ["T","D"])
 
         with self.assertRaises(ValueError):
-            ns_test._validate_and_standardize_timepoint("t4.1", ["T", "t", "D", "d"])
+            ns_test._validate_and_standardize_timepoint("t4.1", ["T","D"])
 
     # end region
 
@@ -237,7 +238,7 @@ FGFR2_chr10_123298215__NonTargetingControlGuideForHuman0412\t1938\t1736
 
     # region _validate_and_standardize_count_headers
     def test__validate_and_standardize_count_headers_valid_num_reps(self):
-        input_prefixes = "T,t,D,d"
+        input_prefixes = ["T","D"]
         data_headers = ["A549-MV4_t28_1_S7_trimmed53_len_filtered_counts",
                         "A549-MV4_t14_2_S4_trimmed53_len_filtered_counts",
                         "A549-MV4_t28_2_S8_trimmed53_len_filtered_counts",
@@ -254,7 +255,7 @@ FGFR2_chr10_123298215__NonTargetingControlGuideForHuman0412\t1938\t1736
         self.assertEqual(expected_output, real_output)
 
     def test__validate_and_standardize_count_headers_valid_nonnum_reps(self):
-        input_prefixes = "T,t,D,d"
+        input_prefixes = ["T","D"]
         data_headers = ["A549-MV4_t28_a_S7_trimmed53_len_filtered_counts",
                         "A549-MV4_t14_b_S4_trimmed53_len_filtered_counts",
                         "A549-MV4_t28_b_S8_trimmed53_len_filtered_counts",
@@ -269,6 +270,29 @@ FGFR2_chr10_123298215__NonTargetingControlGuideForHuman0412\t1938\t1736
 
         real_output = ns_test._validate_and_standardize_count_headers(data_headers, "A549MV4", input_prefixes)
         self.assertEqual(expected_output, real_output)
+
+    def test__validate_and_standardize_count_headers_invalid(self):
+        input_prefixes = ["T","D"]
+        data_headers = ["A549-MV4_t28_1_S7_trimmed53_len_filtered_counts",
+                        "A549-MV4-t14-2_S4_trimmed53_len_filtered_counts",
+                        "A549-MV4_q28_2_S8_trimmed53_len_filtered_counts",
+                        "A549-MV4_t3_2_S2_trimmed53_len_filtered_counts",
+                        "A549-MV4_t20_2_S6_trimmed53_len_filtered_counts",
+                        "A549-MV4_t14.1_1_S3_trimmed53_len_filtered_counts",
+                        "A549-MV4_t3_1_S1_trimmed53_len_filtered_counts",
+                        "A549-MV4_t20_1_S5_trimmed53_len_filtered_counts",
+                        "A549rerun-MV4_t3_1_S2_trimmed53_len_filtered_counts",
+                        "A549rerun-MV4_t20_1_S3_trimmed53_len_filtered_counts"]
+
+        expected_error_msg = """The following error(s) were detected during count file parsing:
+Column header 'A549-MV4-t14-2_S4_trimmed53_len_filtered_counts' separates on the '_' delimiter into the following 1 piece(s) instead of the expected 2: 2.
+Time point 'q28' does not start with upper or lower case versions of any of the expected prefixes T, D.
+Time point value '14.1' is not recognizable as a positive integer.
+The following pair of column headers both appear to represent the same timepoint and replicate: 'A549rerun-MV4_t3_1_S2_trimmed53_len_filtered_counts', 'A549-MV4_t3_1_S1_trimmed53_len_filtered_counts'.  Please modify the inputs to remove this ambiguity.
+The following pair of column headers both appear to represent the same timepoint and replicate: 'A549rerun-MV4_t20_1_S3_trimmed53_len_filtered_counts', 'A549-MV4_t20_1_S5_trimmed53_len_filtered_counts'.  Please modify the inputs to remove this ambiguity."""
+        with self.assertRaises(ValueError) as valerr:
+            ns_test._validate_and_standardize_count_headers(data_headers, "A549MV4", input_prefixes)
+        self.assertEqual(expected_error_msg, str(valerr.exception))
 
     # end region
 
@@ -347,9 +371,15 @@ FGFR2_chr10_123298215__NonTargetingControlGuideForHuman0412\t1938\t1736
     # region _recompose_count_header
 
     def test__recompose_count_header(self):
-        input_prefixes = "T,t,D,d"
+        input_prefixes = ["T","t","D","d"]
         expected_output = "A549MV4_T3_1"
         real_output = ns_test._recompose_count_header("A549MV4", 3, 1, input_prefixes)
         self.assertEqual(expected_output, real_output)
 
     # end region
+
+    def test__sort_headers(self):
+        input_headers = ["PGP1MV4_T3_1", "PGP1MV4_T10_2", "PGP1MV4_T21_2", "PGP1MV4_T10_10"]
+        expected_output = ["PGP1MV4_T3_1","PGP1MV4_T10_2","PGP1MV4_T10_10","PGP1MV4_T21_2"]
+        real_output = ns_test._sort_headers(input_headers, "PGP1MV4", ["T","D"])
+        self.assertEqual(expected_output, real_output)
