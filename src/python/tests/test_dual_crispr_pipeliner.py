@@ -310,6 +310,9 @@ NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	NonTargetingControlGui
 
         real_output = ns_test.generate_notebook_params("test", "CV4", arg_based_params_input, temp_config.name)
 
+        # check that we only got as many params as I expected
+        self.assertEqual(24, len(real_output.keys()))
+
         # check that default values from the config "file" were added
         self.assertEqual("laptop", real_output["machine_configuration"])
         self.assertEqual(False, real_output["keep_gzs"])
@@ -345,6 +348,9 @@ NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	NonTargetingControlGui
         self.assertEqual(run_prefix, real_output["g_macro_run_prefix"])
         self.assertEqual(run_dir, real_output["g_prepped_counts_dir"])
         self.assertEqual(run_dir, real_output["g_macro_dir"])
+
+        # check that arg-based params were added
+        self.assertEqual("test", real_output["dataset_name"])
 
         # check that when an arg-based param conflicts with a config-based param,
         # the arg-based param overwrites the config-based one

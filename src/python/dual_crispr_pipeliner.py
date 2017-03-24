@@ -49,9 +49,10 @@ def get_machine_config_params(config_fp=None):
 
 def generate_notebook_params(expt_name, library_name, arg_based_params_dict, config_fp=None):
     _validate_expt_name(expt_name)
+    result = {"dataset_name": expt_name}
 
     machine_config_dict = set_up_data_subdirs_and_get_machine_configs(config_fp)
-    result = machine_config_dict.copy()
+    result.update(machine_config_dict)
 
     library_dict = ns_settings.id_library_info(library_name, result[DirectoryKeys.LIBRARIES.value])
     result.update(library_dict)
