@@ -18,9 +18,9 @@ __status__ = "prototype"
 
 def _parse_cmd_line_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("fastq_dir_name", help="name of the folder in which the fastq data to be analyzed reside")
     parser.add_argument("dataset_name", help="short, alphanumeric human-readable name for the dataset to be analyzed")
     parser.add_argument("library_name", help="name of the construct library for the dataset to be analyzed")
+    parser.add_argument("fastq_dir_name", help="name of the folder in which the fastq data to be analyzed reside")
     parser.add_argument("--config", help="path to config file; if not specified, config file in default location will "
                                          "be used")
     args = parser.parse_args()
