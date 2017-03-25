@@ -105,7 +105,7 @@ def rename_param_names_as_global_vars(params_dict):
 
 def _get_config_fp_or_default(config_fp):
     if config_fp is None:
-        config_fp = os.path.join(os.environ['HOME'], "mali-dual-crispr-pipeline", ".config.txt")
+        config_fp = os.path.join(os.environ['HOME'], "mali-dual-crispr-pipeline", "config.txt")
     return config_fp
 
 
