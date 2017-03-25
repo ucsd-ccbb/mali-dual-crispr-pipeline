@@ -1,5 +1,5 @@
 [DEFAULT]
-machine_configuration = laptop
+machine_configuration = c4_2xlarge
 
 [c4_2xlarge]
 main_dir: /home/ec2-user
@@ -39,11 +39,10 @@ notebook_basenames_list: Dual CRISPR 1-Construct Scaffold Trimming.ipynb,Dual CR
 
 [score_pipeline]
 time_prefixes: T,D
-# min_count_limit in absolute counts, not log2
 min_count_limit: 10
-# max_fraction_acceptable_spline_density_diff is % of diff between max spline and min density
+density
 max_fraction_acceptable_spline_density_diff: 0.02
-# any threshold throwing out > max_fraction_counts_excluded% of counts is not acceptable
+acceptable
 max_fraction_counts_excluded: 0.95
 use_seed = False
 num_iterations = 1000
