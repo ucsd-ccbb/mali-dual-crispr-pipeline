@@ -1,16 +1,7 @@
 import configparser
-import os
 
 
-def get_default_config_fp():
-    result = os.path.join(os.environ['HOME'], "mali-dual-crispr-pipeline", ".config.txt")
-    return result
-
-
-def load_config_parser_from_fp(config_fp=None):
-    if config_fp is None:
-        config_fp = get_default_config_fp()
-
+def load_config_parser_from_fp(config_fp):
     # Note: configparser has a read_file method that could be used instead, but  structuring the code
     # this way makes it easier to unit-test bc can pass test string to load_config_settings
     with open(config_fp, 'r') as config_file:
