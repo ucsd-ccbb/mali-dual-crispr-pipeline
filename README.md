@@ -22,7 +22,7 @@ The pipeline is designed for use on a Amazon Web Services instance, although wit
 ### Steps
 1. From the command line, log into your instance
 
-	* An example command is shown below; of course, the path to the the pem file should be replaced with the path to your pem, and the  *.amazonaws.com should be replaced with the Public DNS value for your AMI:
+	* An example command is shown below; of course, the path to the the pem file should be replaced with the path to your pem, and the  \*.amazonaws.com should be replaced with the Public DNS value for your AMI:
 
 			ssh -i ~/Keys/abirmingham_oregon.pem ec2-user@ec2-52-42-121-79.us-west-2.compute.amazonaws.com
 			screen
@@ -139,7 +139,7 @@ The dual CRISPR screen analysis pipeline requires the user to specify informatio
 
 5. This library definition file (and any others fulfilling these criteria and placed in the `library_definitions` directory) will be automatically detected by the pipeline at run-time.
 
-	* See [[Library Definition Files]] for additional details on library definition files' format and usage.
+	* See [Library Definition Files](https://github.com/ucsd-ccbb/mali-dual-crispr-pipeline/wiki/Library-Definition-Files) page in the software wiki for additional details on library definition files' format and usage.
 	    
 	    
 ## Count Pipeline Execution
