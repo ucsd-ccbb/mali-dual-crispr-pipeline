@@ -1,26 +1,21 @@
-# README #
-
-This repository contains code for the automated implementation of the dual-CRISPR screen analysis pipeline developed by Amanda Birmingham and Roman Sasik of the Center for Computational Biology and Bioinformatics at the University of California, San Diego.  This pipeline has been custom-built to analyze results from the dual-CRISPR screening system set up by the lab of Dr. Prashant Mali (UCSD).
-
-As of now, this code is still private.  Contact Amanda Birmingham (abirmingham@ucsd.edu) if you need to access it.
-
----------------------------------------
-
 # Dual CRISPR Screen Analysis Quick-Start Guide
 Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 
 ## Table of Contents
 * Pipeline Set-Up
+* Library Definition File Creation
 * Count Pipeline Execution
 * Score Pipeline Execution
+* Appendix: Config File Modification
 
 ## Pipeline Set-Up
+
+The pipeline is designed for use on a Amazon Web Services instance, although with appropriate modifications to the configuration file it can also be run on a OSX machine.
 
 ### Requirements
 1. A new, empty Amazon Linux AMI instance to which you have access
 2. The key (.pem) file that gives you access to the AMI
 3. The Public DNS value for the instance
-4. A BitBucket account (user name and password) that has been granted access to the `ccb_ucsd/mali-dual-crispr-pipeline` repository
 5. Your AWS Access Key ID
 6. Your AWS Secret Access Key
 
@@ -35,7 +30,13 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 	* Instructions from AWS are at [https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html)
 	* If you receive a message stating 'The authenticity of host ... can't be established' and asking 'Are you sure you want to continue connecting (yes/no)?', enter `yes`.	
 	* If you encounter a `Permission denied (publickey)` error, remember that the permissions on your key (.pem) file must be set so that it is not public, e.g. by running `chmod 0400 ~/Keys/abirmingham_oregon.pem`
-	* `screen` ensures you will be able to reconnect to the process if you are disconnected at any point; more details of its operation are available at [https://www.linux.com/learn/taking-command-terminal-gnu-screen](https://www.linux.com/learn/taking-command-terminal-gnu-screen).	
+	* `screen` ensures you will be able to reconnect to the process if you are disconnected at any point; more details of its operation are available at [https://www.linux.com/learn/taking-command-terminal-gnu-screen](https://www.linux.com/learn/taking-command-terminal-gnu-screen).
+
+10. Configure the built-in `aws` software to allow transfer of data back and forth from Amazon's `s3` data storage
+    
+    		aws configure
+    	
+    * Enter your AWS Access Key ID and AWS Secret Access Key when prompted, and hit Enter to accept the defaults for the additional prompts.   	
 
 3. Download and install the `conda` package manager software
     
@@ -81,11 +82,10 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 
     		pip install nbparameterise 
 
-9. Download the dual crispr pipeline software using your authorized BitBucket account by replacing XXXXXXXX in the below command with your BitBucket user name
+9. Download the dual crispr pipeline software from github using the `git` command:
 
-    		git clone https://XXXXXXXX@bitbucket.org/ccb_ucsd/mali-dual-crispr-pipeline.git
+    		git clone https://github.com/ucsd-ccbb/mali-dual-crispr-pipeline.git
     	
-    * Enter your BitBucket password when prompted (note that no characters will show on the screen as you type!)
     * After this download, there will be a `mali-dual-crispr-pipeline` in the directory in the `/home/ec2-user/` directory
 
 10. Set up the expected local folders to store your data
@@ -95,13 +95,15 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 			sudo mkdir /data
 			sudo chown -R ec2-user /data
 			cd ~/mali-dual-crispr-pipeline/src/python/
-			python set_up_mali_pipeline.py
-	
-10. Configure the built-in `aws` software to allow transfer of data back and forth from Amazon's `s3` data storage
+			python set_up_mali_pipeline.py 
     
-    		aws configure
-    	
-    * Enter your AWS Access Key ID and AWS Secret Access Key when prompted, and hit Enter to accept the defaults for the additional prompts.    
+11. Demonstrate successful installation by running the count pipeline and score pipeline on the test data that is installed with the software
+
+		cd ~/mali-dual-crispr-pipeline/src/python/
+		python run_mali_counting.py CountTest TestLib TestRun1
+		python run_mali_scoring.py ScoreTest CV4 /data/raw/TestRun2/,/data/raw/TestRun3/ 3,14,21,28 --test
+		
+	* If these commands complete without errors, the installation has succeeded (note that a warning stating that the score pipeline is being run in test mode is to be expected)
 	* At this point, you may continue to one of the run set-up steps below, or may exit the configured instance and return to it later.  
 
 12. When you are ready, exit the instance
@@ -109,6 +111,35 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 	    	source deactivate
 	    	exit
 	    	logout
+	    	
+## Library Definition File Creation
+
+The dual CRISPR screen analysis pipeline requires the user to specify information about the library of dual CRISPR constructs used in the screen. This information is provided in a library definition file, a specially formatted tab-delimited text file, which is then placed in the `library_definitions` directory. 
+
+### Requirements
+1. Construct library information (construct ids, target ids, probe ids, and probe sequences)
+2. A text editor (such as TextEdit or vim--NOT Word)
+
+### Steps
+1. Open the `test_library.txt` file that comes pre-installed in the `library_definitions` folder.
+2. Resave this file with the name of your choice (e.g., `mylibrary.txt`).
+3. Modify your saved file by updating the values in the top section:
+
+	* library\_name: a name for the library that the user will specify when running the pipeline; since it will be input at the command line, keep it short and easy to type!
+	* min\_trimmed\_grna\_len: the minimum allowable length for a detected gRNA sequence from this library, after trimming scaffold sequences off a read; any trimmed read shorter than this length will be ignored.
+	* max\_trimmed\_grna\_len to contain: the maximum allowable length for a detected gRNA sequence from this library, after trimming scaffold sequences off a read; any trimmed read longer than this length will be ignored.
+
+4. Below the top section and column header line (which begins `construct_id`), paste in your construct library definitions, with one row for each construct in the library.  Each row must contain (at least) the 7 columns specified in the header line, as described below:
+
+	* `construct_id`: the unique name of the construct, specified in the format probe_a_id__probe_b_id (e.g., `SMARCA4_chr19_11094819__BRD4_chr19_15376361`, or `NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972`)
+	* `target_a_id`: the identifier for the probe's target, usually a gene symbol (e.g., `SMARCA4`, `BRD4`, `SETD2`, `NonTargetingControlGuideForHuman0412`, etc.)
+	* `probe_a_id`: the identifier for a specific probe, e.g., `SMARCA4_chr19_11094819`, `BRD4_chr19_15376361`, NonTargetingControlGuideForHuman0352`, `SETD2_chr3_47142972`, etc.)
+	* `probe_a_seq`: the DNA-alphabet sequence of the gRNA of probe A, e.g. `TTCAGGGGAAGTATTACAAA`, `AAActgcaTAGCAAGTTgA`, etc.  Sequences may include only canonical DNA bases (A, C, G, and T).  While both upper and lower-case letters may be included, the sequence will be converted to all upper-case before use in the pipeline.
+	*  The specifications for target\_b\_id, probe\_b\_id, and probe\_b\_seq mirror those of target\_a\_id, probe\_a\_id, and probe\_a\_seq given above.
+
+5. This library definition file (and any others fulfilling these criteria and placed in the `library_definitions` directory) will be automatically detected by the pipeline at run-time.
+
+	* See [[Library Definition Files]] for additional details on library definition files' format and usage.
 	    
 	    
 ## Count Pipeline Execution
@@ -202,3 +233,8 @@ The score pipeline takes in counts files, such as those produced by the count pi
 
 6. Follow Counts Pipeline steps 6 and 7 to locate, zip, and upload the results
 7. Follow Set-Up step 12 to exit your instance
+
+
+## Appendix: Config File Modification
+
+All user-modifiable settings are stored in the `config.txt` file in the root directory of the software installation (e.g., `~/mali-dual-crispr-pipeline`).  Novice users should probably avoid changing this, as it is sensitive to spelling, letter case, empty lines, etc., but experienced users will find it offers extensive control over everything from the locations of data and software files, to the number of processors used in execution, to the tuning parameters for the abundance threshold heuristic.  See [[Configuration File]] for a full listing of the available config settings.
