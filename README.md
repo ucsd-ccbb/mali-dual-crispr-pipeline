@@ -22,7 +22,7 @@ The pipeline is designed for use on a Amazon Web Services instance, although wit
 ### Steps
 1. From the command line, log into your instance
 
-	* An example command is shown below; of course, the path to the the pem file should be replaced with the path to your pem, and the  *.amazonaws.com should be replaced with the Public DNS value for your AMI:
+	* An example command is shown below; of course, the path to the the pem file should be replaced with the path to your pem, and the  \*.amazonaws.com should be replaced with the Public DNS value for your AMI:
 
 			ssh -i ~/Keys/abirmingham_oregon.pem ec2-user@ec2-52-42-121-79.us-west-2.compute.amazonaws.com
 			screen
@@ -139,7 +139,7 @@ The dual CRISPR screen analysis pipeline requires the user to specify informatio
 
 5. This library definition file (and any others fulfilling these criteria and placed in the `library_definitions` directory) will be automatically detected by the pipeline at run-time.
 
-	* See [[Library Definition Files]] for additional details on library definition files' format and usage.
+	* See [Library Definition Files](https://github.com/ucsd-ccbb/mali-dual-crispr-pipeline/wiki/Library-Definition-Files) page in the software wiki for additional details on library definition files' format and usage.
 	    
 	    
 ## Count Pipeline Execution
@@ -237,4 +237,4 @@ The score pipeline takes in counts files, such as those produced by the count pi
 
 ## Appendix: Config File Modification
 
-All user-modifiable settings are stored in the `config.txt` file in the root directory of the software installation (e.g., `~/mali-dual-crispr-pipeline`).  Novice users should probably avoid changing this, as it is sensitive to spelling, letter case, empty lines, etc., but experienced users will find it offers extensive control over everything from the locations of data and software files, to the number of processors used in execution, to the tuning parameters for the abundance threshold heuristic.  See [[Configuration File]] for a full listing of the available config settings.
+All user-modifiable settings are stored in the `config.txt` file in the root directory of the software installation (e.g., `~/mali-dual-crispr-pipeline`).  Novice users should probably avoid changing this, as it is sensitive to spelling, letter case, empty lines, etc., but experienced users will find it offers extensive control over everything from the locations of data and software files, to the number of processors used in execution, to the tuning parameters for the abundance threshold heuristic.  See the [Configuration File](https://github.com/ucsd-ccbb/mali-dual-crispr-pipeline/wiki/Configuration-File) page in the software wiki for a full listing of the available config settings.
