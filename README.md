@@ -95,13 +95,13 @@ The pipeline is designed for use on a Amazon Web Services instance, although wit
 			sudo mkdir /data
 			sudo chown -R ec2-user /data
 			cd ~/mali-dual-crispr-pipeline/src/python/
-			python set_up_mali_pipeline.py 
+			python set_up_pipeline.py 
     
 11. Demonstrate successful installation by running the count pipeline and score pipeline on the test data that is installed with the software
 
 		cd ~/mali-dual-crispr-pipeline/src/python/
-		python run_mali_counting.py CountTest TestLib TestRun1
-		python run_mali_scoring.py ScoreTest CV4 /data/raw/TestRun2/,/data/raw/TestRun3/ 3,14,21,28 --test
+		python run_counting.py CountTest TestLib TestRun1
+		python run_scoring.py ScoreTest CV4 /data/raw/TestRun2/,/data/raw/TestRun3/ 3,14,21,28 --test
 		
 	* If these commands complete without errors, the installation has succeeded (note that a warning stating that the score pipeline is being run in test mode is to be expected)
 	* At this point, you may continue to one of the run set-up steps below, or may exit the configured instance and return to it later.  
@@ -174,7 +174,7 @@ The count pipeline takes in raw fastq or fastq.gz files from the sequencing cent
 	* Specify the name of the fastq directory you created above in place of `fastq_dir_name`.  Provide an alphanumeric-only name for your dataset in place of `dataset_name`, and input the recognized library name for the library used in your screen (e.g., "CV4") in place of `library_name`.
 
 			cd ~/mali-dual-crispr-pipeline/src/python/
-			python run_mali_counting.py fastq_dir_name dataset_name library_name
+			python run_counting.py fastq_dir_name dataset_name library_name
 
 5.  Wait for the run to complete
 
@@ -225,7 +225,7 @@ The score pipeline takes in counts files, such as those produced by the count pi
 	* Provide an alphanumeric-only name for your dataset in place of `dataset_name`, and input the recognized library name for the library used in your screen (e.g., "CV4") in place of `library_name`.  Replace `counts_fp_or_dir` with the path identified above in step 3, and `day_timepoints_str` with a comma-separated string listing--in order--the days on which timepoints were collected (e.g., "3,14,21,28").
 
 			cd ~/mali-dual-crispr-pipeline/src/python/
-			python run_mali_scoring.py dataset_name library_name counts_fp_or_dir day_timepoints_str
+			python run_scoring.py dataset_name library_name counts_fp_or_dir day_timepoints_str
 
 5.  Wait for the run to complete
 
