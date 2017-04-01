@@ -76,8 +76,9 @@ setup(
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
 
     # List run-time dependencies here.  These will be installed by pip when
-    # your project is installed.
-    install_requires=['pandas'],
+    # your project is installed, although this can be overridden with a requirements.txt file
+    install_requires=['ccbb_pyutils', 'cutadapt', 'ipython', 'jupyter',
+                      'matplotlib', 'pandas', 'rpy2'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
@@ -86,5 +87,25 @@ setup(
     extras_require={
         'dev': ['check-manifest'],
         'test': ['coverage'],
+    },
+
+    package_data={
+        'dual_crispr': ['distributed_files/notebooks/*.ipynb',
+                        'distributed_files/library_definitions/*.txt',
+                        'distributed_files/test_data/TestRun1/*.fastq',
+                        'distributed_files/test_data/TestRun2/*.txt',
+                        'distributed_files/test_data/TestRun3/*.txt',
+                        'distributed_files/test_data/TestRun3withError/*.txt']
+    },
+
+    # To provide executable scripts, use entry points in preference to the
+    # "scripts" keyword. Entry points provide cross-platform support and allow
+    # pip to create the appropriate form of executable for the target platform.
+    entry_points={
+        'console_scripts': [
+            'set_up_dual_crispr=dual_crispr.run_set_up_pipeline:main',
+            'count_dual_crispr=dual_crispr.run_counting:main',
+            'score_dual_crispr=dual_crispr.run_scoring:main'
+        ]
     }
 )
