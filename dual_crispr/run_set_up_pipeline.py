@@ -3,7 +3,7 @@ import argparse
 import os
 import shutil
 
-from ccbb_mali_dual_crispr.dual_crispr import dual_crispr_pipeliner as ns_dcpipe
+from dual_crispr import dual_crispr_pipeliner as ns_dcpipe
 
 
 def _parse_cmd_line_args():

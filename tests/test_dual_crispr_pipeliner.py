@@ -5,7 +5,7 @@ import unittest
 
 import ccbb_pyutils.config_loader as ns_config
 
-from ccbb_mali_dual_crispr.dual_crispr import dual_crispr_pipeliner as ns_test
+from dual_crispr import dual_crispr_pipeliner as ns_test
 
 
 class TestFunctions(unittest.TestCase):

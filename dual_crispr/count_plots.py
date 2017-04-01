@@ -9,7 +9,7 @@ from ccbb_pyutils.files_and_paths import build_multipart_fp, get_file_name_piece
     get_filepaths_by_prefix_and_suffix
 
 # project-specific libraries
-from ccbb_mali_dual_crispr.dual_crispr.count_files_and_dataframes import get_counts_df, clip_count_header_suffix
+from dual_crispr.count_files_and_dataframes import get_counts_df, clip_count_header_suffix
 
 __author__ = "Amanda Birmingham"
 __maintainer__ = "Amanda Birmingham"

@@ -3,7 +3,7 @@ import tempfile
 import unittest
 import warnings
 
-from ccbb_mali_dual_crispr.dual_crispr import run_scoring as ns_test
+from dual_crispr import run_scoring as ns_test
 
 
 class TestFunctions(unittest.TestCase):

@@ -3,7 +3,7 @@ from ccbb_pyutils.analysis_run_prefixes import strip_run_prefix
 from ccbb_pyutils.files_and_paths import build_multipart_fp, group_files, get_filepaths_by_prefix_and_suffix
 
 # project-specific libraries
-import ccbb_mali_dual_crispr.dual_crispr.count_files_and_dataframes as ns_counts
+import dual_crispr.count_files_and_dataframes as ns_counts
 
 __author__ = "Amanda Birmingham"
 __maintainer__ = "Amanda Birmingham"

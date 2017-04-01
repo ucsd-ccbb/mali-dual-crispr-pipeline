@@ -6,8 +6,8 @@ import unittest
 import pandas
 
 # project-specific libraries
-import ccbb_mali_dual_crispr.dual_crispr.construct_file_extracter as ns_extractor
-import ccbb_mali_dual_crispr.dual_crispr.scoring_prep as ns_test
+import dual_crispr.construct_file_extracter as ns_extractor
+import dual_crispr.scoring_prep as ns_test
 
 __author__ = "Amanda Birmingham"
 __maintainer__ = "Amanda Birmingham"

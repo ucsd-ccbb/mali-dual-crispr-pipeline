@@ -2,8 +2,8 @@
 import ccbb_pyutils.pandas_utils as ns_pandas
 
 # project-specific libraries
-import ccbb_mali_dual_crispr.dual_crispr.construct_file_extracter as ns_extracter
-import ccbb_mali_dual_crispr.dual_crispr.count_files_and_dataframes as ns_count
+import dual_crispr.construct_file_extracter as ns_extracter
+import dual_crispr.count_files_and_dataframes as ns_count
 
 __author__ = "Amanda Birmingham"
 __maintainer__ = "Amanda Birmingham"

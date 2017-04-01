@@ -2,7 +2,7 @@
 import tempfile
 import unittest
 
-from ccbb_mali_dual_crispr.dual_crispr import run_counting as ns_test
+from dual_crispr import run_counting as ns_test
 
 
 class TestFunctions(unittest.TestCase):

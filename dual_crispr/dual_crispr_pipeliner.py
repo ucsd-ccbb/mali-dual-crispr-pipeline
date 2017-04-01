@@ -11,7 +11,7 @@ import ccbb_pyutils.notebook_runner as ns_notebook
 import ccbb_pyutils.string_utils as ns_strings
 
 # project-specific libraries
-import ccbb_mali_dual_crispr.dual_crispr.constructs_settings_extracter as ns_settings
+import dual_crispr.constructs_settings_extracter as ns_settings
 
 __author__ = 'Amanda Birmingham'
 __maintainer__ = "Amanda Birmingham"

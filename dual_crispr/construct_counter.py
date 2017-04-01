@@ -9,7 +9,7 @@ import logging
 from ccbb_pyutils.basic_fastq import FastqHandler, paired_fastq_generator
 
 # project-specific libraries
-from ccbb_mali_dual_crispr.dual_crispr.construct_file_extracter import compose_probe_pair_id_from_probe_ids
+from dual_crispr.construct_file_extracter import compose_probe_pair_id_from_probe_ids
 
 __author__ = "Amanda Birmingham"
 __maintainer__ = "Amanda Birmingham"

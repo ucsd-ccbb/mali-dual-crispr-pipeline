@@ -5,7 +5,7 @@ import os
 import ccbb_pyutils.config_loader as ns_config
 import ccbb_pyutils.notebook_pipeliner as ns_pipeliner
 
-from ccbb_mali_dual_crispr.dual_crispr import dual_crispr_pipeliner as ns_dcpipe
+from dual_crispr import dual_crispr_pipeliner as ns_dcpipe
 
 __author__ = 'Amanda Birmingham'
 __maintainer__ = "Amanda Birmingham"

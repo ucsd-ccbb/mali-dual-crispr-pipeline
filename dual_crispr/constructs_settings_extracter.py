@@ -5,7 +5,7 @@ import warnings
 import ccbb_pyutils.files_and_paths as ns_file
 
 # project-specific libraries
-import ccbb_mali_dual_crispr.dual_crispr.construct_file_extracter as ns_extracter
+import dual_crispr.construct_file_extracter as ns_extracter
 
 
 # public
