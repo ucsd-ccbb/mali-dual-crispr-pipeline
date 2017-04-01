@@ -77,8 +77,8 @@ setup(
 
     # List run-time dependencies here.  These will be installed by pip when
     # your project is installed, although this can be overridden with a requirements.txt file
-    install_requires=['ccbb_pyutils', 'cutadapt', 'ipython', 'jupyter',
-                      'matplotlib', 'pandas', 'rpy2'],
+    install_requires=['ccbb_pyutils', 'cutadapt',
+                      'matplotlib', 'numpy', 'pandas', 'rpy2'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
