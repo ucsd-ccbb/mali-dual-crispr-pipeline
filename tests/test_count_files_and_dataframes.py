@@ -3,7 +3,7 @@ import io
 import unittest
 
 # project-specific libraries
-from ccbb_mali_dual_crispr.dual_crispr.count_files_and_dataframes import clip_count_header_suffix
+from dual_crispr.count_files_and_dataframes import clip_count_header_suffix
 
 __author__ = "Amanda Birmingham"
 __maintainer__ = "Amanda Birmingham"

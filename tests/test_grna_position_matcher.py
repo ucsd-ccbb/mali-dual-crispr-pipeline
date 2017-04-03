@@ -2,7 +2,7 @@
 import unittest
 
 # project-specific libraries
-from ccbb_mali_dual_crispr.dual_crispr.grna_position_matcher import GrnaPositionMatcher
+from dual_crispr.grna_position_matcher import GrnaPositionMatcher
 
 __author__ = "Amanda Birmingham"
 __maintainer__ = "Amanda Birmingham"

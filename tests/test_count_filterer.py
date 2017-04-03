@@ -2,7 +2,7 @@
 import unittest
 
 # project-specific libraries
-from ccbb_mali_dual_crispr.dual_crispr.count_filterer import _check_and_trim_seq, _filtered_fastq_generator, _summarize_counts
+from dual_crispr.count_filterer import _check_and_trim_seq, _filtered_fastq_generator, _summarize_counts
 from ccbb_pyutils.basic_fastq import FastqHandler
 
 __author__ = "Amanda Birmingham"

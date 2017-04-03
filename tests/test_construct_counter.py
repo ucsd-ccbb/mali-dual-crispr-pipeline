@@ -5,8 +5,8 @@ import unittest
 from ccbb_pyutils.basic_fastq import FastqHandler
 
 # project-specific libraries
-from ccbb_mali_dual_crispr.dual_crispr.construct_counter import _match_and_count_constructs, get_counter_from_names
-from ccbb_mali_dual_crispr.dual_crispr.grna_position_matcher import GrnaPositionMatcher
+from dual_crispr.construct_counter import _match_and_count_constructs, get_counter_from_names
+from dual_crispr.grna_position_matcher import GrnaPositionMatcher
 
 __author__ = "Amanda Birmingham"
 __maintainer__ = "Amanda Birmingham"

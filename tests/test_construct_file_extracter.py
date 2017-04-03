@@ -3,7 +3,7 @@ import io
 import unittest
 
 # project-specific libraries
-import ccbb_mali_dual_crispr.dual_crispr.construct_file_extracter as ns_extracter
+import dual_crispr.construct_file_extracter as ns_extracter
 
 __author__ = "Amanda Birmingham"
 __maintainer__ = "Amanda Birmingham"

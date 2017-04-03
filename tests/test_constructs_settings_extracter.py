@@ -4,7 +4,7 @@ import unittest
 import warnings
 
 # project-specific libraries
-import ccbb_mali_dual_crispr.dual_crispr.constructs_settings_extracter as ns_test
+import dual_crispr.constructs_settings_extracter as ns_test
 
 __author__ = "Amanda Birmingham"
 __maintainer__ = "Amanda Birmingham"
