@@ -75,9 +75,10 @@ setup(
     # simple. Or you can use find_packages().
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
 
+    # ,
     # List run-time dependencies here.  These will be installed by pip when
     # your project is installed, although this can be overridden with a requirements.txt file
-    install_requires=['ccbb_pyutils', 'cutadapt',
+    install_requires=['bioconductor-qvalue', 'ccbb_pyutils', 'cutadapt',
                       'matplotlib', 'numpy', 'pandas', 'rpy2'],
 
     # List additional groups of dependencies here (e.g. development
@@ -90,8 +91,9 @@ setup(
     },
 
     package_data={
-        'dual_crispr': ['distributed_files/notebooks/*.ipynb',
-                        'distributed_files/library_definitions/*.txt',
+        'dual_crispr': ['dual_crispr/distributed_files/config.txt',
+                        'distributed_files/notebooks/*.ipynb',
+                        'distributed_files/library_definitions/test_library.txt',
                         'distributed_files/test_data/TestRun1/*.fastq',
                         'distributed_files/test_data/TestRun2/*.txt',
                         'distributed_files/test_data/TestRun3/*.txt',
