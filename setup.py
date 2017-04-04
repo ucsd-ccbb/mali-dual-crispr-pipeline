@@ -91,9 +91,9 @@ setup(
     },
 
     package_data={
-        'dual_crispr': ['dual_crispr/distributed_files/config.txt',
+        'dual_crispr': ['distributed_files/config.txt',
                         'distributed_files/notebooks/*.ipynb',
-                        'distributed_files/library_definitions/test_library.txt',
+                        'distributed_files/library_definitions/*.txt',
                         'distributed_files/test_data/TestRun1/*.fastq',
                         'distributed_files/test_data/TestRun2/*.txt',
                         'distributed_files/test_data/TestRun3/*.txt',
