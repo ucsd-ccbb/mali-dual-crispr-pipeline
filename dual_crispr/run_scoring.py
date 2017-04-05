@@ -29,15 +29,17 @@ def _parse_cmd_line_args():
                                                   "file to be scored resides")
     parser.add_argument("day_timepoints_str", help="a comma-separated list containing the time points (in order) at "
                                                    "which data were collected")
+    parser.add_argument("output_dir_path", help="absolute path to folder in which new output directory should be created")
     parser.add_argument("--test", help="run with set seed and only two iterations, suitable for testing ONLY",
                         action="store_true")
     parser.add_argument("--config", help="path to config file; if not specified, config file in default location will "
                                          "be used")
     args = parser.parse_args()
-    return args.dataset_name, args.library_name, args.count_fps_or_dirs, args.day_timepoints_str, args.test, args.config
+    return args.dataset_name, args.library_name, args.count_fps_or_dirs, args.day_timepoints_str, args.output_dir_path,\
+           args.test, args.config
 
 
-def _set_params(count_fps_or_dirs, day_timepoints_str, is_test, config_fp):
+def _set_params(count_fps_or_dirs, day_timepoints_str, outputs_dir_path, is_test, config_fp):
     test_config_section_key = "test"
     count_fps_or_dirs_key = "count_fps_or_dirs"
     min_count_limit_key = "min_count_limit"
@@ -61,6 +63,7 @@ def _set_params(count_fps_or_dirs, day_timepoints_str, is_test, config_fp):
     # here--that is done in the notebook, because if users run the notebooks directly, they will have to put in
     # comma-delimited strings there, so the notebooks needs to know how to deal with it.
     result[day_timepoints_str_key] = day_timepoints_str
+    result[ns_dcpipe.DirectoryKeys.PROCESSED_DATA.value] = outputs_dir_path
 
     # the below values DO need to be converted because users have the ability to input int, float, and boolean values
     # directly into the notebooks, so the notebooks don't need to know how to convert those
@@ -80,8 +83,9 @@ def _set_params(count_fps_or_dirs, day_timepoints_str, is_test, config_fp):
 
 
 def main():
-    dataset_name, library_name, counts_fps_or_dirs, day_timepoints_str, is_test, config_fp = _parse_cmd_line_args()
-    score_params = _set_params(counts_fps_or_dirs, day_timepoints_str, is_test, config_fp)
+    dataset_name, library_name, counts_fps_or_dirs, day_timepoints_str, output_dir_path, is_test, config_fp = \
+        _parse_cmd_line_args()
+    score_params = _set_params(counts_fps_or_dirs, day_timepoints_str, output_dir_path, is_test, config_fp)
     full_params = ns_dcpipe.generate_notebook_params(dataset_name, library_name, score_params, config_fp)
     # Note: second argument is the *function*, not results of calling the function
     ns_pipeliner.execute_run_from_full_params(full_params, ns_dcpipe.rename_param_names_as_global_vars)

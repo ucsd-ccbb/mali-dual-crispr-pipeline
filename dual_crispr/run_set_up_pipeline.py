@@ -1,17 +1,10 @@
 # standard libraries
-import argparse
 import os
 import shutil
+import sys
 
-from dual_crispr import dual_crispr_pipeliner as ns_dcpipe
-
-
-def _parse_cmd_line_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config", help="path to config file; if not specified, config file in default location will "
-                                         "be used")
-    args = parser.parse_args()
-    return args.config
+import dual_crispr  # do not remove this "unused" import--it IS used in call to sys.modules["dual_crispr"]
+import ccbb_pyutils.files_and_paths as ns_file
 
 
 # code from https://stackoverflow.com/questions/1994488/copy-file-or-directories-recursively-in-python#1994840
@@ -32,11 +25,16 @@ def _copy_test_files(root_src_dir, root_dst_dir):
 
 
 def main():
-    config_fp = _parse_cmd_line_args()
-    params = ns_dcpipe.set_up_data_subdirs_and_get_machine_configs(config_fp)
-    source_dir = os.path.join(params["main_dir"], "test_data")
-    dest_dir = params[ns_dcpipe.DirectoryKeys.RAW_DATA.value]
-    _copy_test_files(source_dir, dest_dir)
+    home_dir_path = os.environ['HOME']
+
+    # get the location of the installed files
+    pkg_dir_path = os.path.dirname(sys.modules["dual_crispr"].__file__)
+    files_dir_path = os.path.join(pkg_dir_path, "distributed_files")
+    home_dual_crispr_path = os.path.join(home_dir_path, "dual_crispr")
+    ns_file.verify_or_make_dir(home_dual_crispr_path)
+
+    # move them to the user's home directory
+    _copy_test_files(files_dir_path, home_dual_crispr_path)
 
 
 if __name__ == '__main__':

@@ -16,28 +16,10 @@ class TestFunctions(unittest.TestCase):
 machine_configuration = laptop
 
 [c4_2xlarge]
-main_dir: /home/ec2-user
-data_dir: /data
 num_processors: 7
-# Set-up for directory structure; do not modify unless you are a power user!
-code_dir: ${main_dir}/src/python
-notebook_dir: ${main_dir}/notebooks
-libraries_dir: ${main_dir}/library_definitions
-raw_data_dir: ${data_dir}/raw
-interim_data_dir: ${data_dir}/interim
-processed_data_dir: ${data_dir}/processed
 
 [laptop]
-main_dir: /Users/Birmingham/Work/Repositories/ccbb_tickets_2017/mali-dual-crispr-pipeline
-data_dir: /Users/Birmingham/Work/Data
 num_processors: 3
-# Set-up for directory structure; do not modify unless you are a power user!
-code_dir: ${main_dir}/src/python
-notebook_dir: ${main_dir}/notebooks
-libraries_dir: ${main_dir}/library_definitions
-raw_data_dir: ${data_dir}/raw
-interim_data_dir: ${data_dir}/interim
-processed_data_dir: ${data_dir}/processed
 
 [count_pipeline]
 keep_gzs: False
@@ -70,6 +52,7 @@ num_iterations = 2
 
         count_fps_or_dirs = "/my/counts/dir1,/my/counts_dir2"
         day_timepoints_str = "3,10,21"
+        provided_output_dir = "/my/output_parent"
         is_test = True
 
         # count_fps_or_dirs string, day_timepoints_str, time_prefixes, and notebooks list should NOT be parsed to list
@@ -78,6 +61,7 @@ num_iterations = 2
         expected_output = {'machine_configuration': "laptop",
                            'count_fps_or_dirs': '/my/counts/dir1,/my/counts_dir2',
                            'day_timepoints_str': '3,10,21',
+                           'processed_data_dir': "/my/output_parent",
                            'notebook_basenames_list': 'Dual CRISPR 6-Scoring Preparation.ipynb,Dual '
                             'CRISPR 7-Abundance Thresholds.ipynb,Dual CRISPR '
                              '8-Construct Scoring.ipynb',
@@ -96,7 +80,8 @@ num_iterations = 2
             # Cause all warnings to always be triggered.
             warnings.simplefilter("always")
 
-            real_output = ns_test._set_params(count_fps_or_dirs, day_timepoints_str, is_test, temp_config.name)
+            real_output = ns_test._set_params(count_fps_or_dirs, day_timepoints_str, provided_output_dir, is_test,
+                                              temp_config.name)
 
             assert len(warnings_list) == 1
             assert "Scoring is running in TEST MODE; do not use results for data analysis!" in str(warnings_list[-1].message)
@@ -108,30 +93,13 @@ num_iterations = 2
 machine_configuration = laptop
 
 [c4_2xlarge]
-main_dir: /home/ec2-user
-data_dir: /data
 num_processors: 7
 keep_gzs: False
-# Set-up for directory structure; do not modify unless you are a power user!
-code_dir: ${main_dir}/src/python
-notebook_dir: ${main_dir}/notebooks
-libraries_dir: ${main_dir}/library_definitions
-raw_data_dir: ${data_dir}/raw
-interim_data_dir: ${data_dir}/interim
-processed_data_dir: ${data_dir}/processed
 
 [laptop]
-main_dir: /Users/Birmingham/Work/Repositories/ccbb_tickets_2017/mali-dual-crispr-pipeline
-data_dir: /Users/Birmingham/Work/Data
 num_processors: 3
 keep_gzs: True
-# Set-up for directory structure; do not modify unless you are a power user!
-code_dir: ${main_dir}/src/python
-notebook_dir: ${main_dir}/notebooks
-libraries_dir: ${main_dir}/library_definitions
-raw_data_dir: ${data_dir}/raw
-interim_data_dir: ${data_dir}/interim
-processed_data_dir: ${data_dir}/processed
+
 
 [count_pipeline]
 full_5p_r1: TATATATCTTGTGGAAAGGACGAAACACCG
@@ -163,6 +131,7 @@ num_iterations = 2
 
         count_fps_or_dirs = "/my/counts/dir1,/my/counts_dir2"
         day_timepoints_str = "3,10,21"
+        provided_output_dir = "/my/output_parent"
         is_test = False
 
         # count_fps_or_dirs string, day_timepoints_str, time_prefixes, and notebooks list should NOT be parsed to list
@@ -171,6 +140,7 @@ num_iterations = 2
         expected_output = {'machine_configuration': "laptop",
                            'count_fps_or_dirs': '/my/counts/dir1,/my/counts_dir2',
                            'day_timepoints_str': '3,10,21',
+                           'processed_data_dir': "/my/output_parent",
                            'notebook_basenames_list': 'Dual CRISPR 6-Scoring Preparation.ipynb,Dual '
                             'CRISPR 7-Abundance Thresholds.ipynb,Dual CRISPR '
                              '8-Construct Scoring.ipynb',
@@ -185,7 +155,8 @@ num_iterations = 2
         temp_config.write(config_str)
         temp_config.seek(0)
 
-        real_output = ns_test._set_params(count_fps_or_dirs, day_timepoints_str, is_test, temp_config.name)
+        real_output = ns_test._set_params(count_fps_or_dirs, day_timepoints_str, provided_output_dir, is_test,
+                                          temp_config.name)
         self.assertEqual(expected_output, real_output)
 
     # end region
