@@ -100,12 +100,15 @@ setup(
                         'distributed_files/test_data/TestRun3withError/*.txt']
     },
 
+    # I'm transferring package data with the install, which I then need to relocate.
+    # This is harder to do if the data is zipped up in an egg, so no zipping!
+    zip_safe=False,
+
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'set_up_dual_crispr=dual_crispr.run_set_up_pipeline:main',
             'count_dual_crispr=dual_crispr.run_counting:main',
             'score_dual_crispr=dual_crispr.run_scoring:main'
         ]
