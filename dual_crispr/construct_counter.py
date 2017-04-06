@@ -88,7 +88,17 @@ def _write_counts(counts_by_construct, counts_by_type, output_fp):
         summary_comment = ",".join(summary_pieces)
         summary_comment = "# " + summary_comment
         header = [get_construct_header(), "counts"]
-        writer = csv.writer(file_handle, delimiter="\t")
+
+        # Oddly, csv.writer defaults to using the \r\n line terminator.
+        # As far as I know (supported by https://www.csvreader.com/csv_format.php ),
+        # CSV files should use abide by the same platform-specific line terminator
+        # rules as everything else, so I override the default csv.writer behavior.
+        # However, I *don't* set lineterminator=os.linesep because the current
+        # (3.6.1) python documentation states explicitly
+        # "Do not use os.linesep as a line terminator when writing files opened in text mode (the default);
+        # use a single '\n' instead, on all platforms."
+        # Alrighty then!
+        writer = csv.writer(file_handle, delimiter="\t", lineterminator="\n")
 
         writer.writerow([summary_comment])
         writer.writerow(header)
