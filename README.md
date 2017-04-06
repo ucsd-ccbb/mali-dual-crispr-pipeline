@@ -1,20 +1,13 @@
-# README #
-
-This repository contains code for the automated implementation of the dual-CRISPR screen analysis pipeline developed by Amanda Birmingham and Roman Sasik of the Center for Computational Biology and Bioinformatics at the University of California, San Diego.  This pipeline has been custom-built to analyze results from the dual-CRISPR screening system set up by the lab of Dr. Prashant Mali (UCSD).
-
-As of now, this code is still private.  Contact Amanda Birmingham (abirmingham@ucsd.edu) if you need to access it.
-
----------------------------------------
-
 # Dual CRISPR Screen Analysis Quick-Start Guide
 Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 
 ## Table of Contents
-* Pipeline Set-Up
+* Installation
+* Library File Definition Set-Up
 * Count Pipeline Execution
 * Score Pipeline Execution
 
-## Pipeline Set-Up
+## Installation
 
 ### Requirements
 1. A new, empty Amazon Linux AMI instance to which you have access
@@ -29,15 +22,15 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 
 	* An example command is shown below; of course, the path to the the pem file should be replaced with the path to your pem, and the  *.amazonaws.com should be replaced with the Public DNS value for your AMI:
 
-			ssh -i ~/Keys/abirmingham_oregon.pem ec2-user@ec2-52-42-121-79.us-west-2.compute.amazonaws.com
-			screen
+		ssh -i ~/Keys/abirmingham_oregon.pem ec2-user@ec2-52-42-121-79.us-west-2.compute.amazonaws.com
+		screen
 	
 	* Instructions from AWS are at [https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html)
 	* If you receive a message stating 'The authenticity of host ... can't be established' and asking 'Are you sure you want to continue connecting (yes/no)?', enter `yes`.	
 	* If you encounter a `Permission denied (publickey)` error, remember that the permissions on your key (.pem) file must be set so that it is not public, e.g. by running `chmod 0400 ~/Keys/abirmingham_oregon.pem`
 	* `screen` ensures you will be able to reconnect to the process if you are disconnected at any point; more details of its operation are available at [https://www.linux.com/learn/taking-command-terminal-gnu-screen](https://www.linux.com/learn/taking-command-terminal-gnu-screen).	
 
-3. Download and install the `conda` package manager software
+2. Download and install the `conda` package manager software
     
 		curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o miniconda_py3.sh
     	bash miniconda_py3.sh
@@ -45,66 +38,46 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
     * Press the space bar to move through the license agreement
     * Enter `yes` when asked "Do you wish the installer to prepend the Miniconda3 install location to PATH in your /home/ec2-user/.bashrc ?"
     	
-4. Log out and then back in to complete the `conda` install
+3. **Log out and then back in** to complete the `conda` install
 
 		exit	
    		logout
    		
    	* Then re-enter the same ssh command you used in step 1 (Hint: if you press the up-arrow while in the terminal window, it should appear for you!)
-5. Update conda
 
-			screen
-			conda update conda
-		
-	* Enter `y` when prompted to proceed
+4. Run the following commands to prepare the python environment, configure the necessary `conda` channels, install the pipeline software, and set up the test files
 
-5. Set up the conda software sources ("channels")
-
-		conda config --add channels defaults
-		conda config --add channels r
+		screen
+		conda update conda
+		conda install python=3.5
 		conda config --add channels bioconda
+		conda config --add channels r
+		conda config --add channels ccbbucsd
+		conda install dual_crispr
+		conda install bioconductor-qvalue
+		set_up_dual_crispr
 
-	* order matters here so don't change it :)
+	* Order matters here so don't change anything :)
+	* Enter `y` whenever prompted to proceed
+    	* This may take a minute or two, as many packages are being installed    
 
-6. Create a `conda` environment with the base third-party software necessary for the pipeline; as before, enter `y` when prompted to proceed
-
-    		conda create -n crispr_pipeline python=3.4 ipython=4.2.0 git matplotlib pandas jupyter rpy2 bioconductor-qvalue cutadapt
-    	
-    * This may take a minute or two, as many packages are being installed    
-	* Note that it is important to force python 3.4, which the pipeline was developed on, as the miniconda default is 3.5, which is apparently different enough to break things somewhere in Jupyter's `nbformat` module.
-
-7. Activate the new environment
-   
-    		source activate crispr_pipeline
-
-8. Install the `nbparameterise` package (note the British spelling!), which isn't available through `conda` but can be installed with `pip`
-
-    		pip install nbparameterise 
-
-9. Download the dual crispr pipeline software using your authorized BitBucket account by replacing XXXXXXXX in the below command with your BitBucket user name
-
-    		git clone https://XXXXXXXX@bitbucket.org/ccb_ucsd/mali-dual-crispr-pipeline.git
-    	
-    * Enter your BitBucket password when prompted (note that no characters will show on the screen as you type!)
-    * After this download, there will be a `mali-dual-crispr-pipeline` in the directory in the `/home/ec2-user/` directory
-
-10. Set up the expected local folders to store your data
-
-	* Note that these instructions assume you are storing the data and software on the same EBS volume (if you don't know what this means, you probably are :) If data will reside on a separate volume, that volume must mounted to the instance.
-
-			sudo mkdir /data
-			sudo chown -R ec2-user /data
-			cd ~/mali-dual-crispr-pipeline/src/python/
-			python set_up_mali_pipeline.py
+5. (Optional) Set up the Jupyter Notebook server for remote access
 	
-10. Configure the built-in `aws` software to allow transfer of data back and forth from Amazon's `s3` data storage
+	* This will allow you to view and run the pipeline's Jupyter Notebooks through your browser from the AWS instance.  This is not necessary (as the pipeline can be entirely run from the command line) but is sometimes convenient.
+	
+		# optional: set up jupyter server for remote login
+		cd ~/dual_crispr
+		bash set_up_jupyter_server.sh
+		cd notebooks
+		jupyter notebook
+		
+6. (Optional) Configure the built-in `aws` software to allow transfer of data back and forth from Amazon's `s3` data storage
     
     		aws configure
     	
     * Enter your AWS Access Key ID and AWS Secret Access Key when prompted, and hit Enter to accept the defaults for the additional prompts.    
-	* At this point, you may continue to one of the run set-up steps below, or may exit the configured instance and return to it later.  
-
-12. When you are ready, exit the instance
+	
+7. Continue to one of the steps below, **OR** exit the instance with these commands
 
 	    	source deactivate
 	    	exit
