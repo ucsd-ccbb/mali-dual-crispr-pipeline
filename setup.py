@@ -94,10 +94,12 @@ setup(
         'dual_crispr': ['distributed_files/config.txt',
                         'distributed_files/notebooks/*.ipynb',
                         'distributed_files/library_definitions/*.txt',
-                        'distributed_files/test_data/TestRun1/*.fastq',
-                        'distributed_files/test_data/TestRun2/*.txt',
-                        'distributed_files/test_data/TestRun3/*.txt',
-                        'distributed_files/test_data/TestRun3withError/*.txt']
+                        'distributed_files/test_data/test_set_1/*.fastq',
+                        'distributed_files/test_data/test_set_2/*fastq',
+                        'distributed_files/test_data/test_set_3/*.txt',
+                        'distributed_files/test_data/test_set_6a/*.txt',
+                        'distributed_files/test_data/test_set_6b/*.txt',
+                        'distributed_files/test_data/test_set_6c_with_error/*.txt']
     },
 
     # I'm transferring package data with the install, which I then need to relocate.
@@ -109,6 +111,7 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
+            'set_up_dual_crispr=dual_crispr.run_set_up_pipeline:main',
             'count_dual_crispr=dual_crispr.run_counting:main',
             'score_dual_crispr=dual_crispr.run_scoring:main'
         ]
