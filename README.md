@@ -203,7 +203,6 @@ The score pipeline takes in counts files, such as those produced by the count pi
 
 	* As in the count pipeline, provide an alphanumeric-only name for your dataset in place of `dataset_name`, and input the recognized library name for the library used in your screen (e.g., "CV4") in place of `library_name`.  Replace `counts_fp_or_dir` with the path identified above in step 3; if wish to combine multiple counts files, you may provide multiple paths separated by commas **ONLY** (no spaces!) `day_timepoints_str` is a list, separated by commas **ONLY** only, providing--in order--the days on which timepoints were collected (e.g., 3,14,21,28). Provide the complete path to the directory in which you want the folder of output files to be created in place of `output_dir_path` .
 
-
 			score_dual_crispr dataset_name library_name counts_fp_or_dir day_timepoints_str output_dir_path
 
 5.  Wait for the run to complete
