@@ -95,12 +95,7 @@ setup(
                         'distributed_files/set_up_jupyter_server.sh',
                         'distributed_files/notebooks/*.ipynb',
                         'distributed_files/library_definitions/*.txt',
-                        'distributed_files/test_data/test_set_1/*.fastq',
-                        'distributed_files/test_data/test_set_2/*fastq',
-                        'distributed_files/test_data/test_set_3/*.txt',
-                        'distributed_files/test_data/test_set_6a/*.txt',
-                        'distributed_files/test_data/test_set_6b/*.txt',
-                        'distributed_files/test_data/test_set_6c_with_error/*.txt']
+                        'distributed_files/test_data/*/*.*']
     },
 
     # I'm transferring package data with the install, which I then need to relocate.
