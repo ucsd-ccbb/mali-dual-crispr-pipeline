@@ -30,6 +30,7 @@ def _set_params(fastq_dir_path, outputs_dir_path, config_fp):
     num_allowed_mismatches_key = "num_allowed_mismatches"
 
     # load the config file
+    config_fp = ns_dcpipe.get_config_fp_or_default(config_fp)
     configparser = ns_config.load_config_parser_from_fp(config_fp)
     count_params = ns_config.load_config_section_dict(configparser, "count_pipeline")
     result = count_params.copy()

@@ -50,6 +50,7 @@ def _set_params(count_fps_or_dirs, day_timepoints_str, outputs_dir_path, is_test
     num_iterations_key = "num_iterations"
 
     # load the config file
+    config_fp = ns_dcpipe.get_config_fp_or_default(config_fp)
     config_parser = ns_config.load_config_parser_from_fp(config_fp)
     score_params = ns_config.load_config_section_dict(config_parser, "score_pipeline")
 

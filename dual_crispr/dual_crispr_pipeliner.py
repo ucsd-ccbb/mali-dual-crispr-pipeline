@@ -27,8 +27,14 @@ class DirectoryKeys(enum.Enum):
     PROCESSED_DATA = "processed_data_dir"
 
 
+def get_config_fp_or_default(config_fp):
+    if config_fp is None:
+        config_fp = os.path.join(os.environ['HOME'], "dual_crispr", "config.txt")
+    return config_fp
+
+
 def set_up_data_subdirs_and_get_machine_configs(config_fp=None):
-    config_fp = _get_config_fp_or_default(config_fp)
+    config_fp = get_config_fp_or_default(config_fp)
     result = get_machine_config_params(config_fp)
     _verify_or_make_data_subdirs(result)
     return result
@@ -38,7 +44,7 @@ def get_machine_config_params(config_fp=None):
     keep_gz_key = "keep_gzs"
     num_processors_key = "num_processors"
 
-    config_fp = _get_config_fp_or_default(config_fp)
+    config_fp = get_config_fp_or_default(config_fp)
     config_parser = ns_config.load_config_parser_from_fp(config_fp)
 
     machine_config_key = config_parser.get(config_parser.default_section, "machine_configuration")
@@ -52,7 +58,7 @@ def generate_notebook_params(expt_name, library_name, arg_based_params_dict, con
     _validate_expt_name(expt_name)
     result = {"dataset_name": expt_name}
 
-    config_fp = _get_config_fp_or_default(config_fp)
+    config_fp = get_config_fp_or_default(config_fp)
     machine_config_dict = set_up_data_subdirs_and_get_machine_configs(config_fp)
     result.update(machine_config_dict)
 
@@ -100,12 +106,6 @@ def rename_param_names_as_global_vars(params_dict):
         revised_key = curr_key if curr_key.startswith(prefix) else prefix + curr_key
         result[revised_key] = curr_val
     return result
-
-
-def _get_config_fp_or_default(config_fp):
-    if config_fp is None:
-        config_fp = os.path.join(os.environ['HOME'], "dual_crispr", "config.txt")
-    return config_fp
 
 
 def _verify_or_make_data_subdirs(machine_config_params):
