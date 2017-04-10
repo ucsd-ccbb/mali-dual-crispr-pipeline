@@ -185,7 +185,7 @@ The count pipeline takes in raw fastq or fastq.gz files from the sequencing cent
 
 The score pipeline takes in counts files, such as those produced by the count pipeline.  It annotates them with the information needed by the scoring code, determines abundance thresholds, and then calculates fitness and pi scores, and creates output score and plot files. Users can familiarize themselves with its products by running the score pipeline on a tiny sample dataset provided with the software installation, using the command
 
-	score_dual_crispr ScoreTest TestLib /home/ec2-user/test_data/test_set_6a,/home/ec2-user/test_data/test_set_6b /home/ec2-user/test_outputs
+	score_dual_crispr ScoreTest TestLib /home/ec2-user/test_data/test_set_6a,/home/ec2-user/test_data/test_set_6b 3,14,21,28 /home/ec2-user/test_outputs
 
 ### Requirements
 1. An Amazon Linux AMI instance to which you have access that has been configured with the pipeline software
