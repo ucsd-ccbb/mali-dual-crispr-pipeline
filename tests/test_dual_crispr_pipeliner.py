@@ -75,55 +75,6 @@ code_dir: ${main_dir}/src/python
         real_output = ns_test.get_machine_config_params(temp_config.name)
         self.assertEqual(expected_output, real_output)
 
-    def test_set_up_data_subdirs_and_get_machine_configs(self):
-        tempdir = tempfile.TemporaryDirectory()
-
-        config_string = """[DEFAULT]
-machine_configuration = laptop
-
-[laptop]
-main_dir: REPLACE
-data_dir: REPLACE
-num_processors: 3
-keep_gzs: True
-raw_data_dir: ${data_dir}/raw
-interim_data_dir: ${data_dir}/interim
-processed_data_dir: ${data_dir}/processed
-
-[c4_2xlarge]
-main_dir: /home/ec2-user
-data_dir: /data
-num_processors: 7
-keep_gzs: False
-raw_data_dir: ${data_dir}/raw
-interim_data_dir: ${data_dir}/interim
-processed_data_dir: ${data_dir}/processed
-"""
-
-        config_string = config_string.replace("REPLACE", tempdir.name)
-        temp_config = tempfile.NamedTemporaryFile(mode="w")
-        temp_config.write(config_string)
-        temp_config.seek(0)
-
-        expected_output = {"machine_configuration": "laptop",
-                           "main_dir": tempdir.name,
-                           "data_dir": tempdir.name,
-                           "num_processors": 3,
-                           "keep_gzs": True}
-        dirs_dict = {ns_test.DirectoryKeys.RAW_DATA.value: os.path.join(tempdir.name, "raw"),
-                      ns_test.DirectoryKeys.INTERIM_DATA.value: os.path.join(tempdir.name, "interim"),
-                      ns_test.DirectoryKeys.PROCESSED_DATA.value: os.path.join(tempdir.name, "processed")}
-        for curr_key in dirs_dict:
-            self.assertFalse(os.path.exists(dirs_dict[curr_key]))
-
-        real_output = ns_test.set_up_data_subdirs_and_get_machine_configs(temp_config.name)
-
-        for curr_key, curr_val in dirs_dict.items():
-            self.assertTrue(os.path.exists(curr_val))
-
-        expected_output.update(dirs_dict)
-        self.assertEqual(expected_output, real_output)
-
     def test_generate_notebook_params(self):
         tempdir = tempfile.TemporaryDirectory()
 

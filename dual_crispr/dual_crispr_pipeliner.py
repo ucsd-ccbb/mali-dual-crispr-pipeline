@@ -33,13 +33,6 @@ def get_config_fp_or_default(config_fp):
     return config_fp
 
 
-def set_up_data_subdirs_and_get_machine_configs(config_fp=None):
-    config_fp = get_config_fp_or_default(config_fp)
-    result = get_machine_config_params(config_fp)
-    _verify_or_make_data_subdirs(result)
-    return result
-
-
 def get_machine_config_params(config_fp=None):
     keep_gz_key = "keep_gzs"
     num_processors_key = "num_processors"
@@ -59,7 +52,7 @@ def generate_notebook_params(expt_name, library_name, arg_based_params_dict, con
     result = {"dataset_name": expt_name}
 
     config_fp = get_config_fp_or_default(config_fp)
-    machine_config_dict = set_up_data_subdirs_and_get_machine_configs(config_fp)
+    machine_config_dict = get_machine_config_params(config_fp)
     result.update(machine_config_dict)
 
     library_dict = ns_settings.id_library_info(library_name, result[DirectoryKeys.LIBRARIES.value])
