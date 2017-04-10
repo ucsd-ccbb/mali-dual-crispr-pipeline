@@ -1,5 +1,6 @@
 [DEFAULT]
-machine_configuration = laptop
+machine_configuration: laptop
+libraries_dir: ~/dual_crispr/library_definitions
 
 [c4_2xlarge]
 num_processors: 7
@@ -14,8 +15,8 @@ full_5p_r1: TATATATCTTGTGGAAAGGACGAAACACCG
 full_5p_r2: CCTTATTTTAACTTGCTATTTCTAGCTCTAAAAC
 full_3p_r1: GTTTCAGAGCTATGCTGGAAACTGCATAGCAAGTTGAAATAAGGCTAGTCCGTTATCAACTTGAAAAAGTGGCACCGAGTCGGTGCTTTTTTGTACTGAG
 full_3p_r2: CAAACAAGGCTTTTCTCCAAGGGATATTTATAGTCTCAAAACACACAATTACTTTACAGTTAGGGTGAGTTTCCTTTTGTGCTGTTTTTTAAAATA
-len_of_seq_to_match = 19
-num_allowed_mismatches = 1
+len_of_seq_to_match: 19
+num_allowed_mismatches: 1
 # Set-up for pipeline notebooks; do not modify unless you are a power user!
 notebook_basenames_list: Dual CRISPR 1-Construct Scaffold Trimming.ipynb,Dual CRISPR 2-Constuct Filter.ipynb,Dual CRISPR 3-Construct Counting.ipynb,Dual CRISPR 4-Count Combination.ipynb,Dual CRISPR 5-Count Plots.ipynb
 
@@ -27,13 +28,13 @@ min_count_limit: 10
 max_fraction_acceptable_spline_density_diff: 0.02
 # any threshold throwing out > max_fraction_counts_excluded% of counts is not acceptable
 max_fraction_counts_excluded: 0.95
-use_seed = False
-num_iterations = 1000
+use_seed: False
+num_iterations: 1000
 # Set-up for pipeline notebooks; do not modify unless you are a power user!
 notebook_basenames_list: Dual CRISPR 6-Scoring Preparation.ipynb,Dual CRISPR 7-Abundance Thresholds.ipynb,Dual CRISPR 8-Construct Scoring.ipynb
 
 [test]
-use_seed = True
-num_iterations = 2
+use_seed: True
+num_iterations: 2
 
 

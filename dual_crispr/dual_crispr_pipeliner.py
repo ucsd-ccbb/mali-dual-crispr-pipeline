@@ -30,7 +30,7 @@ class DirectoryKeys(enum.Enum):
 def get_config_fp_or_default(config_fp):
     if config_fp is None:
         config_fp = os.path.join(os.environ['HOME'], "dual_crispr", "config.txt")
-    return config_fp
+    return os.path.expanduser(config_fp)
 
 
 def get_machine_config_params(config_fp=None):
@@ -60,15 +60,15 @@ def generate_notebook_params(expt_name, library_name, arg_based_params_dict, con
     library_dict["max_trimmed_grna_len"] = int(library_dict["max_trimmed_grna_len"])
     result.update(library_dict)
 
-    # create and add run prefix, run directory
-    run_prefix_and_dir_dict = ns_runs.generate_run_prefix_and_dir_dict(
-        machine_config_dict[DirectoryKeys.PROCESSED_DATA.value], expt_name)
-    result.update(run_prefix_and_dir_dict)
-
     # Note: the reason arg_based_params_dict is added *last* even though it could have been used as the
     # base of the params dict is that later additions can overwrite earlier ones, and the arguments params
     # should have the final say :)
     result.update(arg_based_params_dict)
+
+    # create and add run prefix, run directory
+    run_prefix_and_dir_dict = ns_runs.generate_run_prefix_and_dir_dict(
+        result[DirectoryKeys.PROCESSED_DATA.value], expt_name)
+    result.update(run_prefix_and_dir_dict)
 
     notebook_basenames_str = result[ns_runs.get_notebook_names_list_key()]
     notebook_basenames_list = ns_strings.split_delimited_string_to_list(notebook_basenames_str)
