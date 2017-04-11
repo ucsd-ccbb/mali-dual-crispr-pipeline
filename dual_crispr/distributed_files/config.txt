@@ -1,5 +1,5 @@
 [DEFAULT]
-machine_configuration: laptop
+machine_configuration: c4_2xlarge
 libraries_dir: ~/dual_crispr/library_definitions
 notebook_dir: ~/dual_crispr/notebooks
 
