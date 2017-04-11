@@ -28,19 +28,6 @@ class TestFunctions(unittest.TestCase):
         real_output = ns_test.rename_param_names_as_global_vars(input_dict)
         self.assertEqual(expected_output, real_output)
 
-    def test__verify_or_make_data_subdirs(self):
-        tempdir = tempfile.TemporaryDirectory()
-        input_dict = {"raw_data_dir": os.path.join(tempdir.name, "raw_test"),
-                      "interim_data_dir": os.path.join(tempdir.name, "in_test"),
-                      "processed_data_dir": os.path.join(tempdir.name, "pro_test")}
-        for curr_key, curr_val in input_dict.items():
-            self.assertFalse(os.path.exists(curr_val))
-
-        ns_test._verify_or_make_data_subdirs(input_dict)
-
-        for curr_key, curr_val in input_dict.items():
-            self.assertTrue(os.path.exists(curr_val))
-
     def test_get_machine_config_params(self):
         config_string = """[DEFAULT]
 machine_configuration = c4_2xlarge
@@ -255,7 +242,7 @@ NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	NonTargetingControlGui
             f.write(second_nb)
 
         # set up the mock argument-based parameters
-        arg_based_params_input = {"interim_data_dir":"an overwrite",
+        arg_based_params_input = {"main_dir":"an overwrite",
                                   "notebook_basenames_list": "first_nb.ipynb, second_nb.ipynb"}
 
         real_output = ns_test.generate_notebook_params("test", "CV4", arg_based_params_input, temp_config.name)
@@ -271,7 +258,7 @@ NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	NonTargetingControlGui
         self.assertEqual(3, real_output["num_processors"])
         # testing here that all dir keys exist, but not what they are since they
         # are being generated on the fly in the temp directory
-        for curr_key in ['main_dir','data_dir', "raw_data_dir", 'processed_data_dir',
+        for curr_key in ['data_dir', "raw_data_dir", 'processed_data_dir',
                          'code_dir', 'libraries_dir', 'notebook_dir']:  # note interim_dir tested later
             self.assertTrue(curr_key in real_output)
 
@@ -304,5 +291,8 @@ NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	NonTargetingControlGui
 
         # check that when an arg-based param conflicts with a config-based param,
         # the arg-based param overwrites the config-based one
-        self.assertEqual("an overwrite", real_output["interim_data_dir"])
+        self.assertEqual("an overwrite", real_output["main_dir"])
+
+        # ensure a run-specific temp dir was added to the parent temp dir path
+        self.assertEqual(os.path.basename(real_output["interim_data_dir"]), run_prefix)
 
