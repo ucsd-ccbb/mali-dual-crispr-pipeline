@@ -20,11 +20,26 @@ class TestFunctions(unittest.TestCase):
 
     # end region
 
+    # region _format_parameters
+    def test__format_parameters(self):
+        input_dict = {"base_dir": "/my/home",
+                      "output_dir": "{run_dir}",
+                      "dataset_name": "my_test",
+                      "run_dir": "/my/home/{run_prefix}"}
+
+        expected_output= {"base_dir": "/my/home",
+                            "output_dir": "/my/run/dir",
+                            "dataset_name": "my_test",
+                            "run_dir": "/my/home/my_run_prefix"}
+
+        real_output = ns_test._format_parameters(input_dict, "/my/run/dir", "my_run_prefix")
+        self.assertEqual(expected_output, real_output)
+
     def test_rename_param_names_as_global_vars(self):
-        input_dict = {"x":5,
-                      "g_y":"blue"}
-        expected_output = {"g_x":5,
-                           "g_y":"blue"}
+        input_dict = {"x": 5,
+                      "g_y": "blue"}
+        expected_output = {"g_x": 5,
+                           "g_y": "blue"}
         real_output = ns_test.rename_param_names_as_global_vars(input_dict)
         self.assertEqual(expected_output, real_output)
 
@@ -242,7 +257,8 @@ NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	NonTargetingControlGui
             f.write(second_nb)
 
         # set up the mock argument-based parameters
-        arg_based_params_input = {"main_dir":"an overwrite",
+        arg_based_params_input = {"main_dir": "an overwrite",
+                                  "interim_data_dir": "interim/{run_prefix}",
                                   "notebook_basenames_list": "first_nb.ipynb, second_nb.ipynb"}
 
         real_output = ns_test.generate_notebook_params("test", "CV4", arg_based_params_input, temp_config.name)
@@ -259,7 +275,7 @@ NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	NonTargetingControlGui
         # testing here that all dir keys exist, but not what they are since they
         # are being generated on the fly in the temp directory
         for curr_key in ['data_dir', "raw_data_dir", 'processed_data_dir',
-                         'code_dir', 'libraries_dir', 'notebook_dir']:  # note interim_dir tested later
+                         'code_dir', 'libraries_dir', 'notebook_dir']:
             self.assertTrue(curr_key in real_output)
 
         # check that the parameters from the library file were added (and cast as necessary)
@@ -294,5 +310,4 @@ NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	NonTargetingControlGui
         self.assertEqual("an overwrite", real_output["main_dir"])
 
         # ensure a run-specific temp dir was added to the parent temp dir path
-        self.assertEqual(os.path.basename(real_output["interim_data_dir"]), run_prefix)
-
+        self.assertEqual(run_prefix, os.path.basename(real_output["interim_data_dir"]))

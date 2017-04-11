@@ -53,7 +53,7 @@ num_iterations = 2
 
         expected_output = {'machine_configuration': 'c4_2xlarge',
                            'raw_data_dir': '/data/raw/test_fastq_dir',
-                           'interim_data_dir': '/data/output/temporary_files',
+                           'interim_data_dir': '/data/output/temporary_files/{run_prefix}',
                            'processed_data_dir': '/data/output',
                            'notebook_basenames_list': 'Dual CRISPR 1-Construct Scaffold Trimming.ipynb,Dual CRISPR '
                                                       '2-Constuct Filter.ipynb,Dual CRISPR 3-Construct '
@@ -66,8 +66,8 @@ num_iterations = 2
                            'len_of_seq_to_match': 19,
                            'num_allowed_mismatches': 1,
                            'g_fastqs_dir':'/data/raw/test_fastq_dir',
-                           'g_trimmed_fastqs_dir':'/data/output/temporary_files',
-                           'g_filtered_fastqs_dir': '/data/output/temporary_files'
+                           'g_trimmed_fastqs_dir':'/data/output/temporary_files/{run_prefix}',
+                           'g_filtered_fastqs_dir': '/data/output/temporary_files/{run_prefix}'
                            }
 
         temp_config = tempfile.NamedTemporaryFile(mode="w")
@@ -75,4 +75,5 @@ num_iterations = 2
         temp_config.seek(0)
 
         real_output = ns_test._set_params(input_fastq_dir_name, expected_output_dir_path, temp_config.name)
+        self.maxDiff = None
         self.assertEqual(expected_output, real_output)

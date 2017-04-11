@@ -37,7 +37,8 @@ def _set_params(fastq_dir_path, outputs_dir_path, config_fp):
 
     # write the path params
     result[ns_dcpipe.DirectoryKeys.RAW_DATA.value] = fastq_dir_path
-    result[ns_dcpipe.DirectoryKeys.INTERIM_DATA.value] = os.path.join(outputs_dir_path, "temporary_files")
+    result[ns_dcpipe.DirectoryKeys.INTERIM_DATA.value] = os.path.join(outputs_dir_path, "temporary_files",
+                                                                      "{run_prefix}")
     result[ns_dcpipe.DirectoryKeys.PROCESSED_DATA.value] = outputs_dir_path
 
     result["g_fastqs_dir"] = result[ns_dcpipe.DirectoryKeys.RAW_DATA.value]

@@ -70,9 +70,7 @@ def generate_notebook_params(expt_name, library_name, arg_based_params_dict, con
         result[DirectoryKeys.PROCESSED_DATA.value], expt_name)
     result.update(run_prefix_and_dir_dict)
 
-    if DirectoryKeys.INTERIM_DATA.value in result:
-        result[DirectoryKeys.INTERIM_DATA.value] = os.path.join(
-            result[DirectoryKeys.INTERIM_DATA.value],result[ns_runs.get_run_prefix_key()])
+    result = _format_parameters(result, result[ns_runs.get_run_dir_key()], result[ns_runs.get_run_prefix_key()])
 
     notebook_basenames_str = result[ns_runs.get_notebook_names_list_key()]
     notebook_basenames_list = ns_strings.split_delimited_string_to_list(notebook_basenames_str)
@@ -109,4 +107,16 @@ def _validate_expt_name(human_readable_name):
     if not human_readable_name.isalnum():
         raise ValueError("Human-readable name '{0}' is invalid; must contain only letters and numbers.".format(
             human_readable_name))
+
+
+# TODO: Eventually this should probably migrate back into analysis_run_prefixes
+def _format_parameters(params_dict, output_dir, run_prefix):
+    result = {}
+    for curr_param_key, curr_param_item in params_dict.items():
+        if hasattr(curr_param_item, 'format'):  # if this item has a format method
+            final_item = curr_param_item.format(run_dir=output_dir, run_prefix=run_prefix)
+        else:
+            final_item = curr_param_item
+        result[curr_param_key] = final_item
+    return result
 
