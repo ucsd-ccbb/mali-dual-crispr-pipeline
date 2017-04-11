@@ -70,6 +70,10 @@ def generate_notebook_params(expt_name, library_name, arg_based_params_dict, con
         result[DirectoryKeys.PROCESSED_DATA.value], expt_name)
     result.update(run_prefix_and_dir_dict)
 
+    if DirectoryKeys.INTERIM_DATA.value in result:
+        result[DirectoryKeys.INTERIM_DATA.value] = os.path.join(
+            result[DirectoryKeys.INTERIM_DATA.value],result[ns_runs.get_run_prefix_key()])
+
     notebook_basenames_str = result[ns_runs.get_notebook_names_list_key()]
     notebook_basenames_list = ns_strings.split_delimited_string_to_list(notebook_basenames_str)
     result[ns_runs.get_notebook_names_list_key()] = notebook_basenames_list
@@ -99,12 +103,6 @@ def rename_param_names_as_global_vars(params_dict):
         revised_key = curr_key if curr_key.startswith(prefix) else prefix + curr_key
         result[revised_key] = curr_val
     return result
-
-
-def _verify_or_make_data_subdirs(machine_config_params):
-    ns_file.verify_or_make_dir(machine_config_params[DirectoryKeys.RAW_DATA.value])
-    ns_file.verify_or_make_dir(machine_config_params[DirectoryKeys.INTERIM_DATA.value])
-    ns_file.verify_or_make_dir(machine_config_params[DirectoryKeys.PROCESSED_DATA.value])
 
 
 def _validate_expt_name(human_readable_name):
