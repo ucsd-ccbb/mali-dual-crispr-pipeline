@@ -62,14 +62,9 @@ This software is provided through conda, a cross-platform package manager that p
 	* Enter `y` whenever prompted to proceed
    * This may take a few minutes, as many software libraries are being installed!
 
-5. (Optional) Set up the Jupyter Notebook server for remote access
+5. (Optional) Set up the Jupyter Notebook server for remote access: see "Remote Access to Notebooks" page in project wiki at [https://github.com/ucsd-ccbb/mali-dual-crispr-pipeline/wiki/Remote-Access-to-Notebooks](https://github.com/ucsd-ccbb/mali-dual-crispr-pipeline/wiki/Remote-Access-to-Notebooks)
 
 	* This will allow you to view and run the pipeline's Jupyter Notebooks through your browser from the AWS instance.  This is not necessary (as the pipeline can be entirely run from the command line) but is sometimes convenient.
-
-			cd ~/dual_crispr
-			bash set_up_jupyter_server.sh
-			cd notebooks
-			jupyter notebook
 
 6. Select and configure a method by which to transfer data onto and off of your AWS instance
 
@@ -134,7 +129,7 @@ Information about the library or libraries of dual CRISPR constructs used in the
 
 The count pipeline takes in raw fastq or fastq.gz files from the sequencing center.  It trims and length-filters the reads, then identifies and counts which constructs they represent, and creates output count and plot files.  Users can familiarize themselves with its products by running the count pipeline on a tiny sample dataset provided with the software installation, using the command
 
-	count_dual_crispr CountTest TestLib /home/ec2-user/test_data/test_set_1 /home/ec2-user/test_outputs
+	count_dual_crispr CountTest TestLib ~/dual_crispr/test_data/test_set_1 ~/dual_crispr/test_outputs
 
 ### Requirements
 1. An Amazon Linux AMI instance to which you have access that has been configured with the pipeline software
@@ -185,7 +180,7 @@ The count pipeline takes in raw fastq or fastq.gz files from the sequencing cent
 
 The score pipeline takes in counts files, such as those produced by the count pipeline.  It annotates them with the information needed by the scoring code, determines abundance thresholds, and then calculates fitness and pi scores, and creates output score and plot files. Users can familiarize themselves with its products by running the score pipeline on a tiny sample dataset provided with the software installation, using the command
 
-	score_dual_crispr ScoreTest TestLib /home/ec2-user/test_data/test_set_6a,/home/ec2-user/test_data/test_set_6b 3,14,21,28 /home/ec2-user/test_outputs
+	score_dual_crispr ScoreTest LargerTestLib ~/dual_crispr/test_data/test_set_6a,~/dual_crispr/test_data/test_set_6b 21,28 ~/dual_crispr/test_outputs --test
 
 ### Requirements
 1. An Amazon Linux AMI instance to which you have access that has been configured with the pipeline software
