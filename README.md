@@ -62,14 +62,9 @@ This software is provided through conda, a cross-platform package manager that p
 	* Enter `y` whenever prompted to proceed
    * This may take a few minutes, as many software libraries are being installed!
 
-5. (Optional) Set up the Jupyter Notebook server for remote access
+5. (Optional) Set up the Jupyter Notebook server for remote access: see "Remote Access to Notebooks" page in project wiki at [https://github.com/ucsd-ccbb/mali-dual-crispr-pipeline/wiki/Remote-Access-to-Notebooks](https://github.com/ucsd-ccbb/mali-dual-crispr-pipeline/wiki/Remote-Access-to-Notebooks)
 
 	* This will allow you to view and run the pipeline's Jupyter Notebooks through your browser from the AWS instance.  This is not necessary (as the pipeline can be entirely run from the command line) but is sometimes convenient.
-
-			cd ~/dual_crispr
-			bash set_up_jupyter_server.sh
-			cd notebooks
-			jupyter notebook
 
 6. Select and configure a method by which to transfer data onto and off of your AWS instance
 
