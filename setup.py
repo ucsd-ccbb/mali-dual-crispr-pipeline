@@ -93,7 +93,7 @@ setup(
     package_data={
         'dual_crispr': ['distributed_files/config.txt',
                         'distributed_files/set_up_jupyter_server.sh',
-                        'distributed_files/notebooks/*.ipynb',
+                        'distributed_files/notebooks/*.*',
                         'distributed_files/library_definitions/*.txt',
                         'distributed_files/test_data/*/*.*']
     },
