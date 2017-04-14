@@ -37,6 +37,8 @@ This software is provided through conda, a cross-platform package manager that p
 		curl https://raw.githubusercontent.com/ucsd-ccbb/mali-dual-crispr-pipeline/master/install_dual_crispr.sh -o install_dual_crispr.sh
 
     	bash install_dual_crispr.sh
+	
+	source ~/.bashrc
 
    * This may take several minutes, as many software libraries are being installed!
 
