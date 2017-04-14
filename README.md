@@ -24,6 +24,7 @@ This software is provided through conda, a cross-platform package manager that p
 	* An example command is shown below; of course, the path to the the pem file should be replaced with the path to your pem, and the  *.amazonaws.com should be replaced with the Public DNS value for your AMI:
 
 			ssh -i ~/Keys/abirmingham_oregon.pem ec2-user@ec2-52-42-121-79.us-west-2.compute.amazonaws.com
+
 			screen
 
 	* Instructions from AWS are at [https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html)
@@ -31,36 +32,13 @@ This software is provided through conda, a cross-platform package manager that p
 	* If you encounter a `Permission denied (publickey)` error, remember that the permissions on your key (.pem) file must be set so that it is not public, e.g. by running `chmod 0400 ~/Keys/abirmingham_oregon.pem`
 	* `screen` ensures you will be able to reconnect to the process if you are disconnected at any point; more details of its operation are available at [https://www.linux.com/learn/taking-command-terminal-gnu-screen](https://www.linux.com/learn/taking-command-terminal-gnu-screen).
 
-2. Download and install the `conda` package manager software
+2. Download and run the installation script
 
-		curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o miniconda_py3.sh
-    	bash miniconda_py3.sh
+		curl https://github.com/ucsd-ccbb/mali-dual-crispr-pipeline/releases/download/0.3.1/install_dual_crispr.sh
 
-    * Press the space bar to move through the license agreement
-    * Enter `yes` when asked "Do you wish the installer to prepend the Miniconda3 install location to PATH in your /home/ec2-user/.bashrc ?"
+    	bash install_dual_crispr.sh
 
-3. **Log out and then back in** to complete the `conda` install
-
-		exit
-   		logout
-
-   	* Then re-enter the same ssh command you used in step 1 (Hint: if you press the up-arrow while in the terminal window, it should appear for you!)
-
-4. Run the following commands to prepare the python environment, configure the necessary `conda` channels, install the pipeline software, and set up the test files
-
-		screen
-		conda update conda
-		conda install python=3.5
-		conda config --add channels bioconda
-		conda config --add channels r
-		conda config --add channels ccbbucsd
-		conda install dual_crispr
-		conda install bioconductor-qvalue
-		set_up_dual_crispr
-
-	* Order matters here so don't change it :)
-	* Enter `y` whenever prompted to proceed
-   * This may take a few minutes, as many software libraries are being installed!
+   * This may take several minutes, as many software libraries are being installed!
 
 5. (Optional) Set up the Jupyter Notebook server for remote access: see "Remote Access to Notebooks" page in project wiki at [https://github.com/ucsd-ccbb/mali-dual-crispr-pipeline/wiki/Remote-Access-to-Notebooks](https://github.com/ucsd-ccbb/mali-dual-crispr-pipeline/wiki/Remote-Access-to-Notebooks)
 
@@ -85,8 +63,8 @@ This software is provided through conda, a cross-platform package manager that p
 
 7. Continue to one of the steps below, **OR** exit the instance with these commands
 
-    	source deactivate
     	exit
+
     	logout
 
 
@@ -147,7 +125,9 @@ The count pipeline takes in raw fastq or fastq.gz files from the sequencing cent
 	* Since fastq data are often large, ensure you make your new directory on a drive with adequate space to hold them!
 
 			mkdir fastq_dir
+
 			cd fastq_dir
+
 			wget --user XXXX --password YYYY -nd ftp://ZZZZ/*.fastq.gz
 
 	* Depending on how much data you have, this may take from a few minutes to a few hours!
