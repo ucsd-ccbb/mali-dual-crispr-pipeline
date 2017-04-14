@@ -38,7 +38,7 @@ This software is provided through conda, a cross-platform package manager that p
 
     	bash install_dual_crispr.sh
 	
-	source ~/.bashrc
+		source ~/.bashrc
 
    * This may take several minutes, as many software libraries are being installed!
 
