@@ -1,6 +1,7 @@
 # standard libraries
 import argparse
 import distutils.util
+import os
 import warnings
 
 import ccbb_pyutils.config_loader as ns_config
@@ -24,8 +25,8 @@ def _parse_cmd_line_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("dataset_name", help="short, alphanumeric human-readable name for the dataset to be analyzed")
     parser.add_argument("library_name", help="name of the construct library for the dataset to be analyzed")
-    parser.add_argument("count_fps_or_dirs", help="a comma-separated list of the paths to the file of counts to be "
-                                                  "scored, or to the directories in which the *_combined_counts.txt "
+    parser.add_argument("count_fps_or_dirs", help="a comma-separated list of absolute paths to the file of counts to be"
+                                                  " scored, or to the directories in which the *_combined_counts.txt "
                                                   "file to be scored resides")
     parser.add_argument("day_timepoints_str", help="a comma-separated list containing the time points (in order) at "
                                                    "which data were collected")
@@ -64,7 +65,7 @@ def _set_params(count_fps_or_dirs, day_timepoints_str, outputs_dir_path, is_test
     # here--that is done in the notebook, because if users run the notebooks directly, they will have to put in
     # comma-delimited strings there, so the notebooks needs to know how to deal with it.
     result[day_timepoints_str_key] = day_timepoints_str
-    result[ns_dcpipe.DirectoryKeys.PROCESSED_DATA.value] = outputs_dir_path
+    result[ns_dcpipe.DirectoryKeys.PROCESSED_DATA.value] = os.path.abspath(outputs_dir_path)
 
     # the below values DO need to be converted because users have the ability to input int, float, and boolean values
     # directly into the notebooks, so the notebooks don't need to know how to convert those
