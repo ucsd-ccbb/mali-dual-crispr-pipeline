@@ -28,7 +28,7 @@ setup(
     name='dual_crispr',
 
     # Versions should comply with PEP440.
-    version='0.3.0',
+    version='0.4.1',
 
     description='Software pipeline for end-to-end analysis of dual-CRISPR screens',
     long_description=long_description,
