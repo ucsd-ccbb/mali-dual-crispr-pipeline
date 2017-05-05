@@ -52,7 +52,7 @@ idAndCompareVariable <- function(varName, currVarValue, oldEnv, oldVarNames) {
 }
 
 
-saveWorkspaceVariables <- function(outputDir, newTimeptId, oldTimeptId=NULL, excludedVarNames = NULL) {
+saveWorkspaceVariables <- function(outputDir, newTimeptId, oldTimeptId=NULL, excludedVarNames = NULL, digits = NULL) {
   getTimeptFpPrefix <- function(timeptId) {
     return(file.path(outputDir, timeptId))
   }
@@ -78,6 +78,21 @@ saveWorkspaceVariables <- function(outputDir, newTimeptId, oldTimeptId=NULL, exc
   for (obj in objs) {
     currObjValue <- get(obj, envir = newTimeptEnv)
     writeOut = idAndCompareVariable(obj, currObjValue, oldTimeptEnv, oldObjs)
-    if (writeOut) write.csv(currObjValue, file = paste0(newTimeptFpPrefix, "_", obj, '.csv'))
+    if (writeOut) {
+      outputVal = as.data.frame(currObjValue)
+      outputVal = if (is.null(digits)) outputVal else format(outputVal, digits = digits)
+
+      # what is created below is *pretty close* to what R creates for col names by default ...
+      # but sometimes R puts in weirdness like "X.structure.c..0.00164303561644569...0.00150373631328259..1.05770223935252e.05...",
+      # which can be different for the same code run from different places.  This code
+      # is to prevent that sort of unpredictability.
+      genericColNames = paste0("X", seq(1, length(colnames(outputVal))))
+      colnames(outputVal) = genericColNames
+
+      write.table(outputVal, file = paste0(newTimeptFpPrefix, "_", obj, '.txt'),
+                  sep = "\t",
+                  row.names = FALSE,
+                  quote = FALSE)
+    }
   }
 }
