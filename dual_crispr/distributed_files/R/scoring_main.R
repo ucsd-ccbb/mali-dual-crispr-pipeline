@@ -736,7 +736,7 @@ gCurrTimept = NULL
 saveWorkspaceAndUpdateGlobalVars <- function(newTimeptId){
   gCachedTimept <<- gCurrTimept #<<- assigns to global variable from inside function
   gCurrTimept <<- newTimeptId
-  saveWorkspaceVariables(gScoringDir, gCurrTimept, gCachedTimept, c("gCachedTimept", "gCurrTimept"))
+  saveWorkspaceVariables(gScoringDir, gCurrTimept, gCachedTimept, c("gCachedTimept", "gCurrTimept"), digits = 7)
 }
 
 saveWorkspaceAndUpdateGlobalVars("1_preimport")
@@ -1417,7 +1417,7 @@ colnames(res) <-
   )
 #TODO: remove format call here; added to aid in testing
 write.table(
-  format(res[oPP, ], digits = 14),
+  format(res, digits=7),
   file = file.path(gScoringDir, paste(project, "_pi.txt", sep = "")),
   sep = "\t",
   row.names = FALSE,
@@ -1449,7 +1449,7 @@ saveWorkspaceAndUpdateGlobalVars("13_posttimeplots")
 resp <- data.frame(pA_pB, fc, sdfc)
 # TODO: refactor file suffix, separator into easier to manage location
 write.table(
-  resp,
+  format(resp, digits=7),
   file = file.path(gScoringDir, paste(project, "_fc.txt", sep = "")),
   sep = "\t",
   row.names = FALSE,
@@ -1514,7 +1514,7 @@ saveWorkspaceAndUpdateGlobalVars("17_postfreqsplots")
 resp <- data.frame(probes, p_rank)
 # TODO: refactor file suffix, separator into easier to manage location
 write.table(
-  resp,
+  format(resp, digits=7),
   file = file.path(gScoringDir, paste(project, "_p.txt", sep = "")),
   sep = "\t",
   row.names = FALSE,
@@ -1533,7 +1533,7 @@ resy <- data.frame(genes, f, f_sd)
 # TODO: refactor col names, file suffix, separator into easier to manage location
 colnames(resy) <- c("gene", "f", "sd")
 write.table(
-  resy[-1, ],
+  format(resy[-1,], digits=7),
   file = file.path(gScoringDir, paste(project, "_f.txt", sep = "")),
   sep = "\t",
   row.names = FALSE,

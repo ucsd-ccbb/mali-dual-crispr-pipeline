@@ -2,16 +2,22 @@
 #source("http://bioconductor.org/biocLite.R")
 #biocLite("qvalue", suppressUpdates=TRUE)
 
-# clear the environment
+# clear the environment: necessary
+# because code under test sets a large number of global variables
 # ----------
 rm(list = ls())
 # ----------
 
+# get unit test library
+# ----------
+library('testthat')
+# ----------
+
 # set up path variables
 # ----------
-gMainDir = "~/Work/Repositories/mali-dual-crispr-pipeline/dual_crispr"
-gSourceDir = file.path(gMainDir, "distributed_files/R")
-gKnownGoodDirPath = file.path(gMainDir, "distributed_files/test_data/test_scoring_workspaces")
+gMainDir = "~/Work/Repositories/mali-dual-crispr-pipeline"
+gSourceDir = file.path(gMainDir, "dual_crispr/distributed_files/R")
+gKnownGoodDirPath = file.path(gMainDir, "dual_crispr/distributed_files/test_data/test_scoring_workspaces")
 gTestScriptDirPath = file.path(gMainDir, "tests")
 # ----------
 
@@ -47,39 +53,44 @@ getPairedFilePaths <- function(fileName) {
 testDfsFromPairedFilesMatch <- function(fp1, fp2) {
   gold_file_df = read.table(fp1,
                             sep = "\t",
-                            header = TRUE)
+                            header = TRUE,  stringsAsFactors = FALSE)
   output_file_df = read.table(fp2,
                               sep = "\t",
-                              header = TRUE)
-  expect_that(gold_file_df, equals(output_file_df))
+                              header = TRUE,  stringsAsFactors = FALSE)
+  expect_equal(gold_file_df, output_file_df, info = fp1)
 }
 
 testSizesOfPairedFilesMatch <- function(fp1, fp2) {
   size1 = file.size(fp1)
   size2 = file.size(fp2)
-  expect_that(size1, equals(size2))
+  expect_equal(size1, size2, info = fp1)
 }
 
 testAllFilesInDir <- function() {
-  existingFileNames <- list.files(gScoringDir)
-  for (currFileName in existingFileNames) {
+  knownGoodFileNames <- list.files(gKnownGoodDirPath)
+  for (currFileName in knownGoodFileNames) {
+    # the scoring dirs are known different for the known-good and under-test outputs
+    if (currFileName == "1_preimport_gScoringDir.txt") next
+
     filePaths = getPairedFilePaths(currFileName)
     if (endsWith(currFileName, ".txt") | endsWith(currFileName, ".csv")) {
       testDfsFromPairedFilesMatch(filePaths$fp1, filePaths$fp2)
     } else {
-      testSizesOfPairedFilesMatch(filePaths$fp1, filePaths$fp2)
+      if (!endsWith(currFileName, ".RData")) {
+        testSizesOfPairedFilesMatch(filePaths$fp1, filePaths$fp2)
+      }
     }
   }
+
+  # outputFileNames <- list.files(gScoringDir)
+  # if (!identical(knownGoodFileNames, outputFileNames)) {
+  #   print(which(knownGoodFileNames != outputFileNames))
+  # }
 }
-
-
 # ----------
 
 # actually do tests
 # ----------
-# get unit test library
-library('testthat')
-
 # remove any state from earlier test runs
 cleanUpOldTestState()
 
