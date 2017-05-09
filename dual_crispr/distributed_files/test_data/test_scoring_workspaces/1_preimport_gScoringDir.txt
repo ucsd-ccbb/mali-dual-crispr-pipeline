@@ -1,0 +1,2 @@
+X1
+/Users/Birmingham/dual_crispr/test_outputs/test_set_8

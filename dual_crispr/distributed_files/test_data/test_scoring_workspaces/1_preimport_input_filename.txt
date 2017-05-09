@@ -1,0 +1,2 @@
+X1
+/Users/Birmingham/dual_crispr/test_data/test_set_8/TestSet8_timepoint_counts.txt
