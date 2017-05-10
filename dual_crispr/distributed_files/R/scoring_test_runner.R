@@ -73,12 +73,16 @@ testAllFilesInDir <- function() {
     if (currFileName == "1_preimport_gScoringDir.txt") next
 
     filePaths = getPairedFilePaths(currFileName)
-    if (endsWith(currFileName, ".txt") | endsWith(currFileName, ".csv")) {
-      testDfsFromPairedFilesMatch(filePaths$fp1, filePaths$fp2)
-    } else {
-      if (!endsWith(currFileName, ".RData")) {
-        testSizesOfPairedFilesMatch(filePaths$fp1, filePaths$fp2)
+    if (file.exists(filePaths$fp2)) {
+      if (endsWith(currFileName, ".txt") | endsWith(currFileName, ".csv")) {
+        testDfsFromPairedFilesMatch(filePaths$fp1, filePaths$fp2)
+      } else {
+        if (!endsWith(currFileName, ".RData")) {
+          testSizesOfPairedFilesMatch(filePaths$fp1, filePaths$fp2)
+        }
       }
+    } else {
+      print(sprintf("Missing output file %s", filePaths$fp2))
     }
   }
 
