@@ -236,17 +236,16 @@ fit_ac_fc <- function(x1, ab1, x2, ab2, nt) {
   l <- lfdr(p_t[has_sd], pi0.method = "bootstrap")
   lfdr_fc[has_sd] <-
     l # for constructs that have an sd, the lfdr of the fc could be calculated and is now set
-  # to its calculated vale instead of the default
+      # to its calculated vale instead of the default
+  pp_fc <- 1 - lfdr_fc  # ab: I believe this is posterior probability of fc of each construct c (calculated across both replicates)
 
   # ac1 is the initial condition (in log2 frequency) for each construct c for replicate 1
   # ac2 is the initial condition (in log2 frequency) for each construct c for replicate 2
   # fc is the fitness of each construct c (calculated across both replicates)
   # sdfc is the std deviation of the fitness of each construct c (calculated across both replicates)
-  # p_t is the raw p value of the fc of each construct c (calculated across both replicates)
-  # lfdr_fc is the local FDR of each construct (calculated across both replicates)
-  # df is the degrees of freedom of each construct c (calculated across both replicates)
+  # pp_fc is the posterior probability of fc of each construct c (calculated across both replicates)
   # allbad is a boolean value for each construct c that is true for all the constructs that lack at least 2 acceptable-abundance timepoints in BOTH experiments
-  vl <- list(ac1, ac2, fc, sdfc, p_t, lfdr_fc, df, allbad)
+  vl <- list(ac1, ac2, fc, sdfc, pp_fc, allbad)
   return(vl)
 }
 
@@ -755,7 +754,6 @@ prepData <- function(X, nt) {
     phold #cpA and cpB are always in alphabetical order, cpA < cpB
   probes <-
     sort(unique(c(cpA, cpB))) #entire probe set in alphabetical order
-  nprobes <- length(probes)
 
   cgA <- as.character(goodX$target_a_id)
   cgB <- as.character(goodX$target_b_id)
@@ -783,19 +781,22 @@ prepData <- function(X, nt) {
   y <- t(log2(t(gooddata) / abundance)) #log2 frequencies
   #end data prep
 
-  return(list(abundance = abundance, n = n, genes = genes, y = y, pA_pB = pA_pB, nn = nn, probes = probes, nprobes = nprobes))
+  return(list(abundance = abundance, n = n, genes = genes, y = y, pA_pB = pA_pB, nn = nn, probes = probes))
 }
 
 checkAbundances <- function(y, nt, ab0, pA_pB) {
   # y is df of log2 frequencies (rows = constructs, cols = timept+replicate, no info columns)
+
   # for replicate 1
   # "2"s here and line below look like replicate hardcoding; refactor
-
   # Ok, so this is getting the log2 frequencies for the 1st replicate of all timepts
   x1 <- y[, seq(1, 2 * nt, by = 2)]
   # This is getting the abundance thresholds for all of these 1st replicates
   ab1 <- ab0[seq(1, 2 * nt, by = 2)]
-  # TODO: 1st "2" here is ok (designates row vs col) ... but what is source of second?
+  # TODO: 1st "2" here is ok (designates row vs col); 2nd doesn't mean replicates but
+  # represents arbitrary(?) decision that a construct is bad if it isn't over the relevant
+  # abundance threshold in at least two timepoints.  Could one reasonably choose a
+  # different value?  If so, should refactor to set in params.
   bad1 <- apply(t(x1) > ab1, 2, sum) < 2
   print(sum(bad1))
 
@@ -844,8 +845,11 @@ plotFcHists <- function(useSeed, nn, pp_fc, fc, allbad) {
   )
 }
 
-doIrlsFitting <- function(nn, pA_pB, allbad, fc, nprobes, probes, n, pp_fc, sdfc, small,
+doIrlsFitting <- function(nn, pA_pB, allbad, fc, probes, n, pp_fc, sdfc,
                           genes, niter, useSeed) {
+  small <- 1e-6
+  nprobes <- length(probes)
+
   # nn = number of *good* constructs
   # whatever u is, it is 0 for all bad and/or non-existent constructs and, at least at the beginning, one for all good constructs
   u1 <- rep(0, nn)
@@ -982,7 +986,7 @@ doIrlsFitting <- function(nn, pA_pB, allbad, fc, nprobes, probes, n, pp_fc, sdfc
       sum(w1 * fp[(i - 1) * 3 + 1:3]) / sum(w1) #weighted mean # multiply fp for each probe for this gene by the anzatz weight for that probe, then sum across all the probes for this gene, and divide that sum by the sum of the anzatz weights for all probes for this gene
 
   }
-  fmean <- f # fmean is array of zero values, one for each gene
+  #fmean <- f # fmean is array of zero values, one for each gene
 
   pi1 <- res2[[3]] #raw pi-scores per construct
 
@@ -1100,11 +1104,11 @@ doIrlsFitting <- function(nn, pA_pB, allbad, fc, nprobes, probes, n, pp_fc, sdfc
     fp_iter[, iter] <- fp0
   }
 
-  f_mean <- apply(f_iter, 1, mean) # one fmean for each gene # wait, this value is never used!  What is output in the single-gene fitness file is f, not f_mean, although the stddev output there is f_sd (see right below)
+  #f_mean <- apply(f_iter, 1, mean) # one f_mean for each gene # wait, this value is never used!  What is output in the single-gene fitness file is f, not f_mean, although the stddev output there is f_sd (see right below)
   f_sd <- apply(f_iter, 1, sd) # output in single gene fitness file
 
-  fp_mean <- apply(fp_iter, 1, mean) # never used
-  fp_sd <- apply(fp_iter, 1, sd) # never used
+  #fp_mean <- apply(fp_iter, 1, mean) # never used
+  #fp_sd <- apply(fp_iter, 1, sd) # never used
 
   pi_mean <-
     apply(pi_iter, 1, mean) # used in several plots, output in pi score file
@@ -1115,13 +1119,14 @@ doIrlsFitting <- function(nn, pA_pB, allbad, fc, nprobes, probes, n, pp_fc, sdfc
 
   pi_null <-
     c(pi_iter_null, -pi_iter_null) # used directly below, and in histogram of pi scores
-  enull <- ecdf(pi_null) # used in plot of pi scores by fdr
-  emean <- ecdf(pi_mean) # used in plot of pi scores by fdr
 
-  return(list(pi_mean = pi_mean, pi_null = pi_null, enull = enull, emean = emean, pi_iter = pi_iter, uutri = uutri, f = f, p_rank = p_rank, pi_sd = pi_sd, f_sd = f_sd, fc = fc))
+  return(list(pi_mean = pi_mean, pi_null = pi_null, pi_iter = pi_iter, uutri = uutri, f = f, p_rank = p_rank, pi_sd = pi_sd, f_sd = f_sd, fc = fc))
 }
 
-plotLeftAndRightTails <- function(enull, emean, pi_mean) {
+plotLeftAndRightTails <- function(pi_null, pi_mean) {
+  enull <- ecdf(pi_null)
+  emean <- ecdf(pi_mean)
+
   fdr_left <- pmin(1, enull(pi_mean) / emean(pi_mean))
   fdr_right <- pmin(1, (enull(-pi_mean)) / (1 - emean(pi_mean)))
   plot(
@@ -1370,7 +1375,6 @@ if (gRun) {
     )
   saveWorkspaceAndUpdateGlobalVars("2_postimport")
 
-  small <- 1e-6
   nt <- length(time) #nt >= 2 # number of timepoints
   gPreppedData <- prepData(X, nt)
   abundance = gPreppedData$abundance
@@ -1380,7 +1384,6 @@ if (gRun) {
   pA_pB = gPreppedData$pA_pB
   nn = gPreppedData$nn
   probes = gPreppedData$probes
-  nprobes = gPreppedData$nprobes
   saveWorkspaceAndUpdateGlobalVars("3_postprep")
 
   # ab0 is the vector of log2 frequency abundance thresholds, e.g.,
@@ -1406,18 +1409,18 @@ if (gRun) {
   # ab2 is abundance thresholds for all 2nd replicates
   # after this cell, these 4 are used again one more time considerably later--in the call to plot_fit that makes
   # Log2 Frequency vs Time Plots for Constructs with Large Fitness File Output
-  resf <- fit_ac_fc(x1, ab1, x2, ab2, nt) # I don't know what resf means ... maybe "resulting fit"?
+  gFitAcFcResults <- fit_ac_fc(x1, ab1, x2, ab2, nt) # I don't know what resf means ... maybe "resulting fit"?
   # TODO: 2-replicate assumption is baked into outputs of fit_ac_fc function
-  a1 <- resf[[1]] # a1 is the initial condition (in log2 frequency) for each construct c for replicate 1
-  a2 <- resf[[2]] # a2 is the initial condition (in log2 frequency) for each construct c for replicate 2
-  fc <- resf[[3]] # fc is the fitness of each construct c (calculated across both replicates)
-  sdfc <- resf[[4]] #standard error # Roman's comment says this is stderr, but I don't think it actually is--I think sdfc is the std deviation of the fitness of each construct c (calculated across both replicates)
-  p_t <- resf[[5]] #raw p-value from t-test # p_t is the raw p value of the fc of each construct c (calculated across both replicates)
-  lfdr_fc <- resf[[6]] #lfdr from p_t (Storey) # lfdr_fc is the local FDR of each construct (calculated across both replicates)
-  pp_fc <- 1 - lfdr_fc  # ab: I believe this is posterior probability of fc of each construct c (calculated across both replicates)
+  a1 <- gFitAcFcResults[[1]] # a1 is the initial condition (in log2 frequency) for each construct c for replicate 1
+  a2 <- gFitAcFcResults[[2]] # a2 is the initial condition (in log2 frequency) for each construct c for replicate 2
+  fc <- gFitAcFcResults[[3]] # fc is the fitness of each construct c (calculated across both replicates)
+  sdfc <- gFitAcFcResults[[4]] #standard error # Roman's comment says this is stderr, but I don't think it actually is--I think sdfc is the std deviation of the fitness of each construct c (calculated across both replicates)
+  # p_t <- resf[[5]] #raw p-value from t-test # p_t is the raw p value of the fc of each construct c (calculated across both replicates)
+  # lfdr_fc <- resf[[6]] #lfdr from p_t (Storey) # lfdr_fc is the local FDR of each construct (calculated across both replicates)
+  pp_fc <- gFitAcFcResults[[5]]  # ab: I believe this is posterior probability of fc of each construct c (calculated across both replicates)
   # Wikipedia: "the posterior probability of ... an uncertain proposition is the conditional probability that is assigned after the relevant evidence ... is taken into account".  Thus, higher equals more probable.
-  df <- resf[[7]] #degrees of freedom # df is the degrees of freedom of each construct c (calculated across both replicates)
-  allbad <- resf[[8]] #is TRUE when both experiments are bad (at most 1 good value) # allbad is a boolean value for each construct c that is true for all the constructs that lack at least 2 acceptable-abundance timepoints in BOTH experiments
+  # df <- resf[[7]] #degrees of freedom # df is the degrees of freedom of each construct c (calculated across both replicates)
+  allbad <- gFitAcFcResults[[6]] #is TRUE when both experiments are bad (at most 1 good value) # allbad is a boolean value for each construct c that is true for all the constructs that lack at least 2 acceptable-abundance timepoints in BOTH experiments
   # plot fc for all good constructs vs posterior probability of fc for all those same good constructs
   plot(
     fc[!allbad],
@@ -1447,11 +1450,9 @@ if (gRun) {
        main = "replicate 2, time 0")
   saveWorkspaceAndUpdateGlobalVars("8_postrelabundhist")
 
-  gIrlsResults = doIrlsFitting(nn, pA_pB, allbad, fc, nprobes, probes, n, pp_fc, sdfc, small, genes, niter, gUseSeed)
+  gIrlsResults = doIrlsFitting(nn, pA_pB, allbad, fc, probes, n, pp_fc, sdfc, genes, niter, gUseSeed)
   pi_mean = gIrlsResults$pi_mean
   pi_null = gIrlsResults$pi_null
-  enull = gIrlsResults$enull
-  emean = gIrlsResults$emean
   pi_iter = gIrlsResults$pi_iter
   uutri = gIrlsResults$uutri
   f = gIrlsResults$f
@@ -1464,7 +1465,7 @@ if (gRun) {
   plotPiScoreHist(pi_mean, pi_null)
   saveWorkspaceAndUpdateGlobalVars("10_postpihist")
 
-  gTails = plotLeftAndRightTails(enull, emean, pi_mean)
+  gTails = plotLeftAndRightTails(pi_null, pi_mean)
   fdr_left = gTails$fdr_left
   fdr_right = gTails$fdr_right
   saveWorkspaceAndUpdateGlobalVars("11_posttailshist")
