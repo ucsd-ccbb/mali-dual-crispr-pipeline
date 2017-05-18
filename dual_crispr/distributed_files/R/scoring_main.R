@@ -1120,15 +1120,16 @@ doIrlsFitting <- function(nn, pA_pB, allbad, fc, probes, n, pp_fc, sdfc,
   pi_null <-
     c(pi_iter_null, -pi_iter_null) # used directly below, and in histogram of pi scores
 
-  return(list(pi_mean = pi_mean, pi_null = pi_null, pi_iter = pi_iter, uutri = uutri, f = f, p_rank = p_rank, pi_sd = pi_sd, f_sd = f_sd, fc = fc))
-}
-
-plotLeftAndRightTails <- function(pi_null, pi_mean) {
   enull <- ecdf(pi_null)
   emean <- ecdf(pi_mean)
 
   fdr_left <- pmin(1, enull(pi_mean) / emean(pi_mean))
   fdr_right <- pmin(1, (enull(-pi_mean)) / (1 - emean(pi_mean)))
+
+  return(list(pi_mean = pi_mean, pi_null = pi_null, pi_iter = pi_iter, uutri = uutri, f = f, p_rank = p_rank, pi_sd = pi_sd, f_sd = f_sd, fc = fc, fdr_left = fdr_left, fdr_right = fdr_right))
+}
+
+plotLeftAndRightTails <- function(pi_mean, fdr_left, fdr_right) {
   plot(
     pi_mean,
     fdr_left,
@@ -1143,8 +1144,6 @@ plotLeftAndRightTails <- function(pi_null, pi_mean) {
     xlab = expression(pi["gg'"]),
     ylab = "FDR, right"
   ) #right tail test
-
-  return(list(fdr_left = fdr_left, fdr_right = fdr_right))
 }
 
 writePiScoreFile <- function(pi_mean, pi_iter, n, genes, uutri, f, outputDir, project, pi_sd, fdr_left, fdr_right) {
@@ -1350,6 +1349,35 @@ writeConstructFitnessesFile <- function(outputDir, project, pA_pB, fc, sdfc) {
   )
 }
 
+prepDataAndCheckAbundances <- function(X, nt, abundanceThreshsDf){
+  gPreppedData <- prepData(X, nt)
+  abundance = gPreppedData$abundance
+  y = gPreppedData$y
+  pA_pB = gPreppedData$pA_pB
+
+  # ab0 is the vector of log2 frequency abundance thresholds, e.g.,
+  # array([-19. , -18.5, -18.5, -19. , -19. , -19. , -19. , -19. ])
+  ab0 = convertAbundanceThresholdsUnits(abundance, abundanceThreshsDf)
+  #print(ab0)
+
+  gCheckedAbundances = checkAbundances(y, nt, ab0, pA_pB)
+  x1 = gCheckedAbundances$x1
+  ab1 = gCheckedAbundances$ab1
+  bad1 = gCheckedAbundances$bad1
+  x2 = gCheckedAbundances$x2
+  ab2 = gCheckedAbundances$ab2
+  bad2 = gCheckedAbundances$bad2
+
+  rownames(x1) <- pA_pB
+  rownames(x2) <- pA_pB
+
+  repInfo1 = list(constructLog2FreqsByTimept = x1, log2FreqAbundanceThresh = ab1, constructLacksEnoughTimeptsAboveThreshold = bad1)
+  repInfo2 = list(constructLog2FreqsByTimept = x2, log2FreqAbundanceThresh = ab2, constructLacksEnoughTimeptsAboveThreshold = bad2)
+  perRepInfo = list(repInfo1, repInfo2)
+
+  return(list(n = gPreppedData$n, genes = gPreppedData$genes, nn = gPreppedData$nn, probes = gPreppedData$probes, pA_pB = pA_pB, perRepInfo = perRepInfo))
+}
+
 # set up input parameters
 # ----------
 input_filename = '/Users/Birmingham/dual_crispr/test_data/test_set_8/TestSet8_timepoint_counts.txt'
@@ -1376,33 +1404,24 @@ if (gRun) {
   saveWorkspaceAndUpdateGlobalVars("2_postimport")
 
   nt <- length(time) #nt >= 2 # number of timepoints
-  gPreppedData <- prepData(X, nt)
-  abundance = gPreppedData$abundance
-  n = gPreppedData$n
-  genes = gPreppedData$genes
-  y = gPreppedData$y
-  pA_pB = gPreppedData$pA_pB
-  nn = gPreppedData$nn
-  probes = gPreppedData$probes
+
+  gPreppedAndCheckedData = prepDataAndCheckAbundances(X, nt, gAbundanceThreshsDf)
+  n = gPreppedAndCheckedData$n
+  genes = gPreppedAndCheckedData$genes
+  pA_pB = gPreppedAndCheckedData$pA_pB
+  nn = gPreppedAndCheckedData$nn
+  probes = gPreppedAndCheckedData$probes
+  gPerRepInfo = gPreppedAndCheckedData$perRepInfo
   saveWorkspaceAndUpdateGlobalVars("3_postprep")
 
-  # ab0 is the vector of log2 frequency abundance thresholds, e.g.,
-  # array([-19. , -18.5, -18.5, -19. , -19. , -19. , -19. , -19. ])
-  ab0 = convertAbundanceThresholdsUnits(abundance, gAbundanceThreshsDf)
-  print(ab0)
-  saveWorkspaceAndUpdateGlobalVars("4_postthresholdconvert")
-
-  gCheckedAbundances = checkAbundances(y, nt, ab0, pA_pB)
-  x1 = gCheckedAbundances$x1
-  ab1 = gCheckedAbundances$ab1
-  bad1 = gCheckedAbundances$bad1
-  x2 = gCheckedAbundances$x2
-  ab2 = gCheckedAbundances$ab2
-  bad2 = gCheckedAbundances$bad2
+  x1 = gPerRepInfo[[1]]$constructLog2FreqsByTimept
+  ab1 = gPerRepInfo[[1]]$log2FreqAbundanceThresh
+  bad1 = gPerRepInfo[[1]]$constructLacksEnoughTimeptsAboveThreshold
+  x2 = gPerRepInfo[[2]]$constructLog2FreqsByTimept
+  ab2 = gPerRepInfo[[2]]$log2FreqAbundanceThresh
+  bad2 = gPerRepInfo[[2]]$constructLacksEnoughTimeptsAboveThreshold
   saveWorkspaceAndUpdateGlobalVars("5_postbelowthreshold")
 
-  rownames(x1) <- pA_pB
-  rownames(x2) <- pA_pB
   # x1 is log2 frequencies for the 1st replicate of all timepts
   # x2 is log2 frequencies for the 2nd replicate of all timepts
   # ab1 is abundance thresholds for all 1st replicates
@@ -1460,14 +1479,14 @@ if (gRun) {
   pi_sd = gIrlsResults$pi_sd
   f_sd = gIrlsResults$f_sd
   fc = gIrlsResults$fc
+  fdr_left = gIrlsResults$fdr_left
+  fdr_right = gIrlsResults$fdr_right
   saveWorkspaceAndUpdateGlobalVars("9_postirls")
 
   plotPiScoreHist(pi_mean, pi_null)
   saveWorkspaceAndUpdateGlobalVars("10_postpihist")
 
-  gTails = plotLeftAndRightTails(pi_null, pi_mean)
-  fdr_left = gTails$fdr_left
-  fdr_right = gTails$fdr_right
+  plotLeftAndRightTails(pi_mean, fdr_left, fdr_right)
   saveWorkspaceAndUpdateGlobalVars("11_posttailshist")
 
   writePiScoreFile(pi_mean, pi_iter, n, genes, uutri, f, gScoringDir, project, pi_sd, fdr_left, fdr_right)
