@@ -1340,7 +1340,7 @@ plotPiScoreHist <- function(pi_mean, pi_null) {
   box()
 }
 
-writeConstructFitnessesFile <- function(outputDir, project) {
+writeConstructFitnessesFile <- function(outputDir, project, pA_pB, fc, sdfc) {
   resp <- data.frame(pA_pB, fc, sdfc)
 
   # TODO: refactor file suffix, separator into easier to manage location
@@ -1476,7 +1476,7 @@ if (gRun) {
   writeLogFreqVsTimePlots(gScoringDir, project, x1, a1, fc, ab1, x2, a2, ab2, nt, pA_pB)
   saveWorkspaceAndUpdateGlobalVars("13_posttimeplots")
 
-  writeConstructFitnessesFile(gScoringDir, project)
+  writeConstructFitnessesFile(gScoringDir, project, pA_pB, fc, sdfc)
   saveWorkspaceAndUpdateGlobalVars("14_postfcfile")
 
   print(sum(bad1 & bad2))
