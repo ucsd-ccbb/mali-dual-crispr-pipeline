@@ -1,3 +1,5 @@
+#rm(list = ls())
+
 commaSepStringToNumVector <- function(commaSepString) {
   strVector = unlist(strsplit(commaSepString, ",", fixed = TRUE))
   return(as.numeric(strVector))
@@ -29,8 +31,12 @@ sqrtsum <- function(y){
 # x2 is log2 frequencies for the 2nd replicate of all timepts
 # ab1 is abundance thresholds for all 1st replicates
 # ab2 is abundance thresholds for all 2nd replicates
-fit_ac_fc <- function(x1, ab1, x2, ab2, nt) {
-  #badx is TRUE when x-value is bad
+fit_ac_fc <- function(perRepInfo, nt) {
+
+  x1 = perRepInfo[[1]]$constructLog2FreqsByTimept
+  ab1 = perRepInfo[[1]]$log2FreqAbundanceThreshByTimept
+  x2 = perRepInfo[[2]]$constructLog2FreqsByTimept
+  ab2 = perRepInfo[[2]]$log2FreqAbundanceThreshByTimept
 
   l <- 0
   nx <- nrow(x1)
@@ -245,8 +251,17 @@ fit_ac_fc <- function(x1, ab1, x2, ab2, nt) {
   # sdfc is the std deviation of the fitness of each construct c (calculated across both replicates)
   # pp_fc is the posterior probability of fc of each construct c (calculated across both replicates)
   # allbad is a boolean value for each construct c that is true for all the constructs that lack at least 2 acceptable-abundance timepoints in BOTH experiments
-  vl <- list(ac1, ac2, fc, sdfc, pp_fc, allbad)
-  return(vl)
+
+  perRepInfo[[1]]$perConstructDf$log2FreqInitialCondition = ac1
+  perRepInfo[[2]]$perConstructDf$log2FreqInitialCondition = ac2
+
+  perConstructCombinedRepDf <- data.frame(rawFitness = fc, stdDevOfFitness = sdfc, postProbOfFitness = pp_fc, isUnusable = allbad,
+                                         row.names = row.names(perRepInfo[[1]]$perConstructDf))
+
+  #vl <- list(ac1, ac2, fc, sdfc, pp_fc, allbad)
+  #return(vl)
+
+  return(list(perRepInfo = perRepInfo, perConstructCombinedRepDf = perConstructCombinedRepDf))
 }
 
 # ----------
@@ -376,10 +391,8 @@ irls <- function(fc, w0, probes, ag = 2,
   # ab: end iteration step 0
 
   l <- 1 #counter
-  rel <-
-    1 # apparently, to judge by Roman's comment at the end of this while loop, "rel" = "relative error"
-  while (rel > tol &
-         l < maxiter) {
+  rel <- 1 # apparently, to judge by Roman's comment at the end of this while loop, "rel" = "relative error"
+  while (rel > tol & l < maxiter) {
     #iterate until tol is reached or maxit
     s <-
       sd(eij[expressed_utri]) #calculate sd only from expressed constructs # ab: calc stddev of residuals for all expressed probes
@@ -845,60 +858,116 @@ plotFcHists <- function(useSeed, nn, pp_fc, fc, allbad) {
   )
 }
 
-doIrlsFitting <- function(nn, pA_pB, allbad, fc, probes, n, pp_fc, sdfc,
-                          genes, niter, useSeed) {
+gatherGenePairInfo <- function(genes, pi_iter, uutri, pi_mean, pi_sd, fdr_left, fdr_right, f) {
+  n = length(genes)
+
+  # So ... we're building 3 matrices of n genes by n genes.
+  # The first one just
+  # Again, here 1 & 2 hardcoding acceptable as means 1st and 2nd of DUAL crispr construct
+  g1names <- matrix("", ncol = n, nrow = n) # n = number of genes
+  g2names <- matrix("", ncol = n, nrow = n)
+  ggnames <- matrix("", ncol = n, nrow = n)
+  for (i in 1:(n - 1)) {
+    for (j in (i + 1):n) {
+      g1names[i, j] <- genes[i]
+      g2names[i, j] <- genes[j]
+      # TODO: Separator should be set in params rather than hardcoded
+      ggnames[i, j] <- paste(genes[i], "_", genes[j], sep = "")
+      ggnames[j, i] <- ggnames[i, j]
+    }
+  }
+  # end make gene name matrices
+
+  z <- pi_mean / sd(pi_mean)
+
+  pi_iter_null <- pi_iter - pi_mean
+  abspi <- abs(pi_mean)
+  PP <- apply(abs(pi_iter_null) < abspi, 1, mean)
+
+  #get names of these gene pairs
+  # These g1//g2, etc hardcodes are ok because represent DUAL crispr genes
+  names_of_g1 <- g1names[uutri]
+  fg1 <- f[names_of_g1]
+  names_of_g2 <- g2names[uutri]
+  fg2 <- f[names_of_g2]
+  fg12 <- fg1 + fg2
+  names_of_gg <- ggnames[uutri]
+
+  res <- data.frame(
+    names_of_gg = names_of_gg,
+    names_of_g1 = names_of_g1,
+    fg1 = fg1,
+    names_of_g2 = names_of_g2,
+    fg2 = fg2,
+    fg12 = fg12,
+    pi_mean = pi_mean,
+    pi_sd = pi_sd,
+    PP = PP,
+    abspi = abspi,
+    fdr_left = fdr_left,
+    fdr_right = fdr_right,
+    z = z,
+    row.names = names_of_gg
+  )
+
+  return(res)
+}
+
+doIrlsFitting <- function(preppedAndCheckedData, perConstructCombinedRepDf, numIterations, useSeed){
+#doIrlsFitting <- function(nn, pA_pB, allbad, fc, probes, n, pp_fc, sdfc,
+#                          genes, niter, useSeed) {
   small <- 1e-6
-  nprobes <- length(probes)
+  nprobes <- length(preppedAndCheckedData$probes)
 
   # nn = number of *good* constructs
   # whatever u is, it is 0 for all bad and/or non-existent constructs and, at least at the beginning, one for all good constructs
-  u1 <- rep(0, nn)
-  names(u1) <- pA_pB
-  u1[!allbad] <- 1  #all other weights set to 1
+  u1 <- rep(0, preppedAndCheckedData$nn)
+  names(u1) <- preppedAndCheckedData$pA_pB
+  u1[!perConstructCombinedRepDf$isUnusable] <- 1  #all other weights set to 1
 
-  fc0 <- fc
+  fc0 <- perConstructCombinedRepDf$rawFitness
 
   # just sets expected matrix size for all these--num probes by num probes, w/defaults of zero, and row/col names
   fc_0 <- matrix(0, nrow = nprobes, ncol = nprobes)
   sdfc_0 <- matrix(0, nrow = nprobes, ncol = nprobes)
   w0_0 <- matrix(0, nrow = nprobes, ncol = nprobes)
   pp_0 <- matrix(0, nrow = nprobes, ncol = nprobes)
-  rownames(fc_0) <- probes
-  colnames(fc_0) <- probes
-  rownames(sdfc_0) <- probes
-  colnames(sdfc_0) <- probes
-  rownames(w0_0) <- probes
-  colnames(w0_0) <- probes
-  rownames(pp_0) <- probes
-  colnames(pp_0) <- probes
+  rownames(fc_0) <- preppedAndCheckedData$probes
+  colnames(fc_0) <- preppedAndCheckedData$probes
+  rownames(sdfc_0) <- preppedAndCheckedData$probes
+  colnames(sdfc_0) <- preppedAndCheckedData$probes
+  rownames(w0_0) <- preppedAndCheckedData$probes
+  colnames(w0_0) <- preppedAndCheckedData$probes
+  rownames(pp_0) <- preppedAndCheckedData$probes
+  colnames(pp_0) <- preppedAndCheckedData$probes
 
 
   # for 1 to number of genes - 1
-  for (i in 1:(n - 1)) {
+  for (i in 1:(preppedAndCheckedData$n - 1)) {
     # TODO: refactor these "3"s (the expected number of probes per gene)
     for (k in 1:3) {
       # index of current probe for current gene in probes array
       iprobe <- (i - 1) * 3 + k
       # probes is entire probe name set in alphabetical order
-      iprobe_name <- probes[iprobe]
+      iprobe_name <- preppedAndCheckedData$probes[iprobe]
 
 
       # for all possible second genes that come after the current first gene (i)
-      for (j in (i + 1):n) {
+      for (j in (i + 1):preppedAndCheckedData$n) {
         # for all the constructs of the second gene
         for (l in 1:3) {
           jprobe <- (j - 1) * 3 + l
           jprobe_name <-
-            probes[jprobe] # as for first gene, get index and then name of second gene
+            preppedAndCheckedData$probes[jprobe] # as for first gene, get index and then name of second gene
 
           #generate the construct name
           construct <- paste(iprobe_name, "_", jprobe_name, sep = "")
-          w0_0[iprobe_name, jprobe_name] <-
-            u1[construct] #initial weights. non-existent pairs will have w0=0.  #ab: Roman's comment here says this is initial weights, but his comment in the irls function says that this is actually the "physical goodness" of each construct.  Seems to be integer booleans (i.e., 1 for true, 0 for false)
-          pp_0[iprobe_name, jprobe_name] <-
-            pp_fc[construct] #initial weights. non-existent pairs will have w0=0 # ab: I don't think this comment is right either.  pp_fc are the posterior probabilities for the fc of each construct
-          fc_0[iprobe_name, jprobe_name] <- fc0[construct]
-          sdfc_0[iprobe_name, jprobe_name] <- sdfc[construct]
+          #initial weights. non-existent pairs will have w0=0.  #ab: Roman's comment here says this is initial weights, but his comment in the irls function says that this is actually the "physical goodness" of each construct.  Seems to be integer booleans (i.e., 1 for true, 0 for false)
+          w0_0[iprobe_name, jprobe_name] <- u1[construct]
+          #initial weights. non-existent pairs will have w0=0 # ab: I don't think this comment is right either.  pp_fc are the posterior probabilities for the fc of each construct
+          pp_0[iprobe_name, jprobe_name] <- perConstructCombinedRepDf[construct,]$postProbOfFitness
+          fc_0[iprobe_name, jprobe_name] <- perConstructCombinedRepDf[construct,]$rawFitness
+          sdfc_0[iprobe_name, jprobe_name] <- perConstructCombinedRepDf[construct,]$stdDevOfFitness
         }
       }
     }
@@ -911,7 +980,7 @@ doIrlsFitting <- function(nn, pA_pB, allbad, fc, probes, n, pp_fc, sdfc,
   # TODO: What is this 2 and do I need to worry about it?
   res2 <- irls(fc_0,
                w0_0,
-               probes,
+               preppedAndCheckedData$probes,
                ag = 2,
                tol = 1e-3,
                maxiter = 50, small)
@@ -925,14 +994,14 @@ doIrlsFitting <- function(nn, pA_pB, allbad, fc, probes, n, pp_fc, sdfc,
   mnull <- mean(fp[1:3])
 
   fp <- fp - mnull
-  fc <- fc - mnull * 2
+  fc <- perConstructCombinedRepDf$rawFitness - mnull * 2
   # fp is at the probe level, but fc is at the *construct* level, and
   # each *construct* has *two* probes in it; we're subtracting out the value we'd expect for a construct made out of
   # *two* null probes.  I don't have to refactor out this two, because it is about the construct format
   # ("dual" crispr) not the number of replicates.
 
   rank_p <- rep(0, nprobes)
-  names(rank_p) <- probes
+  names(rank_p) <- preppedAndCheckedData$probes
   #find best probes
   fp12 <- fp
   i <- 1 #do null construct
@@ -954,7 +1023,7 @@ doIrlsFitting <- function(nn, pA_pB, allbad, fc, probes, n, pp_fc, sdfc,
   # value *farthest* from zero is the best probe.  So we make all the fp values positive using abs, then make
   # those abs values all negative.  Since rank assigns rank values in ascending order, the one with the most negative value
   # (i.e., the largest absolute value of fp) will be ranked first, etc.
-  for (i in 2:n) {
+  for (i in 2:preppedAndCheckedData$n) {
     # for each gene, except the first one (which is really the null)
     rank_p[(i - 1) * 3 + 1:3] <-
       rank(-abs(fp12[(i - 1) * 3 + 1:3])) #looking for the best
@@ -975,9 +1044,9 @@ doIrlsFitting <- function(nn, pA_pB, allbad, fc, probes, n, pp_fc, sdfc,
     }
   }
 
-  f <- rep(0, n)
-  names(f) <- genes
-  for (i in 1:n) {
+  f <- rep(0, preppedAndCheckedData$n)
+  names(f) <- preppedAndCheckedData$genes
+  for (i in 1:preppedAndCheckedData$n) {
     # for each gene
     # TODO: refactor 3s
     w1 <-
@@ -990,12 +1059,12 @@ doIrlsFitting <- function(nn, pA_pB, allbad, fc, probes, n, pp_fc, sdfc,
 
   pi1 <- res2[[3]] #raw pi-scores per construct
 
-  mean_pi1 <- matrix(0, nrow = n, ncol = n)
-  for (i in 1:(n - 1)) {
+  mean_pi1 <- matrix(0, nrow = preppedAndCheckedData$n, ncol = preppedAndCheckedData$n)
+  for (i in 1:(preppedAndCheckedData$n - 1)) {
     # for each first gene
     # TODO: refactor 3s
     ixi <- 3 * (i - 1) + 1:3 # get range of probe indices for first gene
-    for (j in (i + 1):n) {
+    for (j in (i + 1):preppedAndCheckedData$n) {
       # for each second gene not already covered
       ixj <- 3 * (j - 1) + 1:3 # get range of probe indices for second gene
       # reminder: w0_0 is the "physical goodness" of each construct.  Seems to be integer booleans (i.e., 1 for true, 0 for false)
@@ -1020,15 +1089,15 @@ doIrlsFitting <- function(nn, pA_pB, allbad, fc, probes, n, pp_fc, sdfc,
   npi <- length(zi1)
 
   mmm <- length(fp) # number of probes
-  pi_iter <- matrix(0, nrow = npi, ncol = niter)
-  fp_iter <- matrix(0, nrow = mmm, ncol = niter)
-  f_iter <- matrix(0, nrow = n, ncol = niter)
+  pi_iter <- matrix(0, nrow = npi, ncol = numIterations)
+  fp_iter <- matrix(0, nrow = mmm, ncol = numIterations)
+  f_iter <- matrix(0, nrow = preppedAndCheckedData$n, ncol = numIterations)
 
   utri <- upper.tri(fc_0)
   ntri <- sum(utri)
-  # ppi_iter <- matrix(0, nrow = ntri, ncol = niter)
+  # ppi_iter <- matrix(0, nrow = ntri, ncol = numIterations)
 
-  for (iter in 1:niter) {
+  for (iter in 1:numIterations) {
     cat("\n", iter, "\n")
 
     fc_1 <-
@@ -1057,7 +1126,7 @@ doIrlsFitting <- function(nn, pA_pB, allbad, fc, probes, n, pp_fc, sdfc,
     #robust fitting
     res2 <- irls(fc_1,
                  w0_0,
-                 probes,
+                 preppedAndCheckedData$probes,
                  ag = 2,
                  tol = 1e-3,
                  maxiter = 50, small)
@@ -1071,7 +1140,7 @@ doIrlsFitting <- function(nn, pA_pB, allbad, fc, probes, n, pp_fc, sdfc,
     fp0 <- fp0 - mnull
     # end repeat of code
 
-    for (i in 1:n) {
+    for (i in 1:preppedAndCheckedData$n) {
       # TODO: refactor 3s
       w1 <- (rank_p[(i - 1) * 3 + 1:3] - 3) ^ 2 #ansatz for weights
       f_iter[i, iter] <- sum(w1 * fp0[(i - 1) * 3 + 1:3]) / sum(w1) #weighted mean
@@ -1083,11 +1152,11 @@ doIrlsFitting <- function(nn, pA_pB, allbad, fc, probes, n, pp_fc, sdfc,
       pi1 # why put pi1 into pi_scrambled, then use it without changing it in any way? It *isn't* scrambled, it is just pi1
 
     # TODO: repeat of above code to set mean_pi1
-    mean_pi1 <- matrix(0, nrow = n, ncol = n)
-    for (i in 1:(n - 1)) {
+    mean_pi1 <- matrix(0, nrow = preppedAndCheckedData$n, ncol = preppedAndCheckedData$n)
+    for (i in 1:(preppedAndCheckedData$n - 1)) {
       # TODO: refactor 3s
       ixi <- 3 * (i - 1) + 1:3
-      for (j in (i + 1):n) {
+      for (j in (i + 1):preppedAndCheckedData$n) {
         ixj <- 3 * (j - 1) + 1:3
         expressed1 <- w0_0[ixi, ixj] > 0 #define expressed probe pairs
         local_w1 <-
@@ -1126,8 +1195,11 @@ doIrlsFitting <- function(nn, pA_pB, allbad, fc, probes, n, pp_fc, sdfc,
   fdr_left <- pmin(1, enull(pi_mean) / emean(pi_mean))
   fdr_right <- pmin(1, (enull(-pi_mean)) / (1 - emean(pi_mean)))
 
-  return(list(pi_mean = pi_mean, pi_null = pi_null, pi_iter = pi_iter, uutri = uutri, f = f, p_rank = p_rank, pi_sd = pi_sd, f_sd = f_sd, fc = fc, fdr_left = fdr_left, fdr_right = fdr_right))
-}
+  genePairInfoDf = gatherGenePairInfo(preppedAndCheckedData$genes, pi_iter, uutri, pi_mean, pi_sd, fdr_left, fdr_right, f)
+
+  return(list(pi_null = pi_null, f = f, p_rank = p_rank, f_sd = f_sd, fc = fc, genePairInfoDf = genePairInfoDf))
+
+  }
 
 plotLeftAndRightTails <- function(pi_mean, fdr_left, fdr_right) {
   plot(
@@ -1146,58 +1218,11 @@ plotLeftAndRightTails <- function(pi_mean, fdr_left, fdr_right) {
   ) #right tail test
 }
 
-writePiScoreFile <- function(pi_mean, pi_iter, n, genes, uutri, f, outputDir, project, pi_sd, fdr_left, fdr_right) {
-  # So ... we're building 3 matrices of n genes by n genes.
-  # The first one just
-  # Again, here 1 & 2 hardcoding acceptable as means 1st and 2nd of DUAL crispr construct
-  g1names <- matrix("", ncol = n, nrow = n) # n = number of genes
-  g2names <- matrix("", ncol = n, nrow = n)
-  ggnames <- matrix("", ncol = n, nrow = n)
-  for (i in 1:(n - 1)) {
-    for (j in (i + 1):n) {
-      g1names[i, j] <- genes[i]
-      g2names[i, j] <- genes[j]
-      # TODO: Separator should be set in params rather than hardcoded
-      ggnames[i, j] <- paste(genes[i], "_", genes[j], sep = "")
-      ggnames[j, i] <- ggnames[i, j]
-    }
-  }
-  # end make gene name matrices
+writePiScoreFile <- function(outputDir, project, genePairInfoDf) {
+  oPP = order(genePairInfoDf$z)
 
-  z <- pi_mean / sd(pi_mean)
-
-  pi_iter_null <- pi_iter - pi_mean
-  abspi <- abs(pi_mean)
-  PP <- apply(abs(pi_iter_null) < abspi, 1, mean)
-
-  oPP <- order(z)
-
-  #get names of these gene pairs
-  # These g1//g2, etc hardcodes are ok because represent DUAL crispr genes
-  names_of_g1 <- g1names[uutri]
-  fg1 <- f[names_of_g1]
-  names_of_g2 <- g2names[uutri]
-  fg2 <- f[names_of_g2]
-  fg12 <- fg1 + fg2
-  names_of_gg <- ggnames[uutri]
-
-  res <- data.frame(
-    names_of_gg,
-    names_of_g1,
-    fg1,
-    names_of_g2,
-    fg2,
-    fg12,
-    pi_mean,
-    pi_sd,
-    PP,
-    abspi,
-    fdr_left,
-    fdr_right,
-    z
-  )
   # TODO: Let's refactor these colnames, file suffix, and separator somewhere easier to manage
-  colnames(res) <-
+  colnames(genePairInfoDf) <-
     c(
       "gene_gene",
       "geneA",
@@ -1213,9 +1238,9 @@ writePiScoreFile <- function(pi_mean, pi_iter, n, genes, uutri, f, outputDir, pr
       "FDR right",
       "z"
     )
-  #TODO: remove format call here; added to aid in testing
+
   write.table(
-    format(res[oPP,], digits = 7),
+    format(genePairInfoDf[oPP, ], digits = 7),
     file = file.path(outputDir, paste(project, "_pi.txt", sep = "")),
     sep = "\t",
     row.names = FALSE,
@@ -1371,11 +1396,36 @@ prepDataAndCheckAbundances <- function(X, nt, abundanceThreshsDf){
   rownames(x1) <- pA_pB
   rownames(x2) <- pA_pB
 
-  repInfo1 = list(constructLog2FreqsByTimept = x1, log2FreqAbundanceThresh = ab1, constructLacksEnoughTimeptsAboveThreshold = bad1)
-  repInfo2 = list(constructLog2FreqsByTimept = x2, log2FreqAbundanceThresh = ab2, constructLacksEnoughTimeptsAboveThreshold = bad2)
+  perConstructDf1 = data.frame(lacksEnoughTimeptsAboveThreshold = bad1, row.names = pA_pB)
+  repInfo1 = list(constructLog2FreqsByTimept = x1, log2FreqAbundanceThreshByTimept = ab1, perConstructDf = perConstructDf1)
+  perConstructDf2 = data.frame(lacksEnoughTimeptsAboveThreshold = bad2, row.names = pA_pB)
+  repInfo2 = list(constructLog2FreqsByTimept = x2, log2FreqAbundanceThreshByTimept = ab2, perConstructDf = perConstructDf2)
   perRepInfo = list(repInfo1, repInfo2)
 
   return(list(n = gPreppedData$n, genes = gPreppedData$genes, nn = gPreppedData$nn, probes = gPreppedData$probes, pA_pB = pA_pB, perRepInfo = perRepInfo))
+}
+
+plotFcVsPostProbOfFc <- function(fc, pp_fc, allbad) {
+  # plot fc for all good constructs vs posterior probability of fc for all those same good constructs
+  plot(
+    fc[!allbad],
+    pp_fc[!allbad],
+    pch = 16,
+    cex = 0.2,
+    xlab = expression(f["c"]),
+    ylab = "posterior probability"
+  )
+}
+
+plotRelativeAbundanceHists <- function(perRepInfo) {
+  # TODO: repeat of the hist 2 times is clearly for the 2 replicates and needs to be refactored.
+  for (i in range(1, length(perRepInfo))) {
+    ai = perRepInfo[[i]]$perConstructDf$log2FreqInitialCondition
+    hist(2 ^ ai,
+         breaks = 1000,
+         xlab = "relative abundance",
+         main = paste0("replicate ", i, ", time 0"))
+  }
 }
 
 # set up input parameters
@@ -1384,7 +1434,7 @@ input_filename = '/Users/Birmingham/dual_crispr/test_data/test_set_8/TestSet8_ti
 g_time_str = "21,28"
 project = "Notebook8Test"
 gUseSeed = TRUE
-niter = 2
+gNumIterations = 2
 gAbundanceThreshsDf = read.table('/Users/Birmingham/dual_crispr/test_data/test_set_8/TestSet8_abundance_thresholds.txt', row.names = 1, header = TRUE)
 gScoringDir = '/Users/Birmingham/dual_crispr/test_outputs/test_scoring_workspaces'
 gRun = TRUE
@@ -1415,11 +1465,11 @@ if (gRun) {
   saveWorkspaceAndUpdateGlobalVars("3_postprep")
 
   x1 = gPerRepInfo[[1]]$constructLog2FreqsByTimept
-  ab1 = gPerRepInfo[[1]]$log2FreqAbundanceThresh
-  bad1 = gPerRepInfo[[1]]$constructLacksEnoughTimeptsAboveThreshold
+  ab1 = gPerRepInfo[[1]]$log2FreqAbundanceThreshByTimept
+  bad1 = gPerRepInfo[[1]]$perConstructDf$lacksEnoughTimeptsAboveThreshold
   x2 = gPerRepInfo[[2]]$constructLog2FreqsByTimept
-  ab2 = gPerRepInfo[[2]]$log2FreqAbundanceThresh
-  bad2 = gPerRepInfo[[2]]$constructLacksEnoughTimeptsAboveThreshold
+  ab2 = gPerRepInfo[[2]]$log2FreqAbundanceThreshByTimept
+  bad2 = gPerRepInfo[[2]]$perConstructDf$lacksEnoughTimeptsAboveThreshold
   saveWorkspaceAndUpdateGlobalVars("5_postbelowthreshold")
 
   # x1 is log2 frequencies for the 1st replicate of all timepts
@@ -1428,68 +1478,40 @@ if (gRun) {
   # ab2 is abundance thresholds for all 2nd replicates
   # after this cell, these 4 are used again one more time considerably later--in the call to plot_fit that makes
   # Log2 Frequency vs Time Plots for Constructs with Large Fitness File Output
-  gFitAcFcResults <- fit_ac_fc(x1, ab1, x2, ab2, nt) # I don't know what resf means ... maybe "resulting fit"?
+  gFitAcFcResults <- fit_ac_fc(gPerRepInfo, nt)
+
   # TODO: 2-replicate assumption is baked into outputs of fit_ac_fc function
-  a1 <- gFitAcFcResults[[1]] # a1 is the initial condition (in log2 frequency) for each construct c for replicate 1
-  a2 <- gFitAcFcResults[[2]] # a2 is the initial condition (in log2 frequency) for each construct c for replicate 2
-  fc <- gFitAcFcResults[[3]] # fc is the fitness of each construct c (calculated across both replicates)
-  sdfc <- gFitAcFcResults[[4]] #standard error # Roman's comment says this is stderr, but I don't think it actually is--I think sdfc is the std deviation of the fitness of each construct c (calculated across both replicates)
-  # p_t <- resf[[5]] #raw p-value from t-test # p_t is the raw p value of the fc of each construct c (calculated across both replicates)
-  # lfdr_fc <- resf[[6]] #lfdr from p_t (Storey) # lfdr_fc is the local FDR of each construct (calculated across both replicates)
-  pp_fc <- gFitAcFcResults[[5]]  # ab: I believe this is posterior probability of fc of each construct c (calculated across both replicates)
+  a1 <- gFitAcFcResults$perRepInfo[[1]]$perConstructDf$log2FreqInitialCondition # a1 is the initial condition (in log2 frequency) for each construct c for replicate 1
+  a2 <- gFitAcFcResults$perRepInfo[[2]]$perConstructDf$log2FreqInitialCondition # a2 is the initial condition (in log2 frequency) for each construct c for replicate 2
+  fc <- gFitAcFcResults$perConstructCombinedRepDf$rawFitness # fc is the fitness of each construct c (calculated across both replicates)
+  sdfc <- gFitAcFcResults$perConstructCombinedRepDf$stdDevOfFitness #standard error # Roman's comment says this is stderr, but I don't think it actually is--I think sdfc is the std deviation of the fitness of each construct c (calculated across both replicates)
+  pp_fc <- gFitAcFcResults$perConstructCombinedRepDf$postProbOfFitness  # ab: I believe this is posterior probability of fc of each construct c (calculated across both replicates)
   # Wikipedia: "the posterior probability of ... an uncertain proposition is the conditional probability that is assigned after the relevant evidence ... is taken into account".  Thus, higher equals more probable.
-  # df <- resf[[7]] #degrees of freedom # df is the degrees of freedom of each construct c (calculated across both replicates)
-  allbad <- gFitAcFcResults[[6]] #is TRUE when both experiments are bad (at most 1 good value) # allbad is a boolean value for each construct c that is true for all the constructs that lack at least 2 acceptable-abundance timepoints in BOTH experiments
+  allbad <- gFitAcFcResults$perConstructCombinedRepDf$isUnusable #is TRUE when both experiments are bad (at most 1 good value) # allbad is a boolean value for each construct c that is true for all the constructs that lack at least 2 acceptable-abundance timepoints in BOTH experiments
+
   # plot fc for all good constructs vs posterior probability of fc for all those same good constructs
-  plot(
-    fc[!allbad],
-    pp_fc[!allbad],
-    pch = 16,
-    cex = 0.2,
-    xlab = expression(f["c"]),
-    ylab = "posterior probability"
-  )
+  plotFcVsPostProbOfFc(fc, pp_fc, allbad)
   saveWorkspaceAndUpdateGlobalVars("6_postposteriorprobplot")
 
   plotFcHists(gUseSeed, nn, pp_fc, fc, allbad)
   saveWorkspaceAndUpdateGlobalVars("7_postconstructfithist")
 
-  # assign construct names to the newly-created arrays of per construct info
-  names(fc) <- pA_pB
-  names(pp_fc) <- pA_pB
-  names(sdfc) <- pA_pB
-  # TODO: repeat of the hist 2 times is clearly for the 2 replicates and needs to be refactored.
-  hist(2 ^ a1,
-       breaks = 1000,
-       xlab = "relative abundance",
-       main = "replicate 1, time 0")
-  hist(2 ^ a2,
-       breaks = 1000,
-       xlab = "relative abundance",
-       main = "replicate 2, time 0")
+  plotRelativeAbundanceHists(gFitAcFcResults$perRepInfo)
   saveWorkspaceAndUpdateGlobalVars("8_postrelabundhist")
 
-  gIrlsResults = doIrlsFitting(nn, pA_pB, allbad, fc, probes, n, pp_fc, sdfc, genes, niter, gUseSeed)
-  pi_mean = gIrlsResults$pi_mean
-  pi_null = gIrlsResults$pi_null
-  pi_iter = gIrlsResults$pi_iter
-  uutri = gIrlsResults$uutri
+  gIrlsResults = doIrlsFitting(gPreppedAndCheckedData, gFitAcFcResults$perConstructCombinedRepDf, gNumIterations, gUseSeed)
   f = gIrlsResults$f
-  p_rank = gIrlsResults$p_rank
-  pi_sd = gIrlsResults$pi_sd
   f_sd = gIrlsResults$f_sd
   fc = gIrlsResults$fc
-  fdr_left = gIrlsResults$fdr_left
-  fdr_right = gIrlsResults$fdr_right
   saveWorkspaceAndUpdateGlobalVars("9_postirls")
 
-  plotPiScoreHist(pi_mean, pi_null)
+  plotPiScoreHist(gIrlsResults$genePairInfoDf$pi_mean, gIrlsResults$pi_null)
   saveWorkspaceAndUpdateGlobalVars("10_postpihist")
 
-  plotLeftAndRightTails(pi_mean, fdr_left, fdr_right)
+  plotLeftAndRightTails(gIrlsResults$genePairInfoDf$pi_mean, gIrlsResults$genePairInfoDf$fdr_left, gIrlsResults$genePairInfoDf$fdr_right)
   saveWorkspaceAndUpdateGlobalVars("11_posttailshist")
 
-  writePiScoreFile(pi_mean, pi_iter, n, genes, uutri, f, gScoringDir, project, pi_sd, fdr_left, fdr_right)
+  writePiScoreFile(gScoringDir, project, gIrlsResults$genePairInfoDf)
   saveWorkspaceAndUpdateGlobalVars("12_postpifile")
 
   writeLogFreqVsTimePlots(gScoringDir, project, x1, a1, fc, ab1, x2, a2, ab2, nt, pA_pB)
@@ -1507,7 +1529,7 @@ if (gRun) {
   plot_scatterplots(nn, nt, a1, a2, fc, bad1, bad2, x1, x2, good = (!bad1 & !bad2))
   saveWorkspaceAndUpdateGlobalVars("17_postfreqsplots")
 
-  writeProbeRankFile(gScoringDir, project, probes, p_rank)
+  writeProbeRankFile(gScoringDir, project, probes, gIrlsResults$p_rank)
   saveWorkspaceAndUpdateGlobalVars("18_postrankfile")
 
   writeSingleGeneFitnessesFile(gScoringDir, project, genes, f, f_sd)

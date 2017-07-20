@@ -15,7 +15,7 @@ library('testthat')
 
 # set up path variables
 # ----------
-gMainDir = "~/Work/Repositories/mali-dual-crispr-pipeline"
+gMainDir = "/Users/Birmingham/Work/Repositories/mali-dual-crispr-pipeline"
 gSourceDir = file.path(gMainDir, "dual_crispr/distributed_files/R")
 gKnownGoodDirPath = file.path(gMainDir, "dual_crispr/distributed_files/test_data/test_scoring_workspaces")
 gTestScriptDirPath = file.path(gMainDir, "tests")
@@ -23,12 +23,12 @@ gTestScriptDirPath = file.path(gMainDir, "tests")
 
 # set up input parameters
 # ----------
-input_filename = '/Users/Birmingham/dual_crispr/test_data/test_set_8/TestSet8_timepoint_counts.txt'
-g_time_str = "21,28"
-project = "Notebook8Test"
-gUseSeed = TRUE
-niter = 2
-gAbundanceThreshsDf = read.table('/Users/Birmingham/dual_crispr/test_data/test_set_8/TestSet8_abundance_thresholds.txt', row.names = 1, header = TRUE)
+# input_filename = '/Users/Birmingham/dual_crispr/test_data/test_set_8/TestSet8_timepoint_counts.txt'
+# g_time_str = "21,28"
+# project = "Notebook8Test"
+# gUseSeed = TRUE
+# niter = 2
+# gAbundanceThreshsDf = read.table('/Users/Birmingham/dual_crispr/test_data/test_set_8/TestSet8_abundance_thresholds.txt', row.names = 1, header = TRUE)
 gScoringDir = '/Users/Birmingham/dual_crispr/test_outputs/test_scoring_workspaces'
 # ----------
 
@@ -88,7 +88,11 @@ testAllFilesInDir <- function() {
 
   # outputFileNames <- list.files(gScoringDir)
   # if (!identical(knownGoodFileNames, outputFileNames)) {
-  #   print(which(knownGoodFileNames != outputFileNames))
+  #   print("known good file names: ")
+  #   print(knownGoodFileNames)
+  #   print("output file names: ")
+  #   print(outputFileNames)
+  #   # print(which(knownGoodFileNames != outputFileNames))
   # }
 }
 # ----------
