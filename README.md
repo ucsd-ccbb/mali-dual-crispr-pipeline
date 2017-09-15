@@ -66,12 +66,12 @@ The count pipeline takes in raw fastq or fastq.gz files from the sequencing cent
 
 ### Requirements
 
-7. Your user name and password for the FTP server on which your fastq data reside
-8. The full URL of the folder on the FTP server in which your fastq data reside
+1. Your user name and password for the FTP server on which your fastq data reside
+2. The full URL of the folder on the FTP server in which your fastq data reside
 
 ### Steps
 
-3. Create a directory for your fastq data and download it there
+1. Create a directory for your fastq data and download it there
 
 	* In the following commands, replacing `fastq_dir_name` everywhere with the name of this run (e.g., `160817_D00611_0339_BHWTT2BCXX`)
 	* Replace XXXX and YYYY with the user name and password of the FTP server, and ZZZZ with the full URL of the folder in which the fastq data reside
@@ -85,22 +85,22 @@ The count pipeline takes in raw fastq or fastq.gz files from the sequencing cent
 
 	* Depending on how much data you have, this may take from a few minutes to a few hours!
 
-4. Run the count pipeline script
+2. Run the count pipeline script
 
 	* Provide an alphanumeric-only name for your dataset in place of `dataset_name`, and input the recognized library name for the library used in your screen (e.g., "CV4") in place of `library_name`. Specify the complete path to the fastq directory you created above in place of `fastq_dir_path`, and the complete path to the directory in which you want the folder of output files to be created in place of `output_dir_path`
 
 			count_dual_crispr dataset_name library_name fastq_dir_path output_dir_path
 
-5.  Wait for the run to complete
+3.  Wait for the run to complete
 
 	* This frequently takes several hours for a typical dataset
 
-5.  After the run is complete, find the results directory
+4.  After the run is complete, find the results directory
 
 	* `cd` to the directory you input above as `output_dir_path`
 	* Look for a folder whose name starts with the value you input above as `dataset_name` and ends with a timestamp suffix matching the timeframe of your most recent run (e.g., `MyTestDataset_20160804205646`)
 
-6. At this point, you may continue to run the score pipeline below if desired
+5. At this point, you may continue to run the score pipeline below if desired
 
 
 ## Score Pipeline Execution
@@ -111,17 +111,17 @@ The score pipeline takes in counts files, such as those produced by the count pi
 
 ### Requirements
 
-4. A file (or multiple files) containing the counts for all the samples in the experiment you wish to score, such as the `*_combined_counts.txt` file produced by the count pipeline
+1. A file (or multiple files) containing the counts for all the samples in the experiment you wish to score, such as the `*_combined_counts.txt` file produced by the count pipeline
 
 ### Steps
 
-4. Run the score pipeline script
+1. Run the score pipeline script
 
 	* As in the count pipeline, provide an alphanumeric-only name for your dataset in place of `dataset_name`, and input the recognized library name for the library used in your screen (e.g., "CV4") in place of `library_name`.  Replace `counts_fp_or_dir` with the path identified above in step 3; if wish to combine multiple counts files, you may provide multiple paths separated by commas **ONLY** (no spaces!) `day_timepoints_str` is a list, separated by commas **ONLY** only, providing--in order--the days on which timepoints were collected (e.g., 3,14,21,28). Provide the complete path to the directory in which you want the folder of output files to be created in place of `output_dir_path` .
 
 			score_dual_crispr dataset_name library_name counts_fp_or_dir day_timepoints_str output_dir_path
 
-5.  Wait for the run to complete
+2.  Wait for the run to complete
 
 	* This usually takes between 20 minutes and an hour for a typical dataset
 
