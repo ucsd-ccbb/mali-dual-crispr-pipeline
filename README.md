@@ -10,64 +10,17 @@ Amanda Birmingham, CCBB, UCSD (abirmingham@ucsd.edu)
 
 ## Installation
 
-This software is provided through conda, a cross-platform package manager that performs installation and building of software packages with all their required dependencies.  While we anticipate that this software will most commonly be used on Amazon Web Services (AWS) and thus provide detailed install instructions for that environment, the software can be installed on any linux-64 or osx-64 platform. **Windows installation is not supported at this time.**
+This software is provided through conda, a cross-platform package manager that performs installation and building of software packages with all their required dependencies, anc can be installed on any linux-64 or osx-64 platform. **Windows installation is not supported at this time.**
 
-### Requirements
-1. A new, empty Amazon Linux AMI instance to which you have access
-2. The key (.pem) file that gives you access to the AMI
-3. The Public DNS value for the instance
-4. (Optional) Your AWS Access Key ID and AWS Secret Access Key
+Download and run the installation script:
 
-### Steps
-1. From the command line, log into your instance
-
-	* An example command is shown below; of course, the path to the the pem file should be replaced with the path to your pem, and the  *.amazonaws.com should be replaced with the Public DNS value for your AMI:
-
-			ssh -i ~/Keys/abirmingham_oregon.pem ec2-user@ec2-52-42-121-79.us-west-2.compute.amazonaws.com
-
-			screen
-
-	* Instructions from AWS are at [https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html)
-	* If you receive a message stating 'The authenticity of host ... can't be established' and asking 'Are you sure you want to continue connecting (yes/no)?', enter `yes`.
-	* If you encounter a `Permission denied (publickey)` error, remember that the permissions on your key (.pem) file must be set so that it is not public, e.g. by running `chmod 0400 ~/Keys/abirmingham_oregon.pem`
-	* `screen` ensures you will be able to reconnect to the process if you are disconnected at any point; more details of its operation are available at [https://www.linux.com/learn/taking-command-terminal-gnu-screen](https://www.linux.com/learn/taking-command-terminal-gnu-screen).
-
-2. Download and run the installation script
-
-		curl https://raw.githubusercontent.com/ucsd-ccbb/mali-dual-crispr-pipeline/master/install_dual_crispr.sh -o install_dual_crispr.sh
+	curl https://raw.githubusercontent.com/ucsd-ccbb/mali-dual-crispr-pipeline/master/install_dual_crispr.sh -o install_dual_crispr.sh
 
     	bash install_dual_crispr.sh
 	
-		source ~/.bashrc
+	source ~/.bashrc
 
    * This may take several minutes, as many software libraries are being installed!
-
-5. (Optional) Set up the Jupyter Notebook server for remote access: see "Remote Access to Notebooks" page in project wiki at [https://github.com/ucsd-ccbb/mali-dual-crispr-pipeline/wiki/Remote-Access-to-Notebooks](https://github.com/ucsd-ccbb/mali-dual-crispr-pipeline/wiki/Remote-Access-to-Notebooks)
-
-	* This will allow you to view and run the pipeline's Jupyter Notebooks through your browser from the AWS instance.  This is not necessary (as the pipeline can be entirely run from the command line) but is sometimes convenient.
-
-6. Select and configure a method by which to transfer data onto and off of your AWS instance
-
-	* The usual choices are either SFTP or S3; if you don't know what S3 is, choose SFTP :)
-	* SFTP: configure one of the many available tools on your local machine that will allow you to connect to your AWS instance (which already has sftp installed)
-		* Windows local machine: for example, [Connect to Amazon EC2 file directory using Filezilla and SFTP](https://www.youtube.com/watch?v=e9BDvg42-JI)
-		* Mac OSX local machine: for example, [Connect to Amazon EC2 file directory using Cyberduck and SFTP](https://www.youtube.com/watch?v=hd4oL3WIPVM&feature=youtu.be)
-		* Linux local machine: for example, [Running the sftp command](http://www.computerhope.com/unix/sftp.htm)
-
-	* S3: Configure the built-in `aws` software to allow transfer of data back and forth from Amazon's S3 data storage
-
-			aws configure
-
-	    * Enter your AWS Access Key ID and AWS Secret Access Key when prompted, and hit Enter to accept the defaults for the additional prompts.
-	    * You will now be able to copy files to S3 with a command of the format
-
-	    		aws s3 cp myresultsfilename s3://s3_folder_path/
-
-7. Continue to one of the steps below, **OR** exit the instance with these commands
-
-    	exit
-
-    	logout
 
 
 ## Library Definition File Set-Up
@@ -112,14 +65,12 @@ The count pipeline takes in raw fastq or fastq.gz files from the sequencing cent
 	count_dual_crispr CountTest TestLib ~/dual_crispr/test_data/test_set_1 ~/dual_crispr/test_outputs
 
 ### Requirements
-1. An Amazon Linux AMI instance to which you have access that has been configured with the pipeline software
-2. The key (.pem) file that gives you access to the AMI
-3. The Public DNS value for the instance
+
 7. Your user name and password for the FTP server on which your fastq data reside
 8. The full URL of the folder on the FTP server in which your fastq data reside
 
 ### Steps
-1. If you are not already logged into your instance, follow Installation step 1 above to do so
+
 3. Create a directory for your fastq data and download it there
 
 	* In the following commands, replacing `fastq_dir_name` everywhere with the name of this run (e.g., `160817_D00611_0339_BHWTT2BCXX`)
@@ -146,16 +97,10 @@ The count pipeline takes in raw fastq or fastq.gz files from the sequencing cent
 
 5.  After the run is complete, find the results directory
 
-
 	* `cd` to the directory you input above as `output_dir_path`
 	* Look for a folder whose name starts with the value you input above as `dataset_name` and ends with a timestamp suffix matching the timeframe of your most recent run (e.g., `MyTestDataset_20160804205646`)
 
-6. Transfer the results to your local machine for easier investigation, using the method you chose during the installation process
-
-	* You may find it desirable to zip the results directory before transferring it; if so, follow the directions below, running the command `zip -r results_dir_name.zip results_dir_name/` where `results_dir_name` is replaced everywhere with the name identified in the last step
-	* At this point, you may continue to run the score pipeline below, or may exit the configured instance and return to it later.
-
-8. If you are ready to exit, follow Installation step 7 to exit your instance
+6. At this point, you may continue to run the score pipeline below if desired
 
 
 ## Score Pipeline Execution
@@ -165,16 +110,10 @@ The score pipeline takes in counts files, such as those produced by the count pi
 	score_dual_crispr ScoreTest LargerTestLib ~/dual_crispr/test_data/test_set_6a,~/dual_crispr/test_data/test_set_6b 21,28 ~/dual_crispr/test_outputs --test
 
 ### Requirements
-1. An Amazon Linux AMI instance to which you have access that has been configured with the pipeline software
-2. The key (.pem) file that gives you access to the AMI
-3. The Public DNS value for the instance
+
 4. A file (or multiple files) containing the counts for all the samples in the experiment you wish to score, such as the `*_combined_counts.txt` file produced by the count pipeline
 
 ### Steps
-1. If you are not already logged into your instance, follow Installation step 1 above to do so
-3. If the counts file you plan to use is not already on the instance, transfer it there and make a note of the path where you put it
-
-	* Alternately, if you are using the output of the count pipeline, you only need the full path to the relevant run's output folder that was identified in Counts Pipeline Execution step 5
 
 4. Run the score pipeline script
 
@@ -186,8 +125,6 @@ The score pipeline takes in counts files, such as those produced by the count pi
 
 	* This usually takes between 20 minutes and an hour for a typical dataset
 
-6. Follow Counts Pipeline Execution steps 5 and 6 above to locate, optionally zip, and upload the results to your local machine for examination
-7. Follow Installation step 7 to exit your instance
 
 ## Appendix: Configuration File Modifications
 
