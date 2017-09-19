@@ -164,7 +164,6 @@ fit_ac_fc <- function(perRepInfo, nt) {
     xfit2[, j] <- ac2 + fc * time[j] + lambda2[j]
   }
 
-
   sdfc <- rep(0.1, nx) #standard error of fc
   tstat <- rep(0, nx) # presumably t statistic
   df <-
@@ -178,12 +177,75 @@ fit_ac_fc <- function(perRepInfo, nt) {
     if (allbad[i])
       next
 
-
     g1 <-
       good1[i, ] # g1 = true/false values of whether construct i passes various abundance filters for all timepoints for the first replicate
     g2 <- good2[i, ]
 
-    # df = vector w one entry for each construct, with value from 0 to -2; 0 if both replicates of relevant construct are good, -1 if just one is, -2 if neither are
+    sdfc <- rep(0.1, nx) #standard error of fc
+    tstat <- rep(0, nx) # presumably t statistic
+    # df = vector w one entry for each construct, with value from 2nt to -2; inits to 0 for all
+    df <- rep(0, nx)
+    # p value from t test ... initialize to 1 (not significant) for everything
+    p_t <- rep(1, nx)
+
+    # for 1 to number of constructs
+    for (i in 1:nx) {
+      # if this construct doesn't have enough "good" measurements, skip it
+      if (allbad[i])
+        next
+
+      # g1 = true/false values of whether construct i passes various abundance filters for all timepoints for the first replicate
+      g1 <- good1[i, ]
+      g2 <- good2[i, ]
+
+      # df = vector w one entry for each construct, with value from 2nt to -2; 2nt if all timepoints of both replicates of relevant construct are good,
+      # -2 if no timepoint of either replicate is--although shouldn't get there because should only be examining constructs for which at least one replicate has at least two good timepoints; for those,
+      # df should remain 0, which is the default value set above.
+      # I suspect that "df" is "degrees of freedom" for each construct
+      df[i] <- sum(g1) + sum(g2) - 2
+
+      # sqrtsum<-function(y) sqrt(sum(y^2))
+      # outside of this function, this sdfc value is used only in the output of the construct file
+      # I think that sdfc is "standard deviation of fc" for each construct.
+
+      # So, Roman says:
+      # std err of fc = sqrt of sum over t of (lower-case-epsilon for construct c, as a function of t)^2
+      # divided by sqrt of (nc - 2)*sum over t of (t^2 - (mean of t)^2)
+      # Note that lower-case-epsilon is Xc(t) - xc(t) = xX - xfitX
+      # so xfitX - xX = - lower-case-epsilon ... but since it is being squared and then square-rooted, I
+      # suppose the negation doesn't matter.
+      # nc - 2 is the number of degrees of freedom
+      # where nc = number of data points = 2*nt minus any number of points below the threshold
+      # (note the description above seems to assume 2 replicates) ... seems to me this must mean
+      # number of data points *for this construct c*, not total.
+      # nt in above is number of timepoints, as here ...
+      # Roman also says that tc [i.e., the t statistic for construct c] = fc /SE(fc)
+      # and the internet tells me that SE(x) = SD(x)/sqrt(n) ... but maybe the sqrt(n) is just the most usual
+      # sqrt of degrees of freedom, and could be something else in a more complex system.
+      # So, the value being calculated directly below is SD(x), which is why it doesn't have the
+      # nc - 2 term that is in the denominator of the SE(x) calculation (in the manuscript, Roman says that
+      # fc's sd = sqrt(nc-2)*SE(fc), where nc-2 = degrees of freedom.  Farther below, after the calculation
+      # of sdfc, we get the calculation of tc, which is fc/(sdfc/sqrt(df)), where the sdfc/sqrt(df) term
+      # is the calculation of SE(fc).
+
+      # result is vector with one std dev of fc for each construct
+      # sdfc[i] <-
+      #  sqrtsum(c(xfit1[i, g1], xfit2[i, g2]) - c(x1[i, g1], x2[i, g2])) /
+      #  sqrtsum(c(time[g1], time[g2]) - mean(c(time[g1], time[g2])))
+
+    }
+
+    write.table(format(as.data.frame(lambda1), digits = 7), file = 'lambda1.txt', sep = "\t", row.names = FALSE, quote = FALSE)
+    write.table(format(as.data.frame(lambda2), digits = 7), file = 'lambda2.txt', sep = "\t", row.names = FALSE, quote = FALSE)
+    write.table(format(as.data.frame(xfit2), digits = 7), file = 'xfit2.txt', sep = "\t", row.names = FALSE, quote = FALSE)
+    write.table(format(as.data.frame(df), digits = 7), file = 'df.txt', sep = "\t", row.names = FALSE, quote = FALSE)
+
+
+    #find median sd
+    has_sd <- df > 0
+    median_sd <- median(sdfc[has_sd])
+    sdfc[!has_sd] <- median_sd #just so it isn't 0
+
     # I suspect that "df" is "degrees of freedom" for each construct
     df[i] <- sum(g1) + sum(g2) - 2
 
@@ -747,7 +809,7 @@ prepData <- function(X, nt) {
 
   good <-
     (X$target_a_id != X$target_b_id) #reject any constructs where both probes are for same gene (including both zero)
-  goodX <- X[good, ] #the 0-0 constructs are gone
+  goodX <- X[good, ] #the constructs are gone
   nn <- sum(good) #this many constructs
 
   cpA <- as.character(goodX$probe_a_id)
@@ -1375,10 +1437,10 @@ writeConstructFitnessesFile <- function(outputDir, project, pA_pB, fc, sdfc) {
 }
 
 prepDataAndCheckAbundances <- function(X, nt, abundanceThreshsDf){
-  gPreppedData <- prepData(X, nt)
-  abundance = gPreppedData$abundance
-  y = gPreppedData$y
-  pA_pB = gPreppedData$pA_pB
+  preppedData <- prepData(X, nt)
+  abundance = preppedData$abundance
+  y = preppedData$y
+  pA_pB = preppedData$pA_pB
 
   # ab0 is the vector of log2 frequency abundance thresholds, e.g.,
   # array([-19. , -18.5, -18.5, -19. , -19. , -19. , -19. , -19. ])
@@ -1402,7 +1464,7 @@ prepDataAndCheckAbundances <- function(X, nt, abundanceThreshsDf){
   repInfo2 = list(constructLog2FreqsByTimept = x2, log2FreqAbundanceThreshByTimept = ab2, perConstructDf = perConstructDf2)
   perRepInfo = list(repInfo1, repInfo2)
 
-  return(list(n = gPreppedData$n, genes = gPreppedData$genes, nn = gPreppedData$nn, probes = gPreppedData$probes, pA_pB = pA_pB, perRepInfo = perRepInfo))
+  return(list(n = preppedData$n, genes = preppedData$genes, nn = preppedData$nn, probes = preppedData$probes, pA_pB = pA_pB, perRepInfo = perRepInfo))
 }
 
 plotFcVsPostProbOfFc <- function(fc, pp_fc, allbad) {
@@ -1479,6 +1541,7 @@ if (gRun) {
   # after this cell, these 4 are used again one more time considerably later--in the call to plot_fit that makes
   # Log2 Frequency vs Time Plots for Constructs with Large Fitness File Output
   gFitAcFcResults <- fit_ac_fc(gPerRepInfo, nt)
+  print("finished fit_ac_fc")
 
   # TODO: 2-replicate assumption is baked into outputs of fit_ac_fc function
   a1 <- gFitAcFcResults$perRepInfo[[1]]$perConstructDf$log2FreqInitialCondition # a1 is the initial condition (in log2 frequency) for each construct c for replicate 1

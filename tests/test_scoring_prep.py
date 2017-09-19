@@ -19,32 +19,37 @@ class TestFunctions(unittest.TestCase):
     # region read_timepoint_from_standardized_count_header
 
     def test_read_timepoint_from_standardized_count_header_valid(self):
-        real_output = ns_test.read_timepoint_from_standardized_count_header("PGP1MV4_t4_1", ["T","D"])
-        self.assertEqual(4, real_output)
+        real_output = ns_test.read_timepoint_and_replicate_from_standardized_count_header("PGP1MV4_t4_1")
+        self.assertEqual((4, 1), real_output)
 
-        real_output2 = ns_test.read_timepoint_from_standardized_count_header("PGP1MV4_d40_1", ["T","D"])
-        self.assertEqual(40, real_output2)
+        real_output2 = ns_test.read_timepoint_and_replicate_from_standardized_count_header("PGP1MV4_d40_28")
+        self.assertEqual((40, 28), real_output2)
+
+        real_output3 = ns_test.read_timepoint_and_replicate_from_standardized_count_header("PGP1MV4_d40_A")
+        self.assertEqual((40, "A"), real_output3)
+
+        # Note that read_timepoint_and_replicate_from_standardized_count_header does NOT validate the timepoint prefix,
+        # since (as the function name states) it is expecting to take in a previously-standardized header.
+        real_output4 = ns_test.read_timepoint_and_replicate_from_standardized_count_header("PGP1MV4_q40_1")
+        self.assertEqual((40, 1), real_output4)
 
     def test_read_timepoint_from_standardized_count_header_invalid_timept(self):
         with self.assertRaises(ValueError):
-            ns_test.read_timepoint_from_standardized_count_header("PGP1MV4_q4_1", ["T","D"])
+            ns_test.read_timepoint_and_replicate_from_standardized_count_header("PGP1MV4_test40_1")
 
         with self.assertRaises(ValueError):
-            ns_test.read_timepoint_from_standardized_count_header("PGP1MV4_test40_1", ["T","D"])
+            ns_test.read_timepoint_and_replicate_from_standardized_count_header("PGP1MV4_t-40_1")
 
         with self.assertRaises(ValueError):
-            ns_test.read_timepoint_from_standardized_count_header("PGP1MV4_t-40_1", ["T","D"])
-
-        with self.assertRaises(ValueError):
-            ns_test.read_timepoint_from_standardized_count_header("PGP1MV4_t4.1_1", ["T","D"])
+            ns_test.read_timepoint_and_replicate_from_standardized_count_header("PGP1MV4_t4.1_1")
 
     def test_read_timepoint_from_standardized_count_header_invalid_header_too_few_pieces(self):
         with self.assertRaises(ValueError):
-            ns_test.read_timepoint_from_standardized_count_header("PGP1MV4-t4.1-1", ["T","D"])
+            ns_test.read_timepoint_and_replicate_from_standardized_count_header("PGP1MV4-t4.1-1")
 
     def test_read_timepoint_from_standardized_count_header_invalid_header_too_many_pieces(self):
         with self.assertRaises(ValueError):
-            ns_test.read_timepoint_from_standardized_count_header("PGP1_MV4_t4.1_1", ["T","D"])
+            ns_test.read_timepoint_and_replicate_from_standardized_count_header("PGP1_MV4_t4.1_1")
 
     # end region
 
@@ -54,20 +59,26 @@ class TestFunctions(unittest.TestCase):
 # min_trimmed_grna_len = 19
 # max_trimmed_grna_len = 21
 construct_id	target_a_id	probe_a_id	probe_a_seq	target_b_id	probe_b_id	probe_b_seq	FinalSequence	Gene_A_chr	Gene_A_pos	Gene_B_chr	Gene_B_pos
-NonTargetingControlGuideForHuman0412__FLT3_chr13_28636131	NonTargetingControlGuideForHuman0412_NA	NonTargetingControlGuideForHuman0412	GCACGCTGTACAGACGACAA	FLT3-5	FLT3_chr13_28636131	GCGAGGCGCGCCGCTCCAGG	NonTargetingControlGuideForHuman0412_NA__FLT3-5	tatatatcttgtggaaaggacgaaacACCGGCACGCTGTACAGACGACAAGTTTTgagacgTAGGGATAACAGGGTAATcgtctcGTTTGGCGAGGCGCGCCGCTCCAGGGTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGGCT	146
-HDAC1_chr1_32757816__NonTargetingControlGuideForHuman0412	HDAC1-1	HDAC1_chr1_32757816	gcgctcgcgcccggacgcgg	NonTargetingControlGuideForHuman0412_NA	NonTargetingControlGuideForHuman0412	GCACGCTGTACAGACGACAA	HDAC1-1__NonTargetingControlGuideForHuman0412_NA	tatatatcttgtggaaaggacgaaacACCGGACCGACTGACGGTAGGGACGTTTTgagacgTAGGGATAACAGGGTAATcgtctcGTTTGGCACGCTGTACAGACGACAAGTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGGCT	146
-FGFR2_chr10_123298215__NonTargetingControlGuideForHuman0412	FGFR2-13	FGFR2_chr10_123298215	gcgcggccgccACAAAGCTC	NonTargetingControlGuideForHuman0412_NA	NonTargetingControlGuideForHuman0412	GCACGCTGTACAGACGACAA	FGFR2-13__NonTargetingControlGuideForHuman0412_NA	tatatatcttgtggaaaggacgaaacACCGgcgcggccgccACAAAGCTCGTTTTgagacgTAGGGATAACAGGGTAATcgtctcGTTTGGCACGCTGTACAGACGACAAGTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGGCT	146
+NonTargetingControlGuideForHuman0412__FLT3_chr13_28636131	NonTargetingControlGuideForHuman0412	NonTargetingControlGuideForHuman0412	GCACGCTGTACAGACGACAA	FLT3	FLT3_chr13_28636131	GCGAGGCGCGCCGCTCCAGG	NonTargetingControlGuideForHuman0412__FLT3	tatatatcttgtggaaaggacgaaacACCGGCACGCTGTACAGACGACAAGTTTTgagacgTAGGGATAACAGGGTAATcgtctcGTTTGGCGAGGCGCGCCGCTCCAGGGTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGGCT	146
+HDAC1_chr1_32757816__NonTargetingControlGuideForHuman0412	HDAC1	HDAC1_chr1_32757816	gcgctcgcgcccggacgcgg	NonTargetingControlGuideForHuman0412	NonTargetingControlGuideForHuman0412	GCACGCTGTACAGACGACAA	HDAC1__NonTargetingControlGuideForHuman0412	tatatatcttgtggaaaggacgaaacACCGGACCGACTGACGGTAGGGACGTTTTgagacgTAGGGATAACAGGGTAATcgtctcGTTTGGCACGCTGTACAGACGACAAGTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGGCT	146
+FGFR2_chr10_123298215__NonTargetingControlGuideForHuman0412	FGFR2	FGFR2_chr10_123298215	gcgcggccgccACAAAGCTC	NonTargetingControlGuideForHuman0412	NonTargetingControlGuideForHuman0412	GCACGCTGTACAGACGACAA	FGFR2__NonTargetingControlGuideForHuman0412	tatatatcttgtggaaaggacgaaacACCGgcgcggccgccACAAAGCTCGTTTTgagacgTAGGGATAACAGGGTAATcgtctcGTTTGGCACGCTGTACAGACGACAAGTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGGCT	146
 """
         count_file_str = """construct_id	PGP1_MV4_t3_2_S9_trimmed53_len_filtered_counts	PGP1-MV4_t21_2_S9_trimmed53_len_filtered_counts
 NonTargetingControlGuideForHuman0412__FLT3_chr13_28636131	40	1874
 HDAC1_chr1_32757816__NonTargetingControlGuideForHuman0412	0	37
 FGFR2_chr10_123298215__NonTargetingControlGuideForHuman0412	1938	1736
 """
-        merge_df_str = """construct_id	probe_a_id	probe_b_id	target_a_id	target_b_id	PGP1MV4_T3_2	PGP1MV4_T21_2
-NonTargetingControlGuideForHuman0412__FLT3_chr13_28636131	FLT3_chr13_28636131	NonTargetingControlGuideForHuman0412	FLT3-5	NonTargetingControlGuideForHuman0412_NA	40	1874
-HDAC1_chr1_32757816__NonTargetingControlGuideForHuman0412	HDAC1_chr1_32757816	NonTargetingControlGuideForHuman0412	HDAC1-1	NonTargetingControlGuideForHuman0412_NA	0	37
-FGFR2_chr10_123298215__NonTargetingControlGuideForHuman0412	FGFR2_chr10_123298215	NonTargetingControlGuideForHuman0412	FGFR2-13	NonTargetingControlGuideForHuman0412_NA	1938	1736
+
+        merge_df_str = """construct_id	target_a_id	probe_a_id	target_b_id	probe_b_id	target_pair_id	probe_pair_id	PGP1MV4_T3_2	PGP1MV4_T21_2
+NonTargetingControlGuideForHuman0412__FLT3_chr13_28636131	FLT3	FLT3_chr13_28636131	NonTargetingControlGuideForHuman0412	NonTargetingControlGuideForHuman0412	FLT3_NonTargetingControlGuideForHuman0412	FLT3_chr13_28636131__NonTargetingControlGuideForHuman0412	40	1874
+HDAC1_chr1_32757816__NonTargetingControlGuideForHuman0412	HDAC1	HDAC1_chr1_32757816	NonTargetingControlGuideForHuman0412	NonTargetingControlGuideForHuman0412	HDAC1_NonTargetingControlGuideForHuman0412	HDAC1_chr1_32757816__NonTargetingControlGuideForHuman0412	0	37
+FGFR2_chr10_123298215__NonTargetingControlGuideForHuman0412	FGFR2	FGFR2_chr10_123298215	NonTargetingControlGuideForHuman0412	NonTargetingControlGuideForHuman0412	FGFR2_NonTargetingControlGuideForHuman0412	FGFR2_chr10_123298215__NonTargetingControlGuideForHuman0412	1938	1736
 """
+#         merge_df_str = """construct_id	probe_a_id	probe_b_id	target_a_id	target_b_id	PGP1MV4_T3_2	PGP1MV4_T21_2
+# NonTargetingControlGuideForHuman0412__FLT3_chr13_28636131	FLT3_chr13_28636131	NonTargetingControlGuideForHuman0412	FLT3-5	NonTargetingControlGuideForHuman0412_NA	40	1874
+# HDAC1_chr1_32757816__NonTargetingControlGuideForHuman0412	HDAC1_chr1_32757816	NonTargetingControlGuideForHuman0412	HDAC1-1	NonTargetingControlGuideForHuman0412_NA	0	37
+# FGFR2_chr10_123298215__NonTargetingControlGuideForHuman0412	FGFR2_chr10_123298215	NonTargetingControlGuideForHuman0412	FGFR2-13	NonTargetingControlGuideForHuman0412_NA	1938	1736
+# """
         merge_df_file_obj = io.StringIO(merge_df_str)
         expected_output = pandas.read_table(merge_df_file_obj)
 
@@ -92,6 +103,21 @@ FGFR2_chr10_123298215__NonTargetingControlGuideForHuman0412\t1938\t1736
         count_file_df = pandas.read_table(count_file_obj, sep="\t")
         real_output = ns_test._get_orig_count_headers(count_file_df)
         self.assertListEqual(expected_output, real_output)
+
+    # end region
+
+    # region _validate_count_header_structure
+    def test__validate_count_header_structure(self):
+        real_output2 = ns_test._validate_standard_count_header_structure("PGP1MV4_t21_2")
+        self.assertEqual(["PGP1MV4", 't21', '2'], real_output2)
+
+    def test__validate_count_header_structure_too_many_pieces(self):
+        with self.assertRaises(ValueError):
+            ns_test._validate_standard_count_header_structure("PGP1_MV4_t21_2_S9_trimmed53_len_filtered_counts")
+
+    def test__validate_count_header_structure_too_few_pieces(self):
+        with self.assertRaises(ValueError):
+            ns_test._validate_standard_count_header_structure("PGP1MV4")
 
     # end region
 
@@ -148,6 +174,11 @@ FGFR2_chr10_123298215__NonTargetingControlGuideForHuman0412\t1938\t1736
         real_output_2 = ns_test._validate_and_standardize_timepoint("T40", ["T","D"])
         self.assertEqual(expected_output, real_output_2)
 
+        # if the timepoint prefix list is None, then validation of the prefix letter will be skipped, so ANY
+        # character at that position will be valid.  But the remainder must still be a nonneg integer
+        real_output_3 = ns_test._validate_and_standardize_timepoint("q40", None)
+        self.assertEqual(expected_output, real_output_3)
+
     def test__validate_and_standardize_timepoint_invalid_letter(self):
         with self.assertRaises(ValueError):
             ns_test._validate_and_standardize_timepoint("r40", ["T","D"])
@@ -161,6 +192,11 @@ FGFR2_chr10_123298215__NonTargetingControlGuideForHuman0412\t1938\t1736
 
         with self.assertRaises(ValueError):
             ns_test._validate_and_standardize_timepoint("t4.1", ["T","D"])
+
+        # if the timepoint prefix list is None, then validation of the prefix letter will be skipped, so ANY
+        # character at that position will be valid.  But the remainder must still be a nonneg integer
+        with self.assertRaises(ValueError):
+            ns_test._validate_and_standardize_timepoint("q4.1", None)
 
     # end region
 
@@ -285,9 +321,9 @@ FGFR2_chr10_123298215__NonTargetingControlGuideForHuman0412\t1938\t1736
                         "A549rerun-MV4_t20_1_S3_trimmed53_len_filtered_counts"]
 
         expected_error_msg = """The following error(s) were detected during count file parsing:
-Column header 'A549-MV4-t14-2_S4_trimmed53_len_filtered_counts' separates on the '_' delimiter into the following 1 piece(s) instead of the expected 2: 2.
+Column header 'A549-MV4-t14-2_S4_trimmed53_len_filtered_counts' separates on the '_' delimiter into the following 1 piece(s), which is fewer than the expected 2: ['A549-MV4-t14-2'].
 Time point 'q28' does not start with upper or lower case versions of any of the expected prefixes T, D.
-Time point value '14.1' is not recognizable as a positive integer.
+Time point value '14.1' is not recognizable as a non-negative integer.
 The following pair of column headers both appear to represent the same timepoint and replicate: 'A549rerun-MV4_t3_1_S2_trimmed53_len_filtered_counts', 'A549-MV4_t3_1_S1_trimmed53_len_filtered_counts'.  Please modify the inputs to remove this ambiguity.
 The following pair of column headers both appear to represent the same timepoint and replicate: 'A549rerun-MV4_t20_1_S3_trimmed53_len_filtered_counts', 'A549-MV4_t20_1_S5_trimmed53_len_filtered_counts'.  Please modify the inputs to remove this ambiguity."""
         with self.assertRaises(ValueError) as valerr:
@@ -297,79 +333,81 @@ The following pair of column headers both appear to represent the same timepoint
     # end region
 
     # region _generate_scoring_friendly_annotation
-    def test__generate_scoring_friendly_annotation(self):
-        input_str = """0	construct_id	2	target_a_id	4	5	probe_a_id	probe_a_seq	target_b_id	9	10	probe_b_id	probe_b_seq
-1	BRCA1_chr17_41276018__NonTargetingControlGuideForHuman0412	tatatatcttgtggaaaggacgaaacACCGTCTTGTGCTGACTTACCAGAGTTTcAGAGCTAtgctgGAAActgcaTAGCAAGTTgAAATAAGGCTAGTCCGTTATCAACTTGAAAAAGTGGCACCGAGTCGGTGCTTTTTTGTACTGAGtCGCCCaGTCTCAGATAGATCCGACGCCGCCATCTCTAGGCCCGCGCCGGCCCCCTCGCACAGACTTGTGGGAGAAGCTCGGCTACTCCCCTGCCCCGGTTAATTTGCATATAATATTTCCTAGTAACTATAGAGGCTTAATGTGCGATAAAAGAGGCACGCTGTACAGACGACAAGTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGG	BRCA1	chr17	41276018	BRCA1_chr17_41276018	TCTTGTGCTGACTTACCAGA	NonTargetingControlGuideForHuman0412			NonTargetingControlGuideForHuman0412	GCACGCTGTACAGACGACAA
-2	NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	tatatatcttgtggaaaggacgaaacACCGGCCATTCTAGTCCCGGCATAGTTTcAGAGCTAtgctgGAAActgcaTAGCAAGTTgAAATAAGGCTAGTCCGTTATCAACTTGAAAAAGTGGCACCGAGTCGGTGCTTTTTTGTACTGAGtCGCCCaGTCTCAGATAGATCCGACGCCGCCATCTCTAGGCCCGCGCCGGCCCCCTCGCACAGACTTGTGGGAGAAGCTCGGCTACTCCCCTGCCCCGGTTAATTTGCATATAATATTTCCTAGTAACTATAGAGGCTTAATGTGCGATAAAAGAGAACGTTAACTCTGAGCCTGAGTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGG	NonTargetingControlGuideForHuman0352			NonTargetingControlGuideForHuman0352	GCCATTCTAGTCCCGGCATA	SETD2	chr3	47142972	SETD2_chr3_47142972	AACGTTAACTCTGAGCCTGA
-3	BRCA1_chr17_41256141__NonTargetingControlGuideForHuman0362	tatatatcttgtggaaaggacgaaacACCGTGAACCCGAAAATCCTTCCTGTTTcAGAGCTAtgctgGAAActgcaTAGCAAGTTgAAATAAGGCTAGTCCGTTATCAACTTGAAAAAGTGGCACCGAGTCGGTGCTTTTTTGTACTGAGtCGCCCaGTCTCAGATAGATCCGACGCCGCCATCTCTAGGCCCGCGCCGGCCCCCTCGCACAGACTTGTGGGAGAAGCTCGGCTACTCCCCTGCCCCGGTTAATTTGCATATAATATTTCCTAGTAACTATAGAGGCTTAATGTGCGATAAAAGAGGAGTGATGCTTAGACTCCGTGTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGG	BRCA1	chr17	41256141	BRCA1_chr17_41256141	TGAACCCGAAAATCCTTCCT	NonTargetingControlGuideForHuman0362			NonTargetingControlGuideForHuman0362	GAGTGATGCTTAGACTCCGT"""
-        expected_output_str = """	construct_id	target_a_id	probe_a_id	target_b_id	probe_b_id	target_pair_id	probe_pair_id
-0	BRCA1_chr17_41276018__NonTargetingControlGuideForHuman0412	BRCA1	BRCA1_chr17_41276018	NonTargetingControlGuideForHuman0412	NonTargetingControlGuideForHuman0412	BRCA1_NonTargetingControlGuideForHuman0412	BRCA1_chr17_41276018__NonTargetingControlGuideForHuman0412
-1	NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	NonTargetingControlGuideForHuman0352	NonTargetingControlGuideForHuman0352	SETD2	SETD2_chr3_47142972	NonTargetingControlGuideForHuman0352_SETD2	NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972
-2	BRCA1_chr17_41256141__NonTargetingControlGuideForHuman0362	BRCA1	BRCA1_chr17_41256141	NonTargetingControlGuideForHuman0362	NonTargetingControlGuideForHuman0362	BRCA1_NonTargetingControlGuideForHuman0362	BRCA1_chr17_41256141__NonTargetingControlGuideForHuman0362
-"""
+# This test is for the "old" (pre-scoring-refactor) version of _generate_scoring_friendly_annotation
+#     def test__generate_scoring_friendly_annotation(self):
+#         input_str = """0	construct_id	2	target_a_id	4	5	probe_a_id	probe_a_seq	target_b_id	9	10	probe_b_id	probe_b_seq
+# 1	BRCA1_chr17_41276018__NonTargetingControlGuideForHuman0412	tatatatcttgtggaaaggacgaaacACCGTCTTGTGCTGACTTACCAGAGTTTcAGAGCTAtgctgGAAActgcaTAGCAAGTTgAAATAAGGCTAGTCCGTTATCAACTTGAAAAAGTGGCACCGAGTCGGTGCTTTTTTGTACTGAGtCGCCCaGTCTCAGATAGATCCGACGCCGCCATCTCTAGGCCCGCGCCGGCCCCCTCGCACAGACTTGTGGGAGAAGCTCGGCTACTCCCCTGCCCCGGTTAATTTGCATATAATATTTCCTAGTAACTATAGAGGCTTAATGTGCGATAAAAGAGGCACGCTGTACAGACGACAAGTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGG	BRCA1	chr17	41276018	BRCA1_chr17_41276018	TCTTGTGCTGACTTACCAGA	NonTargetingControlGuideForHuman0412			NonTargetingControlGuideForHuman0412	GCACGCTGTACAGACGACAA
+# 2	NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	tatatatcttgtggaaaggacgaaacACCGGCCATTCTAGTCCCGGCATAGTTTcAGAGCTAtgctgGAAActgcaTAGCAAGTTgAAATAAGGCTAGTCCGTTATCAACTTGAAAAAGTGGCACCGAGTCGGTGCTTTTTTGTACTGAGtCGCCCaGTCTCAGATAGATCCGACGCCGCCATCTCTAGGCCCGCGCCGGCCCCCTCGCACAGACTTGTGGGAGAAGCTCGGCTACTCCCCTGCCCCGGTTAATTTGCATATAATATTTCCTAGTAACTATAGAGGCTTAATGTGCGATAAAAGAGAACGTTAACTCTGAGCCTGAGTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGG	NonTargetingControlGuideForHuman0352			NonTargetingControlGuideForHuman0352	GCCATTCTAGTCCCGGCATA	SETD2	chr3	47142972	SETD2_chr3_47142972	AACGTTAACTCTGAGCCTGA
+# 3	BRCA1_chr17_41256141__NonTargetingControlGuideForHuman0362	tatatatcttgtggaaaggacgaaacACCGTGAACCCGAAAATCCTTCCTGTTTcAGAGCTAtgctgGAAActgcaTAGCAAGTTgAAATAAGGCTAGTCCGTTATCAACTTGAAAAAGTGGCACCGAGTCGGTGCTTTTTTGTACTGAGtCGCCCaGTCTCAGATAGATCCGACGCCGCCATCTCTAGGCCCGCGCCGGCCCCCTCGCACAGACTTGTGGGAGAAGCTCGGCTACTCCCCTGCCCCGGTTAATTTGCATATAATATTTCCTAGTAACTATAGAGGCTTAATGTGCGATAAAAGAGGAGTGATGCTTAGACTCCGTGTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGG	BRCA1	chr17	41256141	BRCA1_chr17_41256141	TGAACCCGAAAATCCTTCCT	NonTargetingControlGuideForHuman0362			NonTargetingControlGuideForHuman0362	GAGTGATGCTTAGACTCCGT"""
+#         expected_output_str = """	construct_id	target_a_id	probe_a_id	target_b_id	probe_b_id	target_pair_id	probe_pair_id
+# 0	BRCA1_chr17_41276018__NonTargetingControlGuideForHuman0412	BRCA1	BRCA1_chr17_41276018	NonTargetingControlGuideForHuman0412	NonTargetingControlGuideForHuman0412	BRCA1_NonTargetingControlGuideForHuman0412	BRCA1_chr17_41276018__NonTargetingControlGuideForHuman0412
+# 1	NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	NonTargetingControlGuideForHuman0352	NonTargetingControlGuideForHuman0352	SETD2	SETD2_chr3_47142972	NonTargetingControlGuideForHuman0352_SETD2	NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972
+# 2	BRCA1_chr17_41256141__NonTargetingControlGuideForHuman0362	BRCA1	BRCA1_chr17_41256141	NonTargetingControlGuideForHuman0362	NonTargetingControlGuideForHuman0362	BRCA1_NonTargetingControlGuideForHuman0362	BRCA1_chr17_41256141__NonTargetingControlGuideForHuman0362
+# """
+#
+#         input_df = pandas.read_csv(io.StringIO(input_str), sep="\t")
+#         expected_output_df = pandas.read_csv(io.StringIO(expected_output_str), sep="\t")
+#         real_output_df = ns_test._generate_scoring_friendly_annotation(input_df)
+#
+#         expected_column_headers = [ns_extractor.get_construct_header(),
+#                                    ns_extractor.get_probe_id_header("a"), ns_extractor.get_probe_id_header("b"),
+#                                    ns_extractor.get_target_id_header("a"), ns_extractor.get_target_id_header("b")]
+#         self.assertEqual(expected_column_headers, real_output_df.columns.values.tolist())
+#
+#         # these dfs aren't equal, but some of their columns should be:
+#         self.assertEqual(expected_output_df[ns_extractor.get_construct_header()].tolist(),
+#                          real_output_df[ns_extractor.get_construct_header()].tolist())
+#         self.assertEqual(expected_output_df[ns_extractor.get_target_id_header("a")].tolist(),
+#                          real_output_df[ns_extractor.get_target_id_header("a")].tolist())
+#         self.assertEqual(expected_output_df[ns_extractor.get_target_id_header("b")].tolist(),
+#                          real_output_df[ns_extractor.get_target_id_header("b")].tolist())
+#         self.assertEqual(expected_output_df[ns_extractor.get_probe_id_header("a")].tolist(),
+#                          real_output_df[ns_extractor.get_probe_id_header("a")].tolist())
+#         self.assertEqual(expected_output_df[ns_extractor.get_probe_id_header("b")].tolist(),
+#                          real_output_df[ns_extractor.get_probe_id_header("b")].tolist())
 
-        input_df = pandas.read_csv(io.StringIO(input_str), sep="\t")
-        expected_output_df = pandas.read_csv(io.StringIO(expected_output_str), sep="\t")
-        real_output_df = ns_test._generate_scoring_friendly_annotation(input_df)
 
-        expected_column_headers = [ns_extractor.get_construct_header(),
-                                   ns_extractor.get_probe_id_header("a"), ns_extractor.get_probe_id_header("b"),
-                                   ns_extractor.get_target_id_header("a"), ns_extractor.get_target_id_header("b")]
-        self.assertEqual(expected_column_headers, real_output_df.columns.values.tolist())
+        def test__generate_scoring_friendly_annotation(self):
+            input_str = """0	construct_id	2	target_a_id	4	5	probe_a_id	probe_a_seq	target_b_id	9	10	probe_b_id	probe_b_seq
+    1	BRCA1_chr17_41276018__NonTargetingControlGuideForHuman0412	tatatatcttgtggaaaggacgaaacACCGTCTTGTGCTGACTTACCAGAGTTTcAGAGCTAtgctgGAAActgcaTAGCAAGTTgAAATAAGGCTAGTCCGTTATCAACTTGAAAAAGTGGCACCGAGTCGGTGCTTTTTTGTACTGAGtCGCCCaGTCTCAGATAGATCCGACGCCGCCATCTCTAGGCCCGCGCCGGCCCCCTCGCACAGACTTGTGGGAGAAGCTCGGCTACTCCCCTGCCCCGGTTAATTTGCATATAATATTTCCTAGTAACTATAGAGGCTTAATGTGCGATAAAAGAGGCACGCTGTACAGACGACAAGTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGG	BRCA1	chr17	41276018	BRCA1_chr17_41276018	TCTTGTGCTGACTTACCAGA	NonTargetingControlGuideForHuman0412			NonTargetingControlGuideForHuman0412	GCACGCTGTACAGACGACAA
+    2	NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	tatatatcttgtggaaaggacgaaacACCGGCCATTCTAGTCCCGGCATAGTTTcAGAGCTAtgctgGAAActgcaTAGCAAGTTgAAATAAGGCTAGTCCGTTATCAACTTGAAAAAGTGGCACCGAGTCGGTGCTTTTTTGTACTGAGtCGCCCaGTCTCAGATAGATCCGACGCCGCCATCTCTAGGCCCGCGCCGGCCCCCTCGCACAGACTTGTGGGAGAAGCTCGGCTACTCCCCTGCCCCGGTTAATTTGCATATAATATTTCCTAGTAACTATAGAGGCTTAATGTGCGATAAAAGAGAACGTTAACTCTGAGCCTGAGTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGG	NonTargetingControlGuideForHuman0352			NonTargetingControlGuideForHuman0352	GCCATTCTAGTCCCGGCATA	SETD2	chr3	47142972	SETD2_chr3_47142972	AACGTTAACTCTGAGCCTGA
+    3	BRCA1_chr17_41256141__NonTargetingControlGuideForHuman0362	tatatatcttgtggaaaggacgaaacACCGTGAACCCGAAAATCCTTCCTGTTTcAGAGCTAtgctgGAAActgcaTAGCAAGTTgAAATAAGGCTAGTCCGTTATCAACTTGAAAAAGTGGCACCGAGTCGGTGCTTTTTTGTACTGAGtCGCCCaGTCTCAGATAGATCCGACGCCGCCATCTCTAGGCCCGCGCCGGCCCCCTCGCACAGACTTGTGGGAGAAGCTCGGCTACTCCCCTGCCCCGGTTAATTTGCATATAATATTTCCTAGTAACTATAGAGGCTTAATGTGCGATAAAAGAGGAGTGATGCTTAGACTCCGTGTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGG	BRCA1	chr17	41256141	BRCA1_chr17_41256141	TGAACCCGAAAATCCTTCCT	NonTargetingControlGuideForHuman0362			NonTargetingControlGuideForHuman0362	GAGTGATGCTTAGACTCCGT"""
+            expected_output_str = """	construct_id	target_a_id	probe_a_id	target_b_id	probe_b_id	target_pair_id	probe_pair_id
+    0	BRCA1_chr17_41276018__NonTargetingControlGuideForHuman0412	BRCA1	BRCA1_chr17_41276018	NonTargetingControlGuideForHuman0412	NonTargetingControlGuideForHuman0412	BRCA1_NonTargetingControlGuideForHuman0412	BRCA1_chr17_41276018__NonTargetingControlGuideForHuman0412
+    1	NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	NonTargetingControlGuideForHuman0352	NonTargetingControlGuideForHuman0352	SETD2	SETD2_chr3_47142972	NonTargetingControlGuideForHuman0352_SETD2	NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972
+    2	BRCA1_chr17_41256141__NonTargetingControlGuideForHuman0362	BRCA1	BRCA1_chr17_41256141	NonTargetingControlGuideForHuman0362	NonTargetingControlGuideForHuman0362	BRCA1_NonTargetingControlGuideForHuman0362	BRCA1_chr17_41256141__NonTargetingControlGuideForHuman0362
+    """
 
-        # these dfs aren't equal, but some of their columns should be:
-        self.assertEqual(expected_output_df[ns_extractor.get_construct_header()].tolist(),
-                         real_output_df[ns_extractor.get_construct_header()].tolist())
-        self.assertEqual(expected_output_df[ns_extractor.get_target_id_header("a")].tolist(),
-                         real_output_df[ns_extractor.get_target_id_header("a")].tolist())
-        self.assertEqual(expected_output_df[ns_extractor.get_target_id_header("b")].tolist(),
-                         real_output_df[ns_extractor.get_target_id_header("b")].tolist())
-        self.assertEqual(expected_output_df[ns_extractor.get_probe_id_header("a")].tolist(),
-                         real_output_df[ns_extractor.get_probe_id_header("a")].tolist())
-        self.assertEqual(expected_output_df[ns_extractor.get_probe_id_header("b")].tolist(),
-                         real_output_df[ns_extractor.get_probe_id_header("b")].tolist())
+            input_df = pandas.read_csv(io.StringIO(input_str), sep="\t")
+            expected_output_df = pandas.read_csv(io.StringIO(expected_output_str), sep="\t")
+            real_output_df = ns_test._generate_scoring_friendly_annotation(input_df)
 
-    # This test represents what I'm trying to refactor the scoring data prep code to accept; not there yet.
-    #     def test__generate_scoring_friendly_annotation(self):
-    #         input_str = """0	construct_id	2	target_a_id	4	5	probe_a_id	probe_a_seq	target_b_id	9	10	probe_b_id	probe_b_seq
-    # 1	BRCA1_chr17_41276018__NonTargetingControlGuideForHuman0412	tatatatcttgtggaaaggacgaaacACCGTCTTGTGCTGACTTACCAGAGTTTcAGAGCTAtgctgGAAActgcaTAGCAAGTTgAAATAAGGCTAGTCCGTTATCAACTTGAAAAAGTGGCACCGAGTCGGTGCTTTTTTGTACTGAGtCGCCCaGTCTCAGATAGATCCGACGCCGCCATCTCTAGGCCCGCGCCGGCCCCCTCGCACAGACTTGTGGGAGAAGCTCGGCTACTCCCCTGCCCCGGTTAATTTGCATATAATATTTCCTAGTAACTATAGAGGCTTAATGTGCGATAAAAGAGGCACGCTGTACAGACGACAAGTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGG	BRCA1	chr17	41276018	BRCA1_chr17_41276018	TCTTGTGCTGACTTACCAGA	NonTargetingControlGuideForHuman0412			NonTargetingControlGuideForHuman0412	GCACGCTGTACAGACGACAA
-    # 2	NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	tatatatcttgtggaaaggacgaaacACCGGCCATTCTAGTCCCGGCATAGTTTcAGAGCTAtgctgGAAActgcaTAGCAAGTTgAAATAAGGCTAGTCCGTTATCAACTTGAAAAAGTGGCACCGAGTCGGTGCTTTTTTGTACTGAGtCGCCCaGTCTCAGATAGATCCGACGCCGCCATCTCTAGGCCCGCGCCGGCCCCCTCGCACAGACTTGTGGGAGAAGCTCGGCTACTCCCCTGCCCCGGTTAATTTGCATATAATATTTCCTAGTAACTATAGAGGCTTAATGTGCGATAAAAGAGAACGTTAACTCTGAGCCTGAGTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGG	NonTargetingControlGuideForHuman0352			NonTargetingControlGuideForHuman0352	GCCATTCTAGTCCCGGCATA	SETD2	chr3	47142972	SETD2_chr3_47142972	AACGTTAACTCTGAGCCTGA
-    # 3	BRCA1_chr17_41256141__NonTargetingControlGuideForHuman0362	tatatatcttgtggaaaggacgaaacACCGTGAACCCGAAAATCCTTCCTGTTTcAGAGCTAtgctgGAAActgcaTAGCAAGTTgAAATAAGGCTAGTCCGTTATCAACTTGAAAAAGTGGCACCGAGTCGGTGCTTTTTTGTACTGAGtCGCCCaGTCTCAGATAGATCCGACGCCGCCATCTCTAGGCCCGCGCCGGCCCCCTCGCACAGACTTGTGGGAGAAGCTCGGCTACTCCCCTGCCCCGGTTAATTTGCATATAATATTTCCTAGTAACTATAGAGGCTTAATGTGCGATAAAAGAGGAGTGATGCTTAGACTCCGTGTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGG	BRCA1	chr17	41256141	BRCA1_chr17_41256141	TGAACCCGAAAATCCTTCCT	NonTargetingControlGuideForHuman0362			NonTargetingControlGuideForHuman0362	GAGTGATGCTTAGACTCCGT"""
-    #         expected_output_str = """	construct_id	target_a_id	probe_a_id	target_b_id	probe_b_id	target_pair_id	probe_pair_id
-    # 0	BRCA1_chr17_41276018__NonTargetingControlGuideForHuman0412	BRCA1	BRCA1_chr17_41276018	NonTargetingControlGuideForHuman0412	NonTargetingControlGuideForHuman0412	BRCA1_NonTargetingControlGuideForHuman0412	BRCA1_chr17_41276018__NonTargetingControlGuideForHuman0412
-    # 1	NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	NonTargetingControlGuideForHuman0352	NonTargetingControlGuideForHuman0352	SETD2	SETD2_chr3_47142972	NonTargetingControlGuideForHuman0352_SETD2	NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972
-    # 2	BRCA1_chr17_41256141__NonTargetingControlGuideForHuman0362	BRCA1	BRCA1_chr17_41256141	NonTargetingControlGuideForHuman0362	NonTargetingControlGuideForHuman0362	BRCA1_NonTargetingControlGuideForHuman0362	BRCA1_chr17_41256141__NonTargetingControlGuideForHuman0362
-    # """
-    #
-    #         input_df = pandas.read_csv(io.StringIO(input_str), sep="\t")
-    #         expected_output_df = pandas.read_csv(io.StringIO(expected_output_str), sep="\t")
-    #         real_output_df = _generate_scoring_friendly_annotation(input_df)
-    #
-    #         expected_column_headers = [get_construct_header(), get_target_id_header("a"),
-    #                                    get_probe_id_header("a"), get_target_id_header("b"), get_probe_id_header("b"),
-    #                                    get_target_pair_id_header(), get_probe_pair_id_header()]
-    #         self.assertEqual(expected_column_headers, real_output_df.columns.values.tolist())
-    #
-    #         # these dfs aren't equal, but some of their columns should be:
-    #         self.assertEqual(expected_output_df[get_construct_header()].tolist(),
-    #                          real_output_df[get_construct_header()].tolist())
-    #         self.assertEqual(expected_output_df[get_target_id_header("a")].tolist(),
-    #                          real_output_df[get_target_id_header("a")].tolist())
-    #         self.assertEqual(expected_output_df[get_target_id_header("b")].tolist(),
-    #                          real_output_df[get_target_id_header("b")].tolist())
-    #         self.assertEqual(expected_output_df[get_probe_id_header("a")].tolist(),
-    #                          real_output_df[get_probe_id_header("a")].tolist())
-    #         self.assertEqual(expected_output_df[get_probe_id_header("b")].tolist(),
-    #                          real_output_df[get_probe_id_header("b")].tolist())
-    #         self.assertEqual(expected_output_df[get_target_pair_id_header()].tolist(),
-    #                          real_output_df[get_target_pair_id_header()].tolist())
-    #         self.assertEqual(expected_output_df[get_probe_pair_id_header()].tolist(),
-    #                          real_output_df[get_probe_pair_id_header()].tolist())
+            expected_column_headers = [ns_extractor.get_construct_header(), ns_extractor.get_target_id_header("a"),
+                                       ns_extractor.get_probe_id_header("a"), ns_extractor.get_target_id_header("b"),
+                                       ns_extractor.get_probe_id_header("b"),
+                                       ns_extractor.get_target_pair_id_header(),
+                                       ns_extractor.get_probe_pair_id_header()]
+            self.assertEqual(expected_column_headers, real_output_df.columns.values.tolist())
+
+            # these dfs aren't equal, but some of their columns should be:
+            self.assertEqual(expected_output_df[ns_extractor.get_construct_header()].tolist(),
+                             real_output_df[ns_extractor.get_construct_header()].tolist())
+            self.assertEqual(expected_output_df[ns_extractor.get_target_id_header("a")].tolist(),
+                             real_output_df[ns_extractor.get_target_id_header("a")].tolist())
+            self.assertEqual(expected_output_df[ns_extractor.get_target_id_header("b")].tolist(),
+                             real_output_df[ns_extractor.get_target_id_header("b")].tolist())
+            self.assertEqual(expected_output_df[ns_extractor.get_probe_id_header("a")].tolist(),
+                             real_output_df[ns_extractor.get_probe_id_header("a")].tolist())
+            self.assertEqual(expected_output_df[ns_extractor.get_probe_id_header("b")].tolist(),
+                             real_output_df[ns_extractor.get_probe_id_header("b")].tolist())
+            self.assertEqual(expected_output_df[ns_extractor.get_target_pair_id_header()].tolist(),
+                             real_output_df[ns_extractor.get_target_pair_id_header()].tolist())
+            self.assertEqual(expected_output_df[ns_extractor.get_probe_pair_id_header()].tolist(),
+                             real_output_df[ns_extractor.get_probe_pair_id_header()].tolist())
 
     # end region
 
     # region _recompose_count_header
-
     def test__recompose_count_header(self):
         input_prefixes = ["T","t","D","d"]
         expected_output = "A549MV4_T3_1"

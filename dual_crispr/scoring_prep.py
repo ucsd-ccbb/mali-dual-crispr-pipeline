@@ -27,16 +27,14 @@ def get_abundance_thresh_file_suffix():
     return "abundance_thresholds.txt"
 
 
-def read_timepoint_from_standardized_count_header(count_header, time_prefixes_list):
-    count_header_pieces = count_header.split(ns_extracter.get_header_divider())
-    if len(count_header_pieces) != _get_num_header_pieces() + 1:
-        # +1 because we expect a standardized header, which has the experiment id added to it
-        raise ValueError("Column header '{0}' splits into an unexpected number of pieces ({1})".format(
-            count_header, len(count_header_pieces)
-        ))
-
+def read_timepoint_and_replicate_from_standardized_count_header(count_header):
+    count_header_pieces = _validate_standard_count_header_structure(count_header)
     timepoint_str = count_header_pieces[_get_timepoint_index()]
-    return _validate_and_standardize_timepoint(timepoint_str, time_prefixes_list)
+    timepoint = _validate_and_standardize_timepoint(timepoint_str, time_prefixes_list=None)
+
+    replicate_str = count_header_pieces[_get_replicate_index()]
+    replicate = _validate_and_standardize_replicate(replicate_str)
+    return (timepoint, replicate)
 
 
 def merge_and_annotate_counts(count_file_fps, constructs_fp, dataset_name, time_prefixes_list,
@@ -65,8 +63,24 @@ def merge_and_annotate_counts(count_file_fps, constructs_fp, dataset_name, time_
     return joined_df.loc[:, sorted_col_headers]
 
 
+def _validate_standard_count_header_structure(count_header):
+    count_header_pieces = count_header.split(ns_extracter.get_header_divider())
+    # +1 because we expect a standardized header, which has the experiment id added to it
+    expected_num_pieces = _get_num_header_pieces() + 1
+    if len(count_header_pieces) != expected_num_pieces:
+        raise ValueError("Column header '{0}' splits into {1} piece(s) instead of the expected {2}".format(
+            count_header, len(count_header_pieces), expected_num_pieces
+        ))
+
+    return count_header_pieces
+
+
 def _get_timepoint_index():
     return -2
+
+
+def _get_replicate_index():
+    return -1
 
 
 def _get_num_header_pieces():
@@ -139,33 +153,38 @@ def _validate_and_standardize_timept_and_replicate(count_header, time_prefixes_l
     count_header_pieces = trimmed_count_header.split(ns_extracter.get_header_divider())
 
     num_expected_pieces = _get_num_header_pieces()
+    # NB: At this point, an error is thrown ONLY if the header does not separate into ENOUGH pieces, not if it
+    # separates into too many.  This is because the most likely reason for separating into too many (even after
+    # clipping) is that the experiment id is not strictly alphanumeric, and I want to give a more specific error
+    # about that to better help inexperienced users to debug.
     if len(count_header_pieces) < num_expected_pieces:
-        raise ValueError("Column header '{0}' separates on the '{1}' delimiter into the following {2} piece(s) instead of the expected {3}: "
-                         "{3}.".format(count_header, ns_extracter.get_header_divider(), len(count_header_pieces),
+        raise ValueError("Column header '{0}' separates on the '{1}' delimiter into the following {2} piece(s), which is fewer than the expected {3}: "
+                         "{4}.".format(count_header, ns_extracter.get_header_divider(), len(count_header_pieces),
                                        num_expected_pieces, count_header_pieces))
 
     timept = _validate_and_standardize_timepoint(count_header_pieces[_get_timepoint_index()],
                                                  time_prefixes_list)
-    replicate = _validate_and_standardize_replicate(count_header_pieces[-1])
+    replicate = _validate_and_standardize_replicate(count_header_pieces[_get_replicate_index()])
     return timept, replicate
 
 
 def _validate_and_standardize_timepoint(timept, time_prefixes_list):
     if isinstance(timept, str):
-        # ensure timepoint is "t" or "T" plus a non-negative integer number
-        expected_timepoint_prefixes = [x.upper() for x in time_prefixes_list]
-        timepoint_prefix = timept[:1]
-        if timepoint_prefix.upper() not in expected_timepoint_prefixes:
-            raise ValueError("Time point '{0}' does not start with upper or lower case versions of any of the "
-                             "expected prefixes {1}.".format(
-                timept, ", ".join(time_prefixes_list)))
+        # validate the prefix if a prefix list is passed in
+        if time_prefixes_list is not None:
+            expected_timepoint_prefixes = [x.upper() for x in time_prefixes_list]
+            timepoint_prefix = timept[:1]
+            if timepoint_prefix.upper() not in expected_timepoint_prefixes:
+                raise ValueError("Time point '{0}' does not start with upper or lower case versions of any of the "
+                                 "expected prefixes {1}.".format(
+                    timept, ", ".join(time_prefixes_list)))
 
         timept = timept[1:]
     else:
         timept = str(timept)
 
     if not timept.isdigit():
-        raise ValueError("Time point value '{0}' is not recognizable as a positive integer.".format(
+        raise ValueError("Time point value '{0}' is not recognizable as a non-negative integer.".format(
             timept))
 
     return int(timept)
@@ -241,44 +260,47 @@ def _validate_expt_structure(expt_structure_by_id):
 def _generate_scoring_friendly_annotation(annotation_df):
     construct_id_header = ns_extracter.get_construct_header()
 
-    result = annotation_df.loc[:, [construct_id_header,
-                                   ns_extracter.get_probe_id_header("a"),
-                                   ns_extracter.get_probe_id_header("b"),
-                                   ns_extracter.get_target_id_header("a"),
-                                   ns_extracter.get_target_id_header("b")
-                                   ]]
+    # result = annotation_df.loc[:, [construct_id_header,
+    #                                ns_extracter.get_probe_id_header("a"),
+    #                                ns_extracter.get_probe_id_header("b"),
+    #                                ns_extracter.get_target_id_header("a"),
+    #                                ns_extracter.get_target_id_header("b")
+    #                                ]]
 
     # Below is what I expect the output to be after scoring data prep code is refactored to accept more
     # detail (and generate less itself).
-    # result = annotation_df.loc[:, (construct_id_header, ns_extracter.get_target_id_header("a"),
-    #                                ns_extracter.get_probe_id_header("a"),
-    #                                ns_extracter.get_target_id_header("b"),
-    #                                ns_extracter.get_probe_id_header("b"))]
-    # target_pair_id_header = ns_extracter.get_target_pair_id_header()
-    # probe_pair_id_header = ns_extracter.get_probe_pair_id_header()
+
+    # NB: If changing the below code, also change the get_annotation_headers method!
+    result = annotation_df.loc[:, (construct_id_header, ns_extracter.get_target_id_header("a"),
+                                   ns_extracter.get_probe_id_header("a"),
+                                   ns_extracter.get_target_id_header("b"),
+                                   ns_extracter.get_probe_id_header("b"))]
+    target_pair_id_header = ns_extracter.get_target_pair_id_header()
+    probe_pair_id_header = ns_extracter.get_probe_pair_id_header()
     # Note: the below column creations could be done without using apply (i.e., by
     # just writing "df[colA] + divider + df[colB]") but I used apply because I want
     # to centralize the code that creates these strings, and sometimes it needs to work
     # on a single pair of variables rather than columns of variables, so it needed to be
     # a non-vectorized function.
-    # result[target_pair_id_header] = result.apply(_compose_target_pair_id, axis=1)
-    # result[probe_pair_id_header] = result.apply(_compose_probe_pair_id, axis=1)
+    result[target_pair_id_header] = result.apply(_compose_target_pair_id, axis=1)
+    result[probe_pair_id_header] = result.apply(_compose_probe_pair_id, axis=1)
     return result
 
-# def _compose_probe_pair_id(row):
-#     return ns_extracter.compose_probe_pair_id_from_probe_ids(row[ns_extracter.get_probe_id_header("a")],
-#                                                 row[ns_extracter.get_probe_id_header("b")])
-#
-#
-# def _compose_target_pair_id(row):
-#     return ns_extracter.compose_target_pair_id_from_target_ids(row[ns_extracter.get_target_id_header("a")],
-#                                                   row[ns_extracter.get_target_id_header("b")])
+
+def _compose_probe_pair_id(row):
+    return ns_extracter.compose_probe_pair_id_from_probe_ids(row[ns_extracter.get_probe_id_header("a")],
+                                                row[ns_extracter.get_probe_id_header("b")])
+
+
+def _compose_target_pair_id(row):
+    return ns_extracter.compose_target_pair_id_from_target_ids(row[ns_extracter.get_target_id_header("a")],
+                                                  row[ns_extracter.get_target_id_header("b")])
 
 
 def _sort_headers(headers_list, expt_id, time_prefixes_list):
     # headers need to be sorted first by timepoint *as a number* and then by replicate *as a number*
     # the expt id should be irrelevant to the sorting as it should be the same for all headers
-    header_tuples_list = [_validate_and_standardize_header_pieces(x, expt_id,time_prefixes_list) for x in headers_list]
+    header_tuples_list = [_validate_and_standardize_header_pieces(x, expt_id, time_prefixes_list) for x in headers_list]
     sorted_header_tuples_list = sorted(header_tuples_list)
     result = [_recompose_count_header(*x, time_prefixes_list=time_prefixes_list) for x in sorted_header_tuples_list]
     return result
