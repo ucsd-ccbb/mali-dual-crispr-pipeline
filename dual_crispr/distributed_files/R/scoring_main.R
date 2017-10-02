@@ -235,11 +235,10 @@ fit_ac_fc <- function(perRepInfo, nt) {
 
     }
 
-    write.table(format(as.data.frame(lambda1), digits = 7), file = 'lambda1.txt', sep = "\t", row.names = FALSE, quote = FALSE)
-    write.table(format(as.data.frame(lambda2), digits = 7), file = 'lambda2.txt', sep = "\t", row.names = FALSE, quote = FALSE)
-    write.table(format(as.data.frame(xfit2), digits = 7), file = 'xfit2.txt', sep = "\t", row.names = FALSE, quote = FALSE)
-    write.table(format(as.data.frame(df), digits = 7), file = 'df.txt', sep = "\t", row.names = FALSE, quote = FALSE)
-
+    # write.table(format(as.data.frame(lambda1), digits = 7), file = 'lambda1.txt', sep = "\t", row.names = FALSE, quote = FALSE)
+    # write.table(format(as.data.frame(lambda2), digits = 7), file = 'lambda2.txt', sep = "\t", row.names = FALSE, quote = FALSE)
+    # write.table(format(as.data.frame(xfit2), digits = 7), file = 'xfit2.txt', sep = "\t", row.names = FALSE, quote = FALSE)
+    # write.table(format(as.data.frame(df), digits = 7), file = 'df.txt', sep = "\t", row.names = FALSE, quote = FALSE)
 
     #find median sd
     has_sd <- df > 0
@@ -279,6 +278,9 @@ fit_ac_fc <- function(perRepInfo, nt) {
       sqrtsum(c(time[g1], time[g2]) - mean(c(time[g1], time[g2])))
 
   }
+
+  write.table(format(as.data.frame(sdfc), digits = 7), file = 'naive_sdfc.txt', sep = "\t", row.names = FALSE, quote = FALSE)
+
   #find median sd
   has_sd <- df > 0
   median_sd <- median(sdfc[has_sd])

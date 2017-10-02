@@ -32,8 +32,10 @@ def access_test_file_as_df(file_name, sub_folder=None, col_index_to_use_as_index
     return test_data_df
 
 
-def access_test_file_as_series(file_name, sub_folder=None, clear_index_name=False, set_index=False):
-    test_data_df = access_test_file_as_df(file_name, sub_folder=sub_folder, col_index_to_use_as_index=0)
+def access_test_file_as_series(file_name, sub_folder=None, col_index_to_use_as_index=0, clear_index_name=False,
+                               set_index=False):
+    test_data_df = access_test_file_as_df(file_name, sub_folder=sub_folder,
+                                          col_index_to_use_as_index=col_index_to_use_as_index)
     return _make_series_from_df(test_data_df, clear_index_name=clear_index_name, set_index=set_index)
 
 
@@ -177,21 +179,12 @@ NonTargetingControlGuideForHuman0412__PIK3R1_chr5_67576410	299	294	208	829
         pandas.util.testing.assert_series_equal(expected_output, per_rep_data.timepoints_series)
 
 
-# Ok, yes, this class should be in test_scorer.py.  But it can't be because that causes a circular reference
+# Ok, yes, this class should be in test_construct_fitness_estimator.py.  But it can't be because that causes a circular reference
 # (since test_scorer has to reference test_fitted_per_replicate_data, but test_fitted_per_replicate_data has
 # to ALSO reference test_scorer if test_scorer holds help_make_naive_fcs_series).
 class TestScorer:
     @staticmethod
-    def help_make_naive_fcs_series():
-        """
-
-        Returns:
-            pandas.Series
-        """
-        return access_test_file_as_series("6_postposteriorprobplot_fc_new.txt", clear_index_name=True)
-
-    @staticmethod
-    def _help_make_multiindex_df():
+    def help_make_multiindex_df():
         expected_output_fp = get_test_file_path("multiindex_descriptive_stats_corrected.txt")
         expected_output_df = pandas.read_csv(expected_output_fp, sep="\t", skiprows=1, index_col=0)
         # the multiindex in the test file contains the correct info, but pandas reads the integers levels in as
@@ -202,3 +195,21 @@ class TestScorer:
                                                                         'covariance_of_log2_fractions_w_timepoints']],
                                                        labels=[[0, 0, 0, 0, 1, 1, 1, 1], [0, 1, 2, 3, 0, 1, 2, 3]])
         return expected_output_df
+
+    @staticmethod
+    def help_make_naive_fcs_series():
+        """
+
+        Returns:
+            pandas.Series
+        """
+        return access_test_file_as_series("6_postposteriorprobplot_fc_new.txt", clear_index_name=True)
+
+    @staticmethod
+    def help_make_stddev_of_unnormed_fitness_per_construct_related_df():
+        """
+
+        Returns:
+            pandas.DataFrame
+        """
+        return access_test_file_as_df("df_has_sd_and_sdfc.txt")

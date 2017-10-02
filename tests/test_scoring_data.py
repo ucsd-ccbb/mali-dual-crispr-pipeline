@@ -23,22 +23,22 @@ class TestScoringData(unittest.TestCase):
         scoring_prepped_df = pandas.read_csv(io.StringIO(input_str), sep="\t")
         return ns_test.ScoringData(scoring_prepped_df, "NonTargeting", _run_init_methods=False)
 
-    def test__rename_non_targeting_gene(self):
-        input_str = """construct_id	target_a_id	probe_a_id	target_b_id	probe_b_id	target_pair_id	probe_pair_id
-0	BRCA1_chr17_41276018__NonTargetingControlGuideForHuman0412	BRCA1	BRCA1_chr17_41276018	NonTargetingControlGuideForHuman0412	NonTargetingControlGuideForHuman0412	BRCA1_NonTargetingControlGuideForHuman0412	BRCA1_chr17_41276018__NonTargetingControlGuideForHuman0412
-1	NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	NonTargetingControlGuideForHuman0352	NonTargetingControlGuideForHuman0352	SETD2	SETD2_chr3_47142972	NonTargetingControlGuideForHuman0352_SETD2	NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972
-2	BRCA1_chr17_41256141__NonTargetingControlGuideForHuman0362	BRCA1	BRCA1_chr17_41256141	NonTargetingControlGuideForHuman0362	NonTargetingControlGuideForHuman0362	BRCA1_NonTargetingControlGuideForHuman0362	BRCA1_chr17_41256141__NonTargetingControlGuideForHuman0362
-"""
-        expected_output_str = """construct_id	target_a_id	probe_a_id	target_b_id	probe_b_id	target_pair_id	probe_pair_id
-0	BRCA1_chr17_41276018__NonTargetingControlGuideForHuman0412	BRCA1	BRCA1_chr17_41276018	0	NonTargetingControlGuideForHuman0412	BRCA1_NonTargetingControlGuideForHuman0412	BRCA1_chr17_41276018__NonTargetingControlGuideForHuman0412
-1	NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	0	NonTargetingControlGuideForHuman0352	SETD2	SETD2_chr3_47142972	NonTargetingControlGuideForHuman0352_SETD2	NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972
-2	BRCA1_chr17_41256141__NonTargetingControlGuideForHuman0362	BRCA1	BRCA1_chr17_41256141	0	NonTargetingControlGuideForHuman0362	BRCA1_NonTargetingControlGuideForHuman0362	BRCA1_chr17_41256141__NonTargetingControlGuideForHuman0362
-"""
-        scoring_data = TestScoringData.help_make_scoring_data(input_str)
-        scoring_data._rename_non_targeting_gene()
-
-        expected_output = ns_help.help_make_df(expected_output_str)
-        self.assertTrue(expected_output.equals(scoring_data._input_counts_and_annotation_df))
+#     def test__rename_non_targeting_gene(self):
+#         input_str = """construct_id	target_a_id	probe_a_id	target_b_id	probe_b_id	target_pair_id	probe_pair_id
+# 0	BRCA1_chr17_41276018__NonTargetingControlGuideForHuman0412	BRCA1	BRCA1_chr17_41276018	NonTargetingControlGuideForHuman0412	NonTargetingControlGuideForHuman0412	BRCA1_NonTargetingControlGuideForHuman0412	BRCA1_chr17_41276018__NonTargetingControlGuideForHuman0412
+# 1	NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	NonTargetingControlGuideForHuman0352	NonTargetingControlGuideForHuman0352	SETD2	SETD2_chr3_47142972	NonTargetingControlGuideForHuman0352_SETD2	NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972
+# 2	BRCA1_chr17_41256141__NonTargetingControlGuideForHuman0362	BRCA1	BRCA1_chr17_41256141	NonTargetingControlGuideForHuman0362	NonTargetingControlGuideForHuman0362	BRCA1_NonTargetingControlGuideForHuman0362	BRCA1_chr17_41256141__NonTargetingControlGuideForHuman0362
+# """
+#         expected_output_str = """construct_id	target_a_id	probe_a_id	target_b_id	probe_b_id	target_pair_id	probe_pair_id
+# 0	BRCA1_chr17_41276018__NonTargetingControlGuideForHuman0412	BRCA1	BRCA1_chr17_41276018	0	NonTargetingControlGuideForHuman0412	BRCA1_NonTargetingControlGuideForHuman0412	BRCA1_chr17_41276018__NonTargetingControlGuideForHuman0412
+# 1	NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972	0	NonTargetingControlGuideForHuman0352	SETD2	SETD2_chr3_47142972	NonTargetingControlGuideForHuman0352_SETD2	NonTargetingControlGuideForHuman0352__SETD2_chr3_47142972
+# 2	BRCA1_chr17_41256141__NonTargetingControlGuideForHuman0362	BRCA1	BRCA1_chr17_41256141	0	NonTargetingControlGuideForHuman0362	BRCA1_NonTargetingControlGuideForHuman0362	BRCA1_chr17_41256141__NonTargetingControlGuideForHuman0362
+# """
+#         scoring_data = TestScoringData.help_make_scoring_data(input_str)
+#         scoring_data._rename_non_targeting_gene()
+#
+#         expected_output = ns_help.help_make_df(expected_output_str)
+#         self.assertTrue(expected_output.equals(scoring_data._input_counts_and_annotation_df))
 
     def test__remove_constructs_w_both_probes_targeting_same_target_id(self):
         input_str = """construct_id	target_a_id	probe_a_id	target_b_id	probe_b_id	target_pair_id	probe_pair_id	A549CV4_T21_1	A549CV4_T21_2	A549CV4_T28_1	A549CV4_T28_2
@@ -350,6 +350,9 @@ NonTargetingControlGuideForHuman0412__PIK3R1_chr5_67576410	-2.314055	-1.274878
                 real_item._log2_fractions_thresholds_by_timepoints_series.round(decimals=6)))
             self.assertTrue(expected_item._log2_fractions_by_constructs_by_timepoints_df.round(decimals=6).equals(
                 real_item._log2_fractions_by_constructs_by_timepoints_df.round(decimals=6)))
+
+    def test_annotate_per_construct_series(self):
+        self.fail("test not implemented")
 
     def test_main_functionality(self):
         input_data_df = ns_help.access_test_file_as_df("TestSet8_timepoint_counts_new.txt", col_index_to_use_as_index=None)

@@ -53,14 +53,25 @@ def generate_thresholded_per_rep_data_from_per_rep_data(
     return result
 
 
-# Note: these functions are NOT methods of the ThresholdedRpeplicateData object--even though that is the only
+# Note: the below functions are NOT methods of the ThresholdedRpeplicateData object--even though that is the only
 # entity that uses their functionality--because they should not be available to a ThresholdedReplicateData object
 # after it is created.  That is, once you've run _generate_descriptive_statistics_by_construct, you should not be
 # running it again on the ThresholdedPerReplicateData object later, and more importantly, a FittedPerReplicateData
 # object derived from a ThresholdedPerReplicateData should NOT have a _generate_descriptive_statistics_by_construct
 # method.
-def _get_constructs_to_ignore_mask_series(log2_fractions_by_constructs_by_timepoints_df,
-                                          log2_fractions_thresholds_by_timepoints_series,
+
+
+# Function generalizes functionality from Roman's MethodII.R line 26 & 28, shown below with additional comments by ab:
+#    # ab: x1 is log2 frequencies for the 1st replicate of all timepts
+#    # ab: ab1 is abundance thresholds for all 1st replicates
+#    good1 < -t(t(x1) > ab1)
+#    # ab: g1 = true/false values of whether construct i passes various abundance filters for all timepoints for the
+#    # ab: first replicate.
+#    # ab: 2 = min_num_timepoints_above_abundance_threshold
+#    useless1 < -apply(good1, 1, sum) < 2
+# Note that the R code does not parameterize min_num_timepoints_above_abundance_threshold but this code does.
+def _get_constructs_to_ignore_mask_series(log2_fractions_by_constructs_by_timepoints_df,   # i.e., x1
+                                          log2_fractions_thresholds_by_timepoints_series,  # i.e., ab1
                                           min_num_timepoints_above_abundance_threshold):
     """
 
@@ -80,6 +91,15 @@ def _get_constructs_to_ignore_mask_series(log2_fractions_by_constructs_by_timepo
     return fails_min_num_timepts_bool_by_construct_series
 
 
+# Function generalizes functionality from Roman's MethodII.R line 26 & 30, shown below with additional comments by ab:
+#    # ab: x1 is log2 frequencies for the 1st replicate of all timepts
+#    # ab: ab1 is abundance thresholds for all 1st replicates
+#    good1 < -t(t(x1) > ab1)
+#    # ab: g1 = true/false values of whether construct i passes various abundance filters for all timepoints for the
+#    # ab: first replicate.
+#    # ab: useless1 = fails_min_num_timepts_bool_by_construct_series
+#    good1[useless1,]<-FALSE #remove singletons
+# Note that the R code does not parameterize min_num_timepoints_above_abundance_threshold but this code does.
 def _get_usable_constructs_by_timepoints_mask_df(log2_fractions_by_constructs_by_timepoints_df,
                                                  log2_fractions_thresholds_by_timepoints_series,
                                                  fails_min_num_timepts_bool_by_construct_series):
@@ -93,8 +113,14 @@ def _get_usable_constructs_by_timepoints_mask_df(log2_fractions_by_constructs_by
     return passes_threshold_bool_by_construct_by_timept_df
 
 
-def _get_passes_threshold_bool_by_construct_by_timept_df(log2_fractions_by_constructs_by_timepoints_df,
-                                                         log2_fractions_thresholds_by_timepoints_series):
+# Function generalizes functionality from Roman's MethodII.R line 26, shown below with additional comments by ab:
+#    # ab: x1 is log2 frequencies for the 1st replicate of all timepts
+#    # ab: ab1 is abundance thresholds for all 1st replicates
+#    # ab: constructs as rows, timept for 1st replicates ONLY as cols, cell values are 0/FALSE, 1/TRUE for whether log2
+#    # ab: freq for row/col combination is above relevant abundance threshold
+#    good1<-t(t(x1)>ab1)
+def _get_passes_threshold_bool_by_construct_by_timept_df(log2_fractions_by_constructs_by_timepoints_df,    # i.e., x1
+                                                         log2_fractions_thresholds_by_timepoints_series):  # i.e, ab1
     """
     Get construct x timepoint dataframe of booleans of whether each combination was above abundance threshold
 
@@ -106,9 +132,29 @@ def _get_passes_threshold_bool_by_construct_by_timept_df(log2_fractions_by_const
     return passes_threshold_bool_by_construct_by_timept_df
 
 
-def _generate_descriptive_statistics_by_construct(log2_fractions_by_constructs_by_timepoints_df,
-                                                  usable_constructs_by_timepoint_mask):
-    # get the mean of the log2 fractions for all the good timepoints for each construct in this replicate
+# Function generalizes functionality from Roman's MethodII.R lines 51-56, shown below with additional comments by ab:
+#       # ab: i = construct index
+#       # ab: g1 = true/false values of whether construct i passes various abundance filters for all timepoints for the
+#       # ab: first replicate
+#       # ab: x1 is log2 frequencies for the 1st replicate of all timepts
+#       # ab: if there are at least two good timepoints for this construct in replicate 1
+#       if (sum(g1)>1) { #it's a good experiment
+#          # ab: get the mean of the log2 frequencies for all the good timepoints for this construct in replicate 1
+#          mx1<-mean(x1[i,g1])
+#          # ab: get mean of timepoints (e.g. mean number of days) for all the good timepoints for this construct in
+#          # ab: replicate 1
+#          mt1<-mean(time[g1]) # ab: time is GLOBAL vector of timepoints (numbers, usually in days, in ascending order)
+#          # ab: get variance of timepoints (e.g. mean number of days) for all the good timepoints for this construct in
+#          # ab: replicate 1
+#          v1<-Var(time[g1])
+#          # ab: f1 = covariance of log2 frequencies for all the good timepoints for this construct in replicate 1 with
+#          # ab: the timepoints for those good timepoints
+#          f1<-Cov(x1[i,g1],time[g1])
+#       }
+# Note that the code above performs operations for a single construct at a time, while the code here calculates these
+# values for all constructs at the same time.
+def _generate_descriptive_statistics_by_construct(log2_fractions_by_constructs_by_timepoints_df,   # i.e., x1
+                                                  usable_constructs_by_timepoint_mask):            # i.e., g1
     """
 
     Returns:
@@ -140,10 +186,10 @@ def _generate_descriptive_statistics_by_construct(log2_fractions_by_constructs_b
               variance_usable_timepoints_by_construct_series, covariance_per_construct_series]
     descriptive_stats_df = pandas.concat(series, axis=1)
     descriptive_stats_df.columns = [
-        ThresholdedPerReplicateData.get_mean_usable_log2_fraction_for_construct_header(),
-        ThresholdedPerReplicateData.get_mean_of_usable_timepoints_header(),
-        ThresholdedPerReplicateData.get_variance_of_usable_timepoints_header(),
-        ThresholdedPerReplicateData.get_covariance_of_log2_fractions_w_timepoints_header()]
+        ThresholdedPerReplicateData.get_mean_usable_log2_fraction_for_construct_header(),  # called mx# in Roman's code
+        ThresholdedPerReplicateData.get_mean_of_usable_timepoints_header(),                # called mt# in Roman's code
+        ThresholdedPerReplicateData.get_variance_of_usable_timepoints_header(),            # called v# in Roman's code
+        ThresholdedPerReplicateData.get_covariance_of_log2_fractions_w_timepoints_header()]  # called f# in Roman's code
     return descriptive_stats_df
 
 
@@ -182,6 +228,7 @@ def _calculate_covariance_by_construct_series(usable_log2_fractions_by_construct
     cov_by_construct_series.fillna(0, inplace=True)  # set anything with covariance of NaN to have covariance of 0
     return cov_by_construct_series
 
+# TODO: Decide if I can get rid of these implementations--no longer needed?
 # def _calculate_descriptive_statistics_for_construct_info(construct_info_series,
 #                                                          fails_min_num_timepts_bool_by_construct_series,
 #                                                          usable_constructs_by_timepoint_mask):

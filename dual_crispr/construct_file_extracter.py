@@ -54,6 +54,12 @@ def get_probe_pair_id_header():
     return _PROBE_PAIR_ID
 
 
+def get_gene_probe_tuple_header(probe_letter):
+    # Note: don't just use input probe_letter directly in case they put in something OTHER than A or B
+    letter = "A" if _is_letter_a(probe_letter) else "B"
+    return "gene_probe_{0}_tuple".format(letter)
+
+
 def get_comment_char():
     return "#"
 
