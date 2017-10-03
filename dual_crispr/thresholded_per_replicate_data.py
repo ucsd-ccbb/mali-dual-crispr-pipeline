@@ -61,7 +61,8 @@ def generate_thresholded_per_rep_data_from_per_rep_data(
 # method.
 
 
-# Function generalizes functionality from Roman's MethodII.R line 26 & 28, shown below with additional comments by ab:
+# Function generalizes functionality from Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R line 27 & 29,
+# shown below with additional comments by ab:
 #    # ab: x1 is log2 frequencies for the 1st replicate of all timepts
 #    # ab: ab1 is abundance thresholds for all 1st replicates
 #    good1 < -t(t(x1) > ab1)
@@ -91,7 +92,8 @@ def _get_constructs_to_ignore_mask_series(log2_fractions_by_constructs_by_timepo
     return fails_min_num_timepts_bool_by_construct_series
 
 
-# Function generalizes functionality from Roman's MethodII.R line 26 & 30, shown below with additional comments by ab:
+# Function generalizes functionality from Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R line 27 & 31,
+# shown below with additional comments by ab:
 #    # ab: x1 is log2 frequencies for the 1st replicate of all timepts
 #    # ab: ab1 is abundance thresholds for all 1st replicates
 #    good1 < -t(t(x1) > ab1)
@@ -113,7 +115,8 @@ def _get_usable_constructs_by_timepoints_mask_df(log2_fractions_by_constructs_by
     return passes_threshold_bool_by_construct_by_timept_df
 
 
-# Function generalizes functionality from Roman's MethodII.R line 26, shown below with additional comments by ab:
+# Function generalizes functionality from Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R line 27,
+# shown below with additional comments by ab:
 #    # ab: x1 is log2 frequencies for the 1st replicate of all timepts
 #    # ab: ab1 is abundance thresholds for all 1st replicates
 #    # ab: constructs as rows, timept for 1st replicates ONLY as cols, cell values are 0/FALSE, 1/TRUE for whether log2
@@ -132,7 +135,8 @@ def _get_passes_threshold_bool_by_construct_by_timept_df(log2_fractions_by_const
     return passes_threshold_bool_by_construct_by_timept_df
 
 
-# Function generalizes functionality from Roman's MethodII.R lines 51-56, shown below with additional comments by ab:
+# Function generalizes functionality from Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R lines 52-57,
+# shown below with additional comments by ab:
 #       # ab: i = construct index
 #       # ab: g1 = true/false values of whether construct i passes various abundance filters for all timepoints for the
 #       # ab: first replicate

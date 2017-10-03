@@ -31,7 +31,8 @@ def get_num_timepoints(any_per_rep_data_list):
     return len(any_per_rep_data_list[0].timepoints_series)
 
 
-# Function generalizes functionality from Roman's MethodII.R lines 21-127, shown below with additional comments by ab:
+# Function generalizes functionality from Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R lines 22-130,
+# shown below with additional comments by ab:
 #
 # ab: x1 is log2 frequencies for the 1st replicate of all timepts
 # ab: x2 is log2 frequencies for the 2nd replicate of all timepts
@@ -183,8 +184,10 @@ def get_num_timepoints(any_per_rep_data_list):
 #       # ab: if this construct doesn't have enough "good" measurements, skip it
 #       if (allbad[i]) next
 #
-#       # ab: reminder: g1 = true/false values of whether construct i passes various abundance filters for all
+#       # ab: g1 = true/false values of whether construct i passes various abundance filters for all
 #       # ab: timepoints for the first replicate; g2 is analogous
+#       g1 <- good1[i,]
+#       g2 <- good2[i,]
 #       # ab: df = vector w one entry for each construct, with value from 0 to -2; 0 if both replicates of relevant
 #       # ab: construct are good, -1 if just one is, -2 if neither are
 #       # ab: I suspect that "df" is "degrees of freedom" for each construct
@@ -294,7 +297,8 @@ def temp_fit_ac_fc(per_replicate_data_list, min_num_timepoints_above_abundance_t
            stddev_unnormed_fitness_per_construct_series, unnormed_fitness_posterior_prob_per_construct_series
 
 
-# Function generalizes functionality from Roman's MethodII.R line 34, shown below with additional comments by ab:
+# Function generalizes functionality from Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R line 35,
+# shown below with additional comments by ab:
 #    # ab: allbad is true for all constructs that lack at least 2 acceptable-abundance timepoints in BOTH experiments
 #    allbad<-apply(good1,1,sum)<2 & apply(good2,1,sum)<2 #in this case I have nothing to use in either experiment
 # Note that the R code requires 2 and only 2 replicates, while this code is agnostic as to replicate number.
@@ -312,7 +316,8 @@ def _get_constructs_to_ignore_across_replicates_mask(thresholded_per_rep_data_li
     return constructs_to_ignore_across_replicates_series  # i.e., allbad
 
 
-# Function generalizes functionality from Roman's MethodII.R line 65, shown below with additional comments by ab:
+# Function generalizes functionality from Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R line 66,
+# shown below with additional comments by ab:
 #       # ab: i = construct index
 #       # ab: v1 = variance of timepoints (e.g. mean number of days) for all the good timepoints for this construct in
 #       # ab: replicate 1, v2 is analogous
@@ -341,10 +346,13 @@ def _generate_unnormed_fitness_per_construct_series(thresholded_per_rep_data_lis
     return fitness_per_construct_across_replicates_series  # i.e., fc
 
 
-# Function generalizes functionality from Roman's MethodII.R line 102-109, shown below with additional comments by ab:
+# Function generalizes functionality from Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R line 103-112,
+# shown below with additional comments by ab:
 #       # ab: i = construct index
-#       # ab: reminder: g1 = true/false values of whether construct i passes various abundance filters for all
+#       # ab: g1 = true/false values of whether construct i passes various abundance filters for all
 #       # ab: timepoints for the first replicate; g2 is analogous
+#       g1 <- good1[i,]
+#       g2 <- good2[i,]
 #       # ab: df = vector w one entry for each construct, with value from 0 to -2; 0 if both replicates of relevant
 #       # ab: construct are good, -1 if just one is, -2 if neither are
 #       # ab: I suspect that "df" is "degrees of freedom" for each construct
@@ -438,14 +446,14 @@ def _generate_stddev_of_unnormed_fitness_per_construct_related_df(fitted_per_rep
     return result
 
 
-# Function implements MethodII.R line 19:
+# Function implements analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R line 19:
 # sqrtsum<-function(y) sqrt(sum(y^2))
 def _calculate_sqrt_of_sum_of_squares(one_d_array):
     return math.sqrt(numpy.sum(numpy.square(one_d_array)))
 
 
-# Function generalizes functionality from Roman's MethodII.R line 112-119 as well as 439, shown below with additional
-# comments by ab:
+# Function generalizes functionality from Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R line 115-122
+# as well as 442, shown below with additional comments by ab:
 #    # ab: for 1 to number of constructs
 #    for (i in 1:nx) {
 #       # ab: don't try to calculate t statistic and p value for any fc that doesn't have a stderr

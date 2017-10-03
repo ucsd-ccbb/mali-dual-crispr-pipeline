@@ -14,7 +14,8 @@ __status__ = "development"
 
 
 class ScoringData:
-    # Method generalizes functionality from Roman's MethodII.R line 391, shown below with additional comments by ab:
+    # Method generalizes functionality from Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R line 394,
+    # shown below with additional comments by ab:
     # ab: gooddata = dataframe of input counts per construct (row) by sample (column), scrubbed of any rows where both
     # ab: probes in construct target same gene.
     # gooddata[gooddata == 0] <- 1  # pseudocounts
@@ -25,7 +26,7 @@ class ScoringData:
         data_only_df[data_only_df == 0] = pseudocount
         return data_only_df  # i.e., gooddata after pseudocounting
 
-    # Method implements functionality from Roman's MethodII.R line 392:
+    # Method implements functionality from Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R line 395:
     # ab: gooddata = dataframe of input counts per construct (row) by sample (column), scrubbed of any rows where both
     # ab: probes in construct target same gene and with any 0 cells given a pseudocount of 1.
     # abundance<-apply(gooddata,2,sum)
@@ -37,7 +38,7 @@ class ScoringData:
         result.index = data_only_df.columns.values
         return result  # i.e., abundance
 
-    # Method extends Roman's MethodII.R line 393:
+    # Method extends Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R line 396:
     # ab: gooddata = dataframe of input counts per construct (row) by sample (column), scrubbed of any rows where both
     # ab: probes in construct target same gene and with any 0 cells given a pseudocount of 1.
     # ab: abundance = total number of counts in gooddata per sample
@@ -162,7 +163,7 @@ class ScoringData:
         symmetric_by_tuple_by_tuple_df.fillna(0, inplace=True)
         return symmetric_by_tuple_by_tuple_df
 
-    # Method extends Roman's MethodII.R lines 390-393:
+    # Method extends Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R lines 393-396:
     # ab: gooddata = dataframe of annotations for each construct and input counts per construct (row) by sample
     # ab: (column), scrubbed of any rows where both probes in construct target same gene.
     #
@@ -171,9 +172,10 @@ class ScoringData:
     # abundance<-apply(gooddata,2,sum)
     # y<-t(log2(t(gooddata)/abundance)) #log2 frequencies
     #
-    # Method also produces equivalent of "ab0" variable from Roman's MethodII.R line 5:
+    # Method also produces equivalent of "ab0" variable from Roman's
+    # analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R line 5:
     # ab: ab0 = log2 of counts thresholds by sample
-    # ab0<-c(-18.,-17.5,-18.,-18.,-18,-18,-17.5,-17.5)
+    # ab0<-c(-19.,-18.5,-18.5,-19.,-19.,-19.,-19.,-19.) #abundance threshold
     # from input data that are in different units.
     # Note that unlike R code, this code doesn't assume number of annotation columns or depend on number of timepoints.
     def generate_per_replicate_data_list(self, log2_counts_thresholds_per_sample_df, pseudocount=1):
@@ -189,7 +191,8 @@ class ScoringData:
         result = self._extract_replicate_data_list(log2_fractions, log2_fractions_thresholds_series)
         return result
 
-    # Method generalizes dataframe slice X[,6:(5+2*nt)] from Roman's MethodII.R (e.g., line 354, 390), where was
+    # Method generalizes dataframe slice X[,6:(5+2*nt)] from Roman's
+    # analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R (e.g., line 357, 393), where was
     # expected that first 5 columns are annotation, data starts in 6; nt = num timepts; 2 = number of replicates.
     # Note that unlike R code, this code doesn't assume number of annotation columns or depend on number of timepoints.
     def _get_data_only_df(self):
@@ -201,7 +204,7 @@ class ScoringData:
         data_only_df.index = self._input_counts_and_annotation_df[ns_extracter.get_probe_pair_id_header()]
         return data_only_df
 
-    # Method implements Roman's MethodII.R line 355:
+    # Method implements Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R line 358:
     # ab: X<-read.table(input_filename,sep="\t",header=TRUE)
     # ab: geneA and geneB are hard-coded expected column names
     # good <- (X$geneA != X$geneB)
@@ -231,7 +234,7 @@ class ScoringData:
 
         return col_headers_for_replicate
 
-    # Method extends Roman's MethodII.R lines 418-419:
+    # Method extends Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R lines 421-422:
     # ab: y = log2_fractions per construct per sample
     # ab: ab0 = log2 of counts thresholds by sample
     # ab: nt = number of timepoints
@@ -256,6 +259,3 @@ class ScoringData:
             replicate_data_list.append(curr_replicate_data)
 
         return replicate_data_list
-
-
-

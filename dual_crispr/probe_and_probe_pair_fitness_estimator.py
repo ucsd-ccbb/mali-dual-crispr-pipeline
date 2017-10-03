@@ -22,7 +22,8 @@ __status__ = "development"
 # numpy arrays the slots along those dimensions are not explicitly labeled with what gene/probe pair they pertain to.
 # Thus, these should be used with care.
 
-# Function generalizes functionality from Roman's MethodII.R lines 161-255, shown below with additional comments by ab:
+# Function generalizes functionality from Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R lines 164-228,
+# shown below with additional comments by ab:
 #
 # ab: fc is a symmetric probe-by-probe matrix where the value in each cell is the fc value for the construct including
 # ab: those two probes, or zero if there is no construct for that probe-by-probe combination.
@@ -62,7 +63,7 @@ __status__ = "development"
 #       ab: construct is either bad or non-existent.  This seems to be setting the values along the diagonal to the
 #       ab: sum of the weights for that probe (across all other probes it is paired with) plus a tiny value, presumably
 #       ab: to make sure the diagonal is now *never* zero.
-#       A[i,i]<-sum(w[,i])
+#       A[i,i]<-sum(w[,i])+small
 #    }
 #
 #    ab: apparently, "solve() function solves equation a %*% x = b for x, where b is a vector or matrix."
@@ -100,7 +101,7 @@ __status__ = "development"
 #       A<-w
 #       for (i in 1:n) {
 #          b[i]<-sum(fc[,i]*w[,i])
-#          A[i,i]<-sum(w[,i])
+#          A[i,i]<-sum(w[,i])+small
 #       }
 #       y<-solve(A,b)
 #       names(y)<-probes
@@ -200,8 +201,8 @@ def _calc_unnormed_probe_fitnesses_and_probe_pair_pi_scores(unnormed_construct_f
     return unnormed_fitness_per_tuple_series, pi_scores_by_tuple_by_tuple_df  # i.e., y, eij
 
 
-# Function generalizes functionality from Roman's MethodII.R lines 168-169 and 175-182, shown below with additional
-# comments by ab:
+# Function generalizes functionality from Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R lines 171-172
+# and 178-185, shown below with additional comments by ab:
 #
 # ab: w0 is a symmetric probe-by-probe matrix of initial weights, where the value in each cell is zero for "bad"
 # ab: and/or non-existent constructs and one for "good" constructs.
@@ -222,7 +223,7 @@ def _calc_unnormed_probe_fitnesses_and_probe_pair_pi_scores(unnormed_construct_f
 #       ab: construct is either bad or non-existent.  This seems to be setting the values along the diagonal to the
 #       ab: sum of the weights for that probe (across all other probes it is paired with) plus a tiny value, presumably
 #       ab: to make sure the diagonal is now *never* zero.
-#       A[i,i]<-sum(w[,i])
+#       A[i,i]<-sum(w[,i])+small
 #    }
 #
 #    ab: apparently, "solve() function solves equation a %*% x = b for x, where b is a vector or matrix."
@@ -280,7 +281,8 @@ def _calc_unnormed_fitness_per_tuple_series(unnormed_construct_fitnesses_by_tupl
     return unnormed_fitness_per_tuple_series  # i.e., y
 
 
-# Function generalizes functionality from Roman's MethodII.R lines 175-180, shown below with additional comments by ab:
+# Function generalizes functionality from Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R lines 179-183,
+# shown below with additional comments by ab:
 #
 # ab: w = current weights times initial weights
 # ab: n = number of probes, i = index of current probe
@@ -296,12 +298,9 @@ def _calc_unnormed_fitness_per_tuple_series(unnormed_construct_fitnesses_by_tupl
 #       ab: construct is either bad or non-existent.  This seems to be setting the values along the diagonal to the
 #       ab: sum of the weights for that probe (across all other probes it is paired with) plus a tiny value, presumably
 #       ab: to make sure the diagonal is now *never* zero.
-#       A[i,i]<-sum(w[,i])
+#       A[i,i]<-sum(w[,i])+small
 #    }
-#
-# TODO: why does scoring_main.R say A[i, i] <- sum(w[, i]) + small but MethodII.R says just A[i,i]<-sum(w[,i]) ?
-# Ask Roman which it should be!  This code implements the version that adds small.
-#
+
 # Note that the R code makes its calculations one probe at a time, while this calculates for all at once.
 #
 # I do not think the below code needs to be called in the single-probe construct case; since there is only one
@@ -328,7 +327,8 @@ def _get_num_probes(any_by_probe_by_probe_2darray):
     return any_by_probe_by_probe_2darray.shape[0]
 
 
-# Function generalizes functionality from Roman's MethodII.R lines 181-182, shown below with additional comments by ab:
+# Function generalizes functionality from Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R lines 184-185,
+# shown below with additional comments by ab:
 #
 #    ab: A = current weights * initial weights
 #    ab: b = sum of construct fitness*weight for all probes paired with this probe.
@@ -353,7 +353,8 @@ def _calc_per_probe_fits_in_r(revised_weights_matrix_2darray, sum_fc_times_weigh
     return unnormed_fitness_per_probe_array  # i.e., y
 
 
-# Function generalizes functionality from Roman's MethodII.R lines 183-189, shown below with additional comments by ab:
+# Function generalizes functionality from Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R lines 186-192,
+# shown below with additional comments by ab:
 #
 # ab: n = number of probes
 # ab: y = a matrix with 1 column and as many rows as there are probes, holding the fitted fitness for each probe
@@ -389,7 +390,8 @@ def _calc_pi_scores_by_tuple_by_tuple_df(unnormed_construct_fitnesses_by_tuple_b
     return pi_scores_by_tuple_by_tuple_df  # i.e., eij
 
 
-# Function generalizes functionality from Roman's MethodII.R lines 183-186, shown below with additional comments by ab:
+# Function generalizes functionality from Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R lines 186-191,
+# shown below with additional comments by ab:
 #
 # ab: n = number of probes
 # ab: y = a matrix with 1 column and as many rows as there are probes, holding the fitted fitness for each probe

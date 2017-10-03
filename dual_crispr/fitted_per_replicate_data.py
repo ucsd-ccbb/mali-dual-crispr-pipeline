@@ -60,7 +60,8 @@ def generate_fitted_per_rep_data_from_thresholded_per_rep_data(
 # you should not be running it again on the FittedPerReplicateData object later.
 
 
-# Function generalizes functionality from Roman's MethodII.R lines 38, 68-70, and 75-76, shown below with additional
+# Function generalizes functionality from Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R lines 39, 69-71,
+# and 76-77, shown below with additional
 # comments by ab:
 #    ac1<-x1[,1] #just a guess # ab: log2 frequencies for all constructs for first timepoint in this replicate
 #
@@ -116,7 +117,8 @@ def _calculate_normed_init_log2_fraction_per_construct_series(descriptive_stats_
     return normed_init_log2_fraction_per_construct_series  # i.e., ac1
 
 
-# Function generalizes functionality from Roman's MethodII.R lines 80-83, shown below with additional comments by ab:
+# Function generalizes functionality from Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R lines 81-84,
+# shown below with additional comments by ab:
 #    # ab: ac1 is the initial condition (in log2 frequency) for each construct in replicate 1
 #    # ab: fc is the combined fitness (across replicates) for each construct
 #    # ab: time is GLOBAL vector of timepoints (numbers, usually in days, in ascending order)
@@ -140,7 +142,8 @@ def _calculate_lambda_per_timepoint_series(normed_init_log2_fraction_per_constru
     return lambda_per_timepoint_series  # i.e., lambda1
 
 
-# Function generalizes calculation ac1+fc*time[i] from Roman's MethodII.R lines 81 & 87.
+# Function generalizes calculation ac1+fc*time[i] from Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R
+# lines 82 & 88:
 #    # ab: i = current *timepoint* (not construct)
 #    # ab: ac1 is the initial condition (in log2 frequency) for each construct in replicate 1
 #    # ab: fc is the combined fitness (across replicates) for each construct
@@ -161,7 +164,8 @@ def _calculate_normed_init_log2_fraction_plus_unnormed_fitness_mult_by_time_per_
     return normed_init_log2_fraction_plus_unnormed_fitness_mult_by_time_per_construct_per_timept_df  # i.e., ac1+fc*time
 
 
-# Function generalizes calculation fc*time[i] from Roman's MethodII.R lines 81 & 87.
+# Function generalizes calculation fc*time[i] from Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R lines
+# 82 & 88.
 #    # ab: i = current *timepoint* (not construct)
 #    # ab: fc is the combined fitness (across replicates) for each construct
 #    # ab: time is GLOBAL vector of timepoints (numbers, usually in days, in ascending order)
@@ -177,7 +181,8 @@ def _calculate_unnormed_fitness_mult_by_time_per_construct_per_timept_df(unnorme
     return unnormed_fitness_mult_by_time_per_construct_per_timept_df  # i.e., fc*time
 
 
-# Function generalizes functionality from Roman's MethodII.R lines 85-88, shown below with additional comments by ab:
+# Function generalizes functionality from Roman's analyze_dual-crispr_NA_combined_simple-null-w-lfdr.R lines 86-89,
+# shown below with additional comments by ab:
 #    # ab: x1 is log2 frequencies for the 1st replicate of all timepts
 #    xfit1<-x1 #for size
 #    # ab: I think the "for size" comment means that xfitX is being set to xX not because we're using *any* of the xX
